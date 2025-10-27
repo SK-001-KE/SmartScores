@@ -1,124 +1,149 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>About SmartScores</title>
-<link rel="manifest" href="manifest.json">
-<style>
-  body {
-    font-family: "Segoe UI", Tahoma, sans-serif;
-    background: #f9fafb;
-    margin: 0;
-    padding: 20px;
-    color: #111827;
-  }
-
-  .container {
-    max-width: 600px;
-    margin: auto;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    padding: 20px;
-  }
-
-  h1 {
-    text-align: center;
-    color: #1e40af;
-    font-size: 1.8rem;
-  }
-
-  p {
-    line-height: 1.6;
-  }
-
-  .section {
-    margin-top: 15px;
-  }
-
-  .version {
-    background: #e0e7ff;
-    padding: 10px;
-    border-radius: 8px;
-    margin-top: 10px;
-    text-align: center;
-    font-weight: bold;
-  }
-
-  .credit {
-    text-align: center;
-    margin-top: 25px;
-    color: #6b7280;
-    font-size: 0.9rem;
-  }
-
-  .btn {
-    display: block;
-    width: 100%;
-    background: #1e40af;
-    color: white;
-    text-align: center;
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 20px;
-    text-decoration: none;
-  }
-
-  .btn:hover {
-    background: #1d4ed8;
-  }
-
-  footer {
-    margin-top: 25px;
-    font-size: 0.85rem;
-    text-align: center;
-    color: #6b7280;
-  }
-
-  @media (max-width: 600px) {
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About SmartScores</title>
+  <link rel="icon" type="image/png" href="icons/icon-192.png" />
+  <style>
     body {
-      padding: 10px;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background-color: #f9fafb;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
-  }
-</style>
+
+    header {
+      background: linear-gradient(to right, #1e40af, #7b1f1f);
+      color: white;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    main {
+      flex: 1;
+      padding: 20px;
+      max-width: 700px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #1e40af;
+      margin-bottom: 0.5rem;
+    }
+
+    h2 {
+      color: #7b1f1f;
+      margin-top: 1.5rem;
+    }
+
+    p {
+      line-height: 1.6;
+      margin: 0.8rem 0;
+    }
+
+    ul {
+      margin: 0.8rem 0 1.5rem 1.5rem;
+    }
+
+    .version {
+      text-align: center;
+      color: #555;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+
+    footer {
+      background-color: #f3f4f6;
+      color: #555;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.9rem;
+    }
+
+    .back-btn {
+      display: inline-block;
+      background-color: #1e40af;
+      color: white;
+      text-decoration: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    .back-btn:hover {
+      background-color: #1d4ed8;
+    }
+
+    .logo {
+      display: block;
+      margin: 0 auto 1rem auto;
+      width: 100px;
+      height: 100px;
+      border-radius: 20px;
+    }
+
+    @media (max-width: 600px) {
+      main {
+        margin: 10px;
+        padding: 15px;
+      }
+      .logo {
+        width: 80px;
+        height: 80px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <header>
+    <h1>About SmartScores</h1>
+  </header>
 
-<div class="container">
-  <h1>About SmartScores</h1>
+  <main>
+    <img src="icons/icon-192.png" alt="SmartScores Logo" class="logo">
+    <div class="version">Version 1.0</div>
 
-  <div class="section">
-    <p><strong>SmartScores</strong> is a simple, efficient and mobile-friendly app designed to help teachers record, analyze and track their mean scores effortlessly — even offline!</p>
-  </div>
+    <p><strong>SmartScores</strong> is a lightweight Progressive Web App (PWA) designed to help teachers effortlessly record, track, and analyze students’ mean scores with smart insights and performance grading.</p>
 
-  <div class="section">
-    <h3>Key Features</h3>
+    <h2>Key Features</h2>
     <ul>
-      <li>📊 Save and review teacher mean scores by subject, grade, and stream</li>
-      <li>📱 Works offline and can be installed as an app (PWA)</li>
-      <li>📈 Generates automatic term summaries and AI insights</li>
-      <li>🧠 Smart grading using Exceeding / Meeting / Approaching / Below expectations</li>
-      <li>🧾 Export data or download printable PDF reports</li>
+      <li>📱 Works offline with PWA installation support</li>
+      <li>📊 Smart insight generation with grading colors and emojis</li>
+      <li>📂 Local data storage with reset option</li>
+      <li>🧮 Instant summary and averages by teacher, subject, and grade</li>
+      <li>🖨️ Printable reports and PDF downloads</li>
     </ul>
-  </div>
 
-  <div class="version">Version 1.0 — 2025</div>
+    <h2>Grading Rubric</h2>
+    <ul>
+      <li><span style="color:#15803d; font-weight:bold;">Exceeding Expectations (EE):</span> 75–100</li>
+      <li><span style="color:#2563eb; font-weight:bold;">Meeting Expectations (ME):</span> 41–74</li>
+      <li><span style="color:#ca8a04; font-weight:bold;">Approaching Expectations (AE):</span> 21–40</li>
+      <li><span style="color:#b91c1c; font-weight:bold;">Below Expectations (BE):</span> 0–20</li>
+    </ul>
 
-  <div class="credit">
-    Designed and developed with 💙 by <strong>Kariuki</strong> (SmartScores Project)
-  </div>
+    <p>SmartScores is created to empower teachers with quick feedback, instant summaries, and simplified data tracking — even when offline.</p>
 
-  <a href="index.html" class="btn">⬅️ Back to App</a>
+    <div style="text-align:center; margin-top:2rem;">
+      <a href="index.html" class="back-btn">⬅ Back to App</a>
+    </div>
+  </main>
 
   <footer>
-    &copy; 2025 SmartScores. All rights reserved.
+    &copy; <span id="year"></span> SmartScores | Built by Kariuki 2025
   </footer>
-</div>
 
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
-
