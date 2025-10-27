@@ -1,13 +1,10 @@
 {
-  "name": "Teacher Mean Score Tracker",
-  "short_name": "Mean Tracker",
-  "version": "1.0",
-  "description": "A PWA to track teacher mean scores by Kariuki 2025.",
+  "name": "SmartScores",
+  "short_name": "SmartScores",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f9fafb",
+  "background_color": "#ffffff",
   "theme_color": "#1e40af",
-  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "icons/icon-192.png",
