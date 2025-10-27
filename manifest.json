@@ -1,13 +1,13 @@
 {
   "name": "Teacher Mean Score Tracker",
-  "short_name": "MVS Tracker",
+  "short_name": "Mean Tracker",
   "version": "1.0",
-  "description": "A PWA for teachers to record and analyze mean scores with smart insights.",
+  "description": "A PWA to track teacher mean scores by Kariuki 2025.",
   "start_url": "./index.html",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#004aad",
+  "background_color": "#f9fafb",
+  "theme_color": "#1e40af",
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "icons/icon-192.png",
