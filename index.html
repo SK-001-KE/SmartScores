@@ -1,1 +1,76 @@
-<!doctype html><html><head><meta charset='utf-8'><title>Teacher Mean Score Tracker</title></head><body>App placeholder</body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Mean Score Tracker</title>
+
+  <!-- Manifest + Favicon -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- Style -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- jsPDF for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Teacher Mean Score Tracker</h1>
+    <p class="version">v1.0 | Kariuki 2025</p>
+  </header>
+
+  <main>
+    <form id="scoreForm">
+      <label>Teacher Name:</label>
+      <input type="text" id="teacherName" placeholder="Enter teacher name" required><br>
+
+      <label>Subject:</label>
+      <input type="text" id="subject" placeholder="Enter subject" required><br>
+
+      <label>Class Stream:</label>
+      <input type="text" id="stream" placeholder="Enter class stream" required><br>
+
+      <label>Mean Score:</label>
+      <input type="number" id="meanScore" placeholder="0–100" required><br>
+
+      <button type="submit">Save Record</button>
+    </form>
+
+    <div class="controls">
+      <button id="exportBtn">Export JSON</button>
+      <button id="downloadPdfBtn">Download PDF</button>
+      <button id="resetBtn">Reset App</button>
+    </div>
+
+    <section id="recordsSection">
+      <h2>Saved Records</h2>
+      <table id="recordsTable">
+        <thead>
+          <tr>
+            <th>Teacher</th>
+            <th>Subject</th>
+            <th>Stream</th>
+            <th>Mean Score</th>
+            <th>Grade</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section id="insightSection">
+      <h2>Smart Insights 💡</h2>
+      <div id="insightOutput"></div>
+    </section>
+  </main>
+
+  <footer>
+    <a href="about.html">About</a>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
