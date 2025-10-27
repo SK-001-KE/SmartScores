@@ -164,11 +164,15 @@
 
 <script src="app.js"></script>
   <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-      .then(() => console.log('✅ Service Worker registered'))
-      .catch(err => console.error('SW registration failed:', err));
-  }
+ const cacheAssets = [
+  '/',
+  '/index.html',
+  '/app.js',
+  '/style.css',
+  '/manifest.json',
+  '/icons/icon-512.png',
+];
+
 </script>
 
 </body>
