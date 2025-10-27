@@ -1,179 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" href="icons/icon-512.png" type="image/png" />
-
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Teacher Mean Score Tracker v1.0</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#1e40af" />
+  <title>SmartScores v1.0</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon-512.png" type="image/png" />
   <style>
     body {
       font-family: "Segoe UI", Tahoma, sans-serif;
+      margin: 12px;
       background: #f9fafb;
-      color: #111827;
-      margin: 20px;
+      color: #111;
     }
-    h1 {
+
+    header {
       text-align: center;
-      color: #1e40af;
-    }
-    form, .summary, .dashboard {
-      background: #fff;
-      padding: 16px;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       margin-bottom: 20px;
     }
-    label { display: block; font-weight: 600; margin-top: 10px; }
+
+    h1 {
+      color: #1e40af;
+      font-size: 1.8rem;
+      margin: 0;
+    }
+
+    .form-section {
+      background: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+
     input, select, button {
       width: 100%;
-      padding: 8px;
-      margin-top: 4px;
+      box-sizing: border-box;
+      margin-top: 6px;
+      padding: 10px;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      font-size: 16px;
     }
+
     button {
+      margin-top: 14px;
       background: #1e40af;
-      color: white;
-      font-weight: bold;
+      color: #fff;
+      font-weight: 600;
       cursor: pointer;
-      margin-top: 10px;
+      transition: 0.2s;
     }
+
     button:hover { background: #1d4ed8; }
-    table {
+
+    #summaryTable {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 15px;
+      margin-top: 20px;
+      background: #fff;
     }
-    th, td {
+
+    #summaryTable th, #summaryTable td {
       border: 1px solid #ccc;
       padding: 8px;
-      text-align: left;
+      text-align: center;
     }
-    th { background: #e0e7ff; }
-    .insight {
-      margin-top: 15px;
-      padding: 10px;
-      border-left: 5px solid #1e40af;
-      background: #f1f5ff;
-      border-radius: 8px;
+
+    #summaryTable th {
+      background: #e5e7eb;
     }
-    .grade-tag {
+
+    #insightSection {
+      background: #fff;
+      padding: 14px;
+      border-radius: 10px;
+      margin-top: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .tag {
+      font-weight: 600;
+      color: white;
       padding: 3px 6px;
       border-radius: 6px;
-      color: #fff;
-      font-size: 12px;
-      font-weight: bold;
     }
-    .EE { background: #16a34a; }
-    .ME { background: #2563eb; }
-    .AE { background: #f59e0b; }
+
     .BE { background: #dc2626; }
-    .footer {
-      text-align: right;
-      font-size: 12px;
-      margin-top: 10px;
-      color: #555;
+    .AE { background: #ea580c; }
+    .ME { background: #2563eb; }
+    .EE { background: #16a34a; }
+
+    @media (max-width: 480px) {
+      body { font-size: 15px; }
+      h1 { font-size: 1.4rem; }
     }
   </style>
 </head>
 <body>
+  <header>
+    <h1>SmartScores v1.0</h1>
+    <p><em>Teacher Mean Score Tracker — Kariuki 2025</em></p>
+  </header>
 
-<h1>🏫 Teacher Mean Score Tracker v1.0</h1>
+  <div class="form-section">
+    <label>Teacher Name:</label>
+    <input type="text" id="teacherName" placeholder="Enter teacher name" required />
 
-<!-- Data Entry Form -->
-<form id="dataForm">
-  <label>Teacher Name:</label>
-  <input id="teacherName" required />
+    <label>Subject:</label>
+    <select id="subject" required>
+      <option value="">Select Subject</option>
+      <option>Mathematics</option>
+      <option>English</option>
+      <option>Kiswahili</option>
+      <option>Science</option>
+      <option>Agriculture and Nutrition</option>
+      <option>Creative Arts</option>
+      <option>Social Studies</option>
+      <option>CRE</option>
+      <option>Pre-Technical Studies</option>
+    </select>
 
-  <label>Subject:</label>
-  <select id="subject" required>
-    <option value="">Select Subject</option>
-    <option>Mathematics</option>
-    <option>English</option>
-    <option>Kiswahili</option>
-    <option>Science</option>
-    <option>Agriculture and Nutrition</option>
-    <option>Creative Arts</option>
-    <option>Social Studies</option>
-    <option>CRE</option>
-    <option>Pre-Technical Studies</option>
-  </select>
+    <label>Grade:</label>
+    <select id="grade" required>
+      <option value="">Select Grade</option>
+      <option>4</option>
+      <option>5</option>
+      <option>6</option>
+      <option>7</option>
+      <option>8</option>
+      <option>9</option>
+    </select>
 
-  <label>Grade:</label>
-  <select id="grade" required>
-    <option value="">Select Grade</option>
-    <option>4</option><option>5</option><option>6</option>
-    <option>7</option><option>8</option><option>9</option>
-  </select>
+    <label>Stream:</label>
+    <select id="stream" required>
+      <option value="">Select Stream</option>
+      <option>Faith</option>
+      <option>Glory</option>
+      <option>Joy</option>
+      <option>Love</option>
+      <option>Peace</option>
+      <option>Unity</option>
+    </select>
 
-  <label>Stream:</label>
-  <select id="stream" required>
-    <option value="">Select Stream</option>
-    <option>Faith</option><option>Glory</option><option>Joy</option>
-    <option>Love</option><option>Peace</option><option>Unity</option>
-  </select>
+    <label>Term:</label>
+    <select id="term" required>
+      <option value="">Select Term</option>
+      <option>Term 1</option>
+      <option>Term 2</option>
+      <option>Term 3</option>
+    </select>
 
-  <label>Term:</label>
-  <select id="term" required>
-    <option value="">Select Term</option>
-    <option>Term 1</option><option>Term 2</option><option>Term 3</option>
-  </select>
+    <label>Exam Type:</label>
+    <select id="examType" required>
+      <option value="">Select Exam Type</option>
+      <option>Opener Exam</option>
+      <option>Mid Term Exam</option>
+      <option>End Term Exam</option>
+    </select>
 
-  <label>Exam Type:</label>
-  <select id="examType" required>
-    <option value="">Select Exam Type</option>
-    <option>Opener Exam</option>
-    <option>Mid Term Exam</option>
-    <option>End Term Exam</option>
-  </select>
+    <label>Year:</label>
+    <input type="number" id="year" min="2020" max="2100" value="2025" />
 
-  <label>Year:</label>
-  <input type="number" id="year" value="2025" />
+    <label>Mean Score:</label>
+    <input type="number" id="meanScore" min="0" max="100" placeholder="0-100" />
 
-  <label>Mean Score:</label>
-  <input type="number" id="meanScore" required min="0" max="100" />
+    <button id="saveBtn">💾 Save Record</button>
+    <button id="resetBtn" style="background:#dc2626;">🗑️ Reset All Data</button>
+  </div>
 
-  <button type="submit">💾 Save Record</button>
-</form>
+  <section id="summarySection">
+    <table id="summaryTable">
+      <thead>
+        <tr>
+          <th>Teacher</th>
+          <th>Subject</th>
+          <th>Grade</th>
+          <th>Stream</th>
+          <th>Term</th>
+          <th>Exam Type</th>
+          <th>Year</th>
+          <th>Mean</th>
+          <th>Performance</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
 
-<div class="dashboard">
-  <button onclick="resetData()">🗑️ Reset Data</button>
-  <button onclick="generateInsight()">🧠 Generate Insight</button>
-  <button onclick="downloadPDF()">📄 Download PDF</button>
-</div>
+  <section id="insightSection">
+    <h3>🧠 Insight</h3>
+    <p id="insightText">No data yet. Add records to see performance feedback.</p>
+  </section>
 
-<div class="summary">
-  <h2>Summary Table</h2>
-  <table id="summaryTable">
-    <thead>
-      <tr>
-        <th>Teacher</th><th>Subject</th><th>Grade</th><th>Stream</th>
-        <th>Term</th><th>Exam Type</th><th>Year</th><th>Mean</th><th>Performance</th><th>Date</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-  <div class="insight" id="insightBox">💡 Insights will appear here...</div>
-</div>
-
-<div class="footer">Kariuki 2025</div>
-
-<script src="app.js"></script>
+  <script src="app.js"></script>
   <script>
- const cacheAssets = [
-  '/',
-  '/index.html',
-  '/app.js',
-  '/style.css',
-  '/manifest.json',
-  '/icons/icon-512.png',
-];
-
-</script>
-
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(() => console.log('✅ Service Worker registered'))
+        .catch(err => console.error('SW registration failed:', err));
+    }
+  </script>
 </body>
 </html>
