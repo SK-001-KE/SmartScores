@@ -1,0 +1,6 @@
+{
+  "name": "Teacher Mean Score Tracker",
+  "short_name": "MVS Tracker",
+  "start_url": "./",
+  "display": "standalone"
+}
