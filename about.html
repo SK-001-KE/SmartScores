@@ -40,6 +40,93 @@
   p {
     line-height: 1.6;
   }
+  ul {
+    line-height: 1.6;
+  }
   footer {
     text-align: center;
-    mar
+    margin-top: 40px;
+    font-size: 13px;
+    color: #555;
+  }
+  a {
+    color: #004aad;
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+
+  /* Floating Back Button */
+  .float-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: linear-gradient(90deg, #004aad, #800000);
+    color: white;
+    padding: 12px 18px;
+    border-radius: 30px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: 0.3s ease;
+  }
+  .float-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Teacher Mean Score Tracker</h1>
+</header>
+
+<main>
+  <h2>About This App</h2>
+  <p>
+    <strong>Teacher Mean Score Tracker</strong> is a Progressive Web App (PWA) that helps teachers record,
+    analyze, and visualize their students' mean scores. It provides smart insights, grading rubrics, and
+    printable reports — even when offline.
+  </p>
+  
+  <h2>Key Features</h2>
+  <ul>
+    <li>📊 Record and update mean scores easily.</li>
+    <li>🧠 Get instant smart insights with color-coded feedback.</li>
+    <li>📄 Download printable reports with grading rubrics.</li>
+    <li>🧹 Reset or export your data anytime.</li>
+    <li>📱 Works offline — installable on any device.</li>
+  </ul>
+
+  <h2>Grading Rubric</h2>
+  <ul>
+    <li><span style="color:#008000;">75–100: Exceeding Expectations (EE)</span></li>
+    <li><span style="color:#004aad;">41–74: Meeting Expectations (ME)</span></li>
+    <li><span style="color:#cc7a00;">21–40: Approaching Expectations (AE)</span></li>
+    <li><span style="color:#d00000;">0–20: Below Expectations (BE)</span></li>
+  </ul>
+
+  <h2>Version Info</h2>
+  <p><strong>App Version:</strong> v1.0</p>
+  <p><strong>Release Date:</strong> <script>
+      document.write(new Date().toLocaleDateString('en-GB', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      }))
+    </script>
+  </p>
+
+  <h2>Credits</h2>
+  <p>Developed with passion and dedication by <strong>Kariuki 2025</strong>.</p>
+</main>
+
+<!-- Floating Back Button -->
+<a href="index.html" class="float-btn">⬅ Back to App</a>
+
+<footer>
+  &copy; <script>document.write(new Date().getFullYear())</script> Kariuki 2025. All Rights Reserved.
+</footer>
+
+</body>
+</html>
