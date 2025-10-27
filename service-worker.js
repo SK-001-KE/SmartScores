@@ -3,6 +3,7 @@ const CACHE_NAME = "smartscores-v1.0";
 const FILES_TO_CACHE = [
   "./",
   "./index.html",
+  "./about.html",
   "./app.js",
   "./manifest.json",
   "./icons/icon-192.png",
