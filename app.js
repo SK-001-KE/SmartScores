@@ -1,5 +1,3 @@
-// app.js — SmartScores v2.0
-
 (function () {
   // Check if service workers are supported in the browser
   if ('serviceWorker' in navigator) {
@@ -73,6 +71,7 @@
       return [];
     }
   }
+
   function saveRecords(records) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
   }
@@ -308,11 +307,9 @@
       <p style="margin:4px 0 12px 0;color:#6b7280;">${new Date().toLocaleString()}</p>
     </div>`;
 
-    // Use current tables' HTML but remove action buttons or interactive elements
-    // Clone records table and summary table
+
+    // Clone tables and append to report
     const recordsClone = recordsTable.cloneNode(true);
-    // remove tbody children will be replaced with current rendered rows
-    // ensure cloned table uses the currently rendered rows (it does)
     const summaryClone = summaryTable.cloneNode(true);
 
     report.innerHTML = logoHtml + '<h3 style="color:#800000;margin-bottom:6px;">Recorded Scores</h3>';
