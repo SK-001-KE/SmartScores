@@ -1,65 +1,158 @@
+/* SmartScores v2.0 Styling */
+/* Blue – Maroon – White Theme */
+
+:root {
+  --blue: #1e90ff;
+  --maroon: #800000;
+  --white: #ffffff;
+  --light-bg: #f8f9fa;
+  --border: #ccc;
+}
+
 body {
-  font-family: Arial, sans-serif;
+  font-family: "Poppins", sans-serif;
   margin: 0;
-  background: #f8f9fc;
-  color: #222;
+  padding: 0;
+  background-color: var(--light-bg);
+  color: #333;
 }
 
 header {
-  background: linear-gradient(to right, #004aad, #800000);
-  color: white;
+  background-color: var(--maroon);
+  color: var(--white);
+  padding: 15px;
   text-align: center;
-  padding: 1em 0;
 }
 
-h1 { margin: 0; }
-.version { font-size: 0.9em; opacity: 0.8; }
+h1 {
+  font-size: 1.3rem;
+  margin: 0;
+}
 
 main {
-  padding: 1em;
+  padding: 10px;
   max-width: 700px;
   margin: auto;
 }
 
-form, .controls, #recordsSection, #insightSection {
-  background: white;
-  padding: 1em;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  margin-bottom: 1em;
+label {
+  display: block;
+  margin-top: 10px;
+  font-weight: 600;
 }
 
-input, button {
+input,
+select {
   width: 100%;
-  padding: 0.6em;
-  margin: 0.3em 0;
+  padding: 8px;
+  border: 1px solid var(--border);
   border-radius: 6px;
-  border: 1px solid #ccc;
+  margin-bottom: 5px;
+  font-size: 14px;
 }
 
 button {
-  background: #004aad;
-  color: white;
+  margin: 5px 3px;
+  padding: 10px 14px;
   border: none;
+  border-radius: 6px;
   cursor: pointer;
-  font-weight: bold;
+  font-size: 14px;
+  color: var(--white);
+  background-color: var(--blue);
+  transition: background-color 0.3s;
 }
-button:hover { background: #800000; }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
+button:hover {
+  background-color: #006ad1;
 }
-th, td {
-  border: 1px solid #ddd;
-  padding: 0.5em;
-  text-align: center;
+
+button.danger {
+  background-color: var(--maroon);
 }
 
 footer {
   text-align: center;
-  padding: 1em;
-  background: #004aad;
-  color: white;
+  padding: 10px;
+  background-color: var(--maroon);
+  color: var(--white);
+  margin-top: 20px;
 }
-footer a { color: white; text-decoration: underline; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  font-size: 13px;
+  background-color: var(--white);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+th {
+  background-color: var(--blue);
+  color: var(--white);
+  padding: 8px;
+}
+
+td {
+  border-bottom: 1px solid #ddd;
+  padding: 6px;
+  text-align: center;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* Modal Styling */
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.hidden {
+  display: none;
+}
+
+.modal-content {
+  background-color: var(--white);
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  width: 85%;
+  max-width: 350px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.modal-buttons button {
+  margin: 10px;
+  width: 80px;
+}
+
+#summarySection table {
+  width: 100%;
+  margin-top: 10px;
+}
+
+#insightSection {
+  margin-top: 15px;
+  background-color: #eef5ff;
+  border-left: 5px solid var(--blue);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+/* Mobile Optimization */
+@media (max-width: 600px) {
+  h1 { font-size: 1.1rem; }
+  button { font-size: 12px; padding: 8px; }
+  td, th { font-size: 12px; }
+}
