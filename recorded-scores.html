@@ -3,44 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Recorded Scores - SmartScores v2.0</title>
+  <title>Recorded Scores - SmartScores</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" href="favicon.png" />
   <meta name="theme-color" content="#2563eb" />
-  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Same styles as in other pages */
+  </style>
 </head>
 <body>
   <header>
     <img src="logo.png" alt="SmartScores Logo" />
-    <h1>SmartScores v2.0</h1>
+    <h1>Recorded Scores & Insights</h1>
   </header>
 
   <nav>
-    <a href="data-entry.html">📋 Data Entry</a>
-    <a href="recorded-scores.html">📊 Recorded Scores</a>
-    <a href="summary-insights.html">📈 Summary & Insights</a>
+    <a href="index.html">🏠 Dashboard</a>
+    <a href="data-entry.html">📋 Record Scores</a>
+    <a href="about.html">ℹ️ About</a>
   </nav>
 
   <main>
-    <div class="card">
-      <h2 style="color: var(--maroon);">📊 Recorded Scores</h2>
-      <table id="recordsTable">
-        <thead>
-          <tr>
-            <th>Teacher</th>
-            <th>Subject</th>
-            <th>Grade</th>
-            <th>Stream</th>
-            <th>Term</th>
-            <th>Exam Type</th>
-            <th>Year</th>
-            <th>Mean Score</th>
-            <th>Rubric</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+    <h2>Average Score Summary</h2>
+    <table id="summaryTable">
+      <!-- Average score data -->
+    </table>
+
+    <h2>Recorded Scores</h2>
+    <table id="recordsTable">
+      <!-- Table with recorded scores -->
+    </table>
   </main>
 
   <footer>
