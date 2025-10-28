@@ -1,13 +1,14 @@
 {
-  "name": "SmartScores",
+  "name": "SmartScores v2.0",
   "short_name": "SmartScores",
   "description": "Teacher Mean Score Tracker — Kariuki 2025",
-  "version": "1.0",
+  "version": "2.0",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#1e40af",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
   "orientation": "portrait",
+  "scope": "./",
   "icons": [
     {
       "src": "icons/icon-192.png",
