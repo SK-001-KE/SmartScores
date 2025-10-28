@@ -1,40 +1,50 @@
-// service-worker.js — SmartScores v2.0 (Updated)
-
-// 1. CRITICAL: INCREMENT THE CACHE NAME to force a refresh of all assets
-const CACHE_NAME = "smartscores-v2.1"; 
-
-const urlsToCache = [
-  "index.html",
-  "about.html",
-  "app.js",
-  "favicon.png",
-  "manifest.json",
-  
-  // 2. REQUIRED: Add the external PDF libraries used in index.html for offline support
-  "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
-  "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"
+// SmartScores PWA Service Worker
+const CACHE_NAME = "smartscores-v1.0";
+const FILES_TO_CACHE = [
+  "./",
+  "./index.html",
+  "./app.js",
+  "./manifest.json",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
 ];
 
-self.addEventListener("install", e => {
-  console.log('[Service Worker] Installing new version...');
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
-  );
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(FILES_TO_CACHE);
+    })
+  );
+  self.skipWaiting();
 });
 
-self.addEventListener("fetch", e => {
-  e.respondWith(
-    // Cache-First strategy
-    caches.match(e.request).then(response => response || fetch(e.request))
-  );
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keyList) => {
+      return Promise.all(
+        keyList.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
 });
 
-self.addEventListener("activate", e => {
-  console.log('[Service Worker] Clearing old caches...');
-  e.waitUntil(
-    // Delete all caches that don't match the new CACHE_NAME (v2.1)
-    caches.keys().then(keys => Promise.all(
-      keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-    ))
-  );
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return (
+        response ||
+        fetch(event.request).then((res) => {
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request.url, res.clone());
+            return res;
+          });
+        })
+      );
+    }).catch(() => caches.match("./index.html"))
+  );
 });
