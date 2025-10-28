@@ -82,7 +82,7 @@ function displayRecords() {
     const tableBody = document.querySelector('#recordsTable tbody');
     tableBody.innerHTML = '';
 
-    records.forEach((record, index) => {
+    records.forEach((record) => {
         const row = tableBody.insertRow();
         row.insertCell().textContent = record.teacher;
         row.insertCell().textContent = record.subject;
@@ -227,8 +227,13 @@ function importExcel(event) {
 }
 
 // Function to download the report as a PDF
-// NOTE: This relies on the external html2canvas and jspdf libraries
 function downloadPDF() {
+    // Check for the PDF libraries; this is the key to preventing the original error.
+    if (!window.jspdf || typeof html2canvas !== 'function') {
+        alert("PDF generation libraries (html2canvas and jsPDF) are not loaded correctly. Check your index.html file.");
+        return;
+    }
+
     const { jsPDF } = window.jspdf;
     const element = document.querySelector('main'); // Capture the main content area
 
@@ -261,7 +266,7 @@ function downloadPDF() {
         pdf.save('SmartScores_Report.pdf');
 
         // Restore the action buttons
-        dashboardControls.style.display = 'block';
+        dashboardControls.style.display = 'flex'; // Changed to 'flex' to match your inline style in HTML
     });
 }
 
