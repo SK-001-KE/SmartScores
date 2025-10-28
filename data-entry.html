@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Entry - SmartScores v2.0</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="SmartScores Logo" />
+    <h1>SmartScores v2.0</h1>
+  </header>
+
+  <nav>
+    <a href="data-entry.html">📋 Data Entry</a>
+    <a href="recorded-scores.html">📊 Recorded Scores</a>
+    <a href="summary-insights.html">📈 Summary & Insights</a>
+  </nav>
+
+  <main>
+    <div class="card">
+      <h2 style="color: var(--blue);">📋 Record Teacher Mean Scores</h2>
+
+      <label>Teacher's Name</label>
+      <input type="text" id="teacherName" placeholder="Enter teacher name" />
+
+      <label>Subject</label>
+      <select id="subject">
+        <option value="">--Select Subject--</option>
+        <option>Mathematics</option>
+        <option>English</option>
+        <option>Kiswahili</option>
+        <option>Science</option>
+        <option>Agriculture and Nutrition</option>
+        <option>Creative Arts</option>
+        <option>Social Studies</option>
+        <option>CRE</option>
+        <option>Pre-Technical Studies</option>
+      </select>
+
+      <label>Grade</label>
+      <select id="grade">
+        <option value="">--Select Grade--</option>
+        <option>4</option><option>5</option><option>6</option>
+        <option>7</option><option>8</option><option>9</option>
+      </select>
+
+      <label>Stream</label>
+      <select id="stream">
+        <option value="">--Select Stream--</option>
+        <option>Faith</option><option>Glory</option><option>Joy</option>
+        <option>Love</option><option>Peace</option><option>Unity</option>
+      </select>
+
+      <label>Term</label>
+      <select id="term">
+        <option value="">--Select Term--</option>
+        <option>Term 1</option>
+        <option>Term 2</option>
+        <option>Term 3</option>
+      </select>
+
+      <label>Exam Type</label>
+      <select id="examType">
+        <option value="">--Select Exam Type--</option>
+        <option>Opener Exam</option>
+        <option>Mid Term Exam</option>
+        <option>End Term Exam</option>
+      </select>
+
+      <label>Current Year</label>
+      <input type="number" id="year" placeholder="Enter Year e.g. 2025" />
+
+      <label>Mean Score</label>
+      <input type="number" id="meanScore" placeholder="Enter Mean Score (0-100)" />
+
+      <button onclick="saveRecord()">💾 Save Record</button>
+    </div>
+  </main>
+
+  <footer>
+    SmartScores v2.0 © Kariuki 2025
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
