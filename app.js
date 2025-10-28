@@ -18,16 +18,61 @@ function saveToLocalStorage() {
     localStorage.setItem('meanScoreRecords', JSON.stringify(records));
 }
 
-// --- 2. RECORD MANAGEMENT ---
+// --- 2. UTILITY & UI FUNCTIONS ---
 
-// Custom function to replace browser alerts and confirms
-function showMessageBox(title, message, type, callback) {
-    // Simple implementation using browser alert/confirm for expediency.
-    if (type === 'confirm' && callback) {
-        const result = window.confirm(message);
-        callback(result);
+// Function to replace browser alerts and confirms with a custom modal UI
+function showMessageBox(title, message, type = 'info', callback = () => {}) {
+    // Ensure existing message box is removed
+    let existingBox = document.getElementById('customMessageBox');
+    if (existingBox) existingBox.remove();
+
+    // Create dark overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'customMessageBoxOverlay';
+    overlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.5); z-index: 9999;
+    `;
+    document.body.appendChild(overlay);
+
+    const box = document.createElement('div');
+    box.id = 'customMessageBox';
+    box.style.cssText = `
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        padding: 20px; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        z-index: 10000; max-width: 350px; text-align: center;
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+        border-top: 5px solid ${type === 'error' ? '#dc2626' : type === 'success' ? '#10b981' : '#1e40af'};
+    `;
+
+    const closeBox = (result) => {
+        box.remove();
+        overlay.remove();
+        if (type === 'confirm') {
+            callback(result);
+        }
+    };
+
+    box.innerHTML = `
+        <h3 style="margin-top: 0; color: ${type === 'error' ? '#dc2626' : '#222'};">${title}</h3>
+        <p style="margin-bottom: 20px;">${message}</p>
+        <div>
+            ${type === 'confirm' ? `
+                <button id="confirmYes" style="background: #10b981; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px; font-weight: bold;">Yes</button>
+                <button id="confirmNo" style="background: #dc2626; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Cancel</button>
+            ` : `
+                <button id="alertClose" style="background: #1e40af; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">OK</button>
+            `}
+        </div>
+    `;
+
+    document.body.appendChild(box);
+
+    if (type === 'confirm') {
+        document.getElementById('confirmYes').onclick = () => closeBox(true);
+        document.getElementById('confirmNo').onclick = () => closeBox(false);
     } else {
-        window.alert(`${title}: ${message}`);
+        document.getElementById('alertClose').onclick = () => closeBox();
     }
 }
 
@@ -39,6 +84,8 @@ function getRubric(score) {
     if (score >= 50) return 'Average (D)';
     return 'Needs Improvement (E)';
 }
+
+// --- 3. RECORD MANAGEMENT ---
 
 // Function to save a new score record
 function saveRecord() {
@@ -102,16 +149,24 @@ function displayRecords() {
         row.insertCell().textContent = record.term;
         row.insertCell().textContent = record.examType;
         row.insertCell().textContent = record.year;
-        // Apply class for visual feedback
+        
+        // Apply styling for visual feedback based on score
         const scoreCell = row.insertCell();
         scoreCell.textContent = record.meanScore.toFixed(2);
         scoreCell.style.fontWeight = 'bold';
         
+        // Conditional styling based on Rubric
+        let color = '#333';
+        if (record.meanScore >= 80) color = '#10b981'; // Green
+        else if (record.meanScore >= 50) color = '#f59e0b'; // Orange
+        else color = '#dc2626'; // Red
+        scoreCell.style.color = color;
+
         row.insertCell().textContent = record.rubric;
     });
 }
 
-// --- 3. SUMMARY CALCULATION ---
+// --- 4. SUMMARY CALCULATION ---
 
 // Function to calculate and display the average score summary
 function calculateSummary() {
@@ -120,6 +175,7 @@ function calculateSummary() {
     let overallCount = 0;
 
     records.forEach(record => {
+        // Group by Grade, Subject, and Stream
         const key = `${record.grade}-${record.subject}-${record.stream}`;
         if (!summaryData[key]) {
             summaryData[key] = {
@@ -140,14 +196,27 @@ function calculateSummary() {
     const summaryTableBody = document.querySelector('#summaryTable tbody');
     summaryTableBody.innerHTML = '';
 
-    Object.values(summaryData).forEach(data => {
+    // Sort summary data by Grade then Subject
+    const sortedSummary = Object.values(summaryData).sort((a, b) => {
+        if (a.grade !== b.grade) return a.grade.localeCompare(b.grade);
+        return a.subject.localeCompare(b.subject);
+    });
+
+
+    sortedSummary.forEach(data => {
         const average = data.sum / data.count;
 
         const row = summaryTableBody.insertRow();
         row.insertCell().textContent = data.grade;
         row.insertCell().textContent = data.subject;
         row.insertCell().textContent = data.stream;
-        row.insertCell().textContent = average.toFixed(2);
+        
+        const avgCell = row.insertCell();
+        avgCell.textContent = average.toFixed(2);
+        avgCell.style.fontWeight = 'bold';
+        if (average >= 70) avgCell.style.color = '#059669'; // Dark Green
+        else if (average >= 50) avgCell.style.color = '#ca8a04'; // Dark Yellow
+        else avgCell.style.color = '#dc2626'; // Red
     });
 
     displayInsight(overallSum / overallCount);
@@ -158,11 +227,11 @@ function displayInsight(overallAverage) {
     const insightBox = document.getElementById('insightBox');
     insightBox.innerHTML = '';
 
-    if (records.length === 0) {
+    if (records.length === 0 || isNaN(overallAverage)) {
         insightBox.textContent = 'No records available to generate insights.';
         insightBox.style.borderLeftColor = '#2563eb';
-        insightBox.style.background = '#f1f5f9';
-        insightBox.style.color = '#555';
+        insightBox.style.background = '#e8f0fe';
+        insightBox.style.color = '#1e40af';
         return;
     }
 
@@ -171,24 +240,25 @@ function displayInsight(overallAverage) {
     let color = '#2563eb'; // Default to blue
 
     if (overallAverage >= 70) {
-        insightText += 'Excellent performance! Maintain this momentum.';
-        color = '#10b981'; // Green for excellent
+        insightText += 'Excellent performance! The overall trend is strong. Focus on maintaining or slightly increasing scores.';
+        color = '#059669'; // Green for excellent
     } else if (overallAverage >= 50) {
-        insightText += 'Good progress. Focus on areas below 50% for improvement.';
-        color = '#f59e0b'; // Yellow/Orange for caution
+        insightText += 'Good progress. Consider targeted interventions for subjects/streams with averages below 50% to boost overall performance.';
+        color = '#ca8a04'; // Yellow/Orange for caution
     } else {
-        insightText += 'Attention needed! Develop targeted interventions to boost performance across streams/subjects.';
+        insightText += 'Attention needed! Develop specific, urgent interventions to boost performance across all streams and subjects.';
         color = '#dc2626'; // Red for warning
     }
 
     insightBox.textContent = insightText;
     insightBox.style.borderLeftColor = color;
-    // Calculate a light background color based on the border color
+    // Set background color to a very light shade of the insight color
+    const lightBg = color.replace('#', '') + '30'; // Adds a light alpha layer (approx 18%)
     insightBox.style.background = `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(color.slice(3, 5), 16)}, ${parseInt(color.slice(5, 7), 16)}, 0.1)`;
     insightBox.style.color = color;
 }
 
-// --- 4. UTILITY / DASHBOARD CONTROLS ---
+// --- 5. DATA UTILITY / DASHBOARD CONTROLS ---
 
 // Function to reset all data
 function resetData() {
@@ -260,11 +330,12 @@ function importExcel(event) {
     event.target.value = ''; 
 }
 
+
 // Function to download the report as a clean, data-driven PDF
 function downloadPDF() {
-    // Check for the required PDF libraries using the correct global object and property access
+    // Check for the required PDF libraries using the correct global object access
     if (!window.jspdf || !window.jspdf.jsPDF || !window.jspdf.AcroForm.autoTable) {
-        showMessageBox("Error", "PDF generation libraries (jsPDF and autotable) are not loaded correctly. Check your index.html file.", 'error');
+        showMessageBox("Error", "PDF generation libraries (jsPDF and autotable) are not loaded correctly. Please check the script tags in your HTML file.", 'error');
         return;
     }
 
@@ -273,15 +344,14 @@ function downloadPDF() {
         return;
     }
 
-    // FIX: Access the jsPDF constructor correctly from the global object
     const jsPDF = window.jspdf.jsPDF;
     const pdf = new jsPDF('p', 'mm', 'a4');
     
-    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     let y = 15; // Vertical position tracker
 
     // --- 1. Header and Title ---
-    pdf.setFontSize(20);
+    pdf.setFontSize(22);
     pdf.setTextColor(37, 99, 235); // Blue
     pdf.text("SmartScores Teacher Mean Score Report", 10, y);
     y += 8;
@@ -292,17 +362,17 @@ function downloadPDF() {
     y += 12;
 
     // --- 2. Overall Summary & Insight ---
-    pdf.setFontSize(14);
+    pdf.setFontSize(16);
     pdf.setTextColor(128, 0, 0); // Maroon
     pdf.text("📈 Overall Performance Summary", 10, y);
-    y += 6;
+    y += 7;
 
     let overallAverage = 0;
     if (records.length > 0) {
         const totalSum = records.reduce((sum, r) => sum + r.meanScore, 0);
         overallAverage = totalSum / records.length;
     }
-    const avgText = `Overall Mean Score: ${overallAverage.toFixed(2)}`;
+    const avgText = `Overall Mean Score: ${overallAverage.toFixed(2)}%`;
     
     let insightText = '';
     let insightColor = [37, 99, 235];
@@ -318,7 +388,7 @@ function downloadPDF() {
         insightColor = [220, 38, 38]; // Red
     }
 
-    pdf.setFontSize(11);
+    pdf.setFontSize(12);
     pdf.setTextColor(50, 50, 50); 
     pdf.text(avgText, 10, y);
     y += 6;
@@ -329,10 +399,50 @@ function downloadPDF() {
     
     pdf.setTextColor(0, 0, 0); // Reset color to black
 
-    // --- 3. Recorded Scores Table ---
-    pdf.setFontSize(14);
+    // --- 3. Average Score Summary Table ---
+    pdf.setFontSize(16);
     pdf.setTextColor(37, 99, 235); // Blue
-    pdf.text("📊 Individual Recorded Scores", 10, y);
+    pdf.text("📊 Average Score Summary by Class/Stream", 10, y);
+    y += 5;
+
+    // Recalculate summary data for the PDF (reusing logic from calculateSummary)
+    const summaryData = {};
+    records.forEach(record => {
+        const key = `${record.grade}-${record.subject}-${record.stream}`;
+        if (!summaryData[key]) {
+            summaryData[key] = { sum: 0, count: 0, grade: record.grade, subject: record.subject, stream: record.stream };
+        }
+        summaryData[key].sum += record.meanScore;
+        summaryData[key].count += 1;
+    });
+
+    // Sort summary data by Grade then Subject
+    const summaryTableData = Object.values(summaryData).sort((a, b) => {
+        if (a.grade !== b.grade) return a.grade.localeCompare(b.grade);
+        return a.subject.localeCompare(b.subject);
+    }).map(data => [
+        data.grade,
+        data.subject,
+        data.stream,
+        (data.sum / data.count).toFixed(2) + '%'
+    ]);
+    
+    const summaryTableHeaders = ['Grade', 'Subject', 'Stream', 'Average Score'];
+    
+    pdf.autoTable({
+        startY: y,
+        head: [summaryTableHeaders],
+        body: summaryTableData,
+        theme: 'grid',
+        headStyles: { fillColor: [37, 99, 235], fontSize: 10 }, // Blue color
+        styles: { fontSize: 9, cellPadding: 2, fontStyle: 'bold' },
+    });
+    y = pdf.autoTable.previous.finalY + 12;
+
+    // --- 4. Recorded Scores Table ---
+    pdf.setFontSize(16);
+    pdf.setTextColor(128, 0, 0); // Maroon
+    pdf.text("📜 Detailed Recorded Scores", 10, y);
     y += 5;
 
     const recordedTableHeaders = [
@@ -346,7 +456,7 @@ function downloadPDF() {
         record.term,
         record.examType,
         record.year,
-        record.meanScore.toFixed(2),
+        record.meanScore.toFixed(2) + '%',
         record.rubric
     ]);
 
@@ -355,54 +465,14 @@ function downloadPDF() {
         head: [recordedTableHeaders],
         body: recordedTableData,
         theme: 'striped',
-        headStyles: { fillColor: [37, 99, 235], fontSize: 9 }, // Blue color
+        headStyles: { fillColor: [128, 0, 0], fontSize: 9 }, // Maroon color
         styles: { fontSize: 8, cellPadding: 1.5, lineColor: 200, lineWidth: 0.1 },
         columnStyles: { 7: { fontStyle: 'bold' } }, // Make score bold
         didDrawPage: function(data) {
-            y = data.cursor.y;
+             // Add page number to the bottom
+            pdf.setFontSize(8);
+            pdf.text('Page ' + data.pageNumber, data.settings.margin.left, pdf.internal.pageSize.height - 10);
         }
-    });
-    y = pdf.autoTable.previous.finalY + 12; // Get the final Y position after the table
-
-    // Check if a new page is needed before adding the second table
-    if (y + 20 > pdf.internal.pageSize.height) {
-        pdf.addPage();
-        y = 15;
-    }
-
-
-    // --- 4. Average Score Summary Table ---
-    pdf.setFontSize(14);
-    pdf.setTextColor(128, 0, 0); // Maroon
-    pdf.text("📈 Average Score Summary by Class/Stream", 10, y);
-    y += 5;
-
-    // Recalculate summary data for the PDF
-    const summaryData = {};
-    records.forEach(record => {
-        const key = `${record.grade}-${record.subject}-${record.stream}`;
-        if (!summaryData[key]) {
-            summaryData[key] = { sum: 0, count: 0, grade: record.grade, subject: record.subject, stream: record.stream };
-        }
-        summaryData[key].sum += record.meanScore;
-        summaryData[key].count += 1;
-    });
-
-    const summaryTableHeaders = ['Grade', 'Subject', 'Stream', 'Average Score'];
-    const summaryTableData = Object.values(summaryData).map(data => [
-        data.grade,
-        data.subject,
-        data.stream,
-        (data.sum / data.count).toFixed(2)
-    ]);
-
-    pdf.autoTable({
-        startY: y,
-        head: [summaryTableHeaders],
-        body: summaryTableData,
-        theme: 'grid',
-        headStyles: { fillColor: [128, 0, 0], fontSize: 10 }, // Maroon color
-        styles: { fontSize: 9, cellPadding: 2, fontStyle: 'bold' },
     });
 
     // --- 5. Final Save ---
