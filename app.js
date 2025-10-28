@@ -277,52 +277,76 @@
   };
 
   // download PDF (auto generate and save) — uses html2canvas + jsPDF
-  // --- Inside your app.js file ---
+  window.downloadPDF = async function downloadPDF() {
+    // create a clean container to render report (not visible)
+    const report = document.createElement('div');
+    report.style.width = '800px';
+    report.style.padding = '24px';
+    report.style.fontFamily = 'Segoe UI, Tahoma, sans-serif';
+    report.style.background = '#fff';
+    report.style.color = '#222';
 
-function downloadPDF() {
-    // 1. Get the jsPDF class from the global window.jspdf object
-    // This is the CRITICAL line for the UMD script tag
-    const { jsPDF } = window.jspdf; 
+    // header with logo (logo.png expected in project root)
+    const logoHtml = `<div style="text-align:center;margin-bottom:8px;">
+      <img src="logo.png" alt="Logo" style="width:80px;height:80px;display:block;margin:0 auto 8px auto;" />
+      <h2 style="margin:0;color:#1e3a8a;">SmartScores — Teacher Mean Score Report</h2>
+      <p style="margin:4px 0 12px 0;color:#6b7280;">${new Date().toLocaleString()}</p>
+    </div>`;
 
-    // 2. Identify the content you want to convert (e.g., the entire <main> element)
-    const element = document.querySelector('main'); 
-    
-    // 3. Use html2canvas to render the content to a canvas
-    html2canvas(element, { 
-        scale: 2 // Use a higher scale for better resolution in the PDF
-    }).then((canvas) => {
-        const imgData = canvas.toDataURL('image/png');
-        
-        // 4. Initialize jsPDF
-        // New instance of the jsPDF class
-        const doc = new jsPDF('p', 'mm', 'a4'); 
-        
-        // Calculate dimensions to fit image on the PDF page
-        const imgWidth = 210; // A4 width in mm
-        const pageHeight = 295; // A4 height in mm
-        const imgHeight = canvas.height * imgWidth / canvas.width;
-        let heightLeft = imgHeight;
-        
-        let position = 0;
+    // Use current tables' HTML but remove action buttons or interactive elements
+    // Clone records table and summary table
+    const recordsClone = recordsTable.cloneNode(true);
+    // remove tbody children will be replaced with current rendered rows
+    // ensure cloned table uses the currently rendered rows (it does)
+    const summaryClone = summaryTable.cloneNode(true);
 
-        // 5. Add image to PDF (handling multiple pages if content is long)
-        doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+    report.innerHTML = logoHtml + '<h3 style="color:#800000;margin-bottom:6px;">Recorded Scores</h3>';
+    report.appendChild(recordsClone);
+    report.innerHTML += '<br/><h3 style="color:#800000;margin-bottom:6px;">Average Score Summary</h3>';
+    report.appendChild(summaryClone);
 
-        while (heightLeft >= 0) {
-            position = heightLeft - imgHeight;
-            doc.addPage();
-            doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-        }
+    // Also include insight
+    const insightDiv = document.createElement('div');
+    insightDiv.style.marginTop = '12px';
+    insightDiv.innerHTML = `<h4 style="color:#1e3a8a">Smart Insight</h4><div>${insightBox.innerHTML}</div>`;
+    report.appendChild(insightDiv);
 
-        // 6. Save the PDF
-        doc.save('SmartScores_Report.pdf');
-    }).catch(error => {
-        console.error('PDF generation error:', error);
-        alert('PDF generation failed. Check console for details.');
-    });
-}
+    // Render to canvas
+    try {
+      const canvas = await html2canvas(report, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      // scale image to page width minus margins
+      const margin = 30;
+      const imgWidth = pageWidth - margin * 2;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let y = margin;
+      pdf.addImage(imgData, 'PNG', margin, y, imgWidth, imgHeight);
+
+      // if content taller than one page, add pages
+      let heightLeft = imgHeight - (pageHeight - margin * 2);
+      while (heightLeft > 0) {
+        pdf.addPage();
+        y = - (imgHeight - heightLeft) + margin;
+        pdf.addImage(imgData, 'PNG', margin, y, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - margin * 2);
+      }
+
+      const filename = `SmartScores_Report_${new Date().toISOString().slice(0,10)}.pdf`;
+      pdf.save(filename);
+      showSmartAlert('📄 SmartScores says: PDF downloaded successfully!');
+    } catch (err) {
+      console.error(err);
+      alert('PDF generation failed. Make sure html2canvas and jsPDF are loaded.');
+    }
+  };
 
   // initial render at startup
   function init() {
