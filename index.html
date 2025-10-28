@@ -228,6 +228,34 @@
       .catch((err) => console.error('Service Worker failed:', err));
   }
 </script>
+  <!-- Confirmation / Prompt Modal -->
+<div id="confirmModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:9999;">
+  <div style="background:#fff; max-width:420px; width:90%; border-radius:10px; padding:16px; box-shadow:0 6px 18px rgba(0,0,0,0.2);">
+    <h3 id="confirmTitle" style="margin:0 0 8px 0; color:#1e40af;">Confirm</h3>
+    <p id="confirmMessage" style="margin:0 0 12px 0; color:#333;">Message</p>
+    <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <button id="confirmCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;background:#fff;">Cancel</button>
+      <button id="confirmNo" style="padding:8px 12px;border-radius:8px;border:1px solid #1e40af;background:#fff;color:#1e40af;">No</button>
+      <button id="confirmYes" style="padding:8px 12px;border-radius:8px;background:#1e40af;color:#fff;">Yes</button>
+    </div>
+  </div>
+</div>
+  <div class="action-buttons">
+  <button id="saveBtn">💾 Save</button>
+  <button id="pdfBtn" style="background:#15803d;">⬇️ PDF</button>
+  <button id="exportXlsxBtn" style="background:#0f172a;">📥 Export Excel</button>
+  <button id="exportJsonBtn" style="background:#0f172a;">📂 Export JSON</button>
+  <button id="importBtn" style="background:#f97316;">📤 Import</button>
+  <button id="resetBtn" style="background:#dc2626;">🗑️ Reset</button>
+  <button id="aboutBtn" style="background:#6b21a8;">ℹ️ About</button>
+</div>
+
+
+<!-- Hidden file input for importing JSON/XLSX -->
+<input id="importFileInput" type="file" accept=".json,application/json, .xlsx, .xls" style="display:none" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 
 </body>
 </html>
