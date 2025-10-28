@@ -1,81 +1,183 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#4f46e5">
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>SmartScores Recorder</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+  <!-- jsPDF and AutoTable for native-PDF (vector text, not screenshots) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
   <div class="app">
-    <!-- Header Section -->
     <header>
       <div class="header-left">
+        <button id="menuToggle" class="menu" aria-label="Toggle menu">☰</button>
         <h1>SmartScores Recorder</h1>
       </div>
       <div class="header-actions">
-        <button class="danger">Delete</button>
-        <button>Save</button>
+        <button id="btnExport" class="primary-btn">Export JSON</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none" />
+        <button id="btnImport" class="primary-btn">Import JSON</button>
+        <button id="btnPdf" class="primary-btn">Download PDF</button>
+        <button id="btnReset" class="danger-btn">Reset All</button>
       </div>
     </header>
 
-    <!-- Main Content Section -->
-    <main>
-      <div class="left">
-        <form id="record-form">
-          <!-- Teacher Name Input -->
-          <div class="form-grid">
-            <label for="teacher-name">Teacher Name:</label>
-            <input type="text" id="teacher-name" placeholder="Enter teacher's name" required>
-          </div>
+    <div id="overlay" class="overlay" tabindex="-1" aria-hidden="true"></div>
 
-          <!-- Additional form fields for scores and other inputs -->
+    <main>
+      <section class="left" id="leftPanel" aria-label="Controls and filters">
+        <form id="recordForm">
+          <h2 id="formTitle">Add Record</h2>
           <div class="form-grid">
-            <label for="score">Score:</label>
-            <input type="number" id="score" placeholder="Enter score" required>
+            <label>Teacher Name<input id="teacher" required autocomplete="off" /></label>
+
+            <div>
+              <label>Subject</label>
+              <select id="subject">
+                <option value="">--Select Subject--</option>
+                <option>Mathematics</option>
+                <option>English</option>
+                <option>Kiswahili</option>
+                <option>Science</option>
+                <option>Agriculture and Nutrition</option>
+                <option>Creative Arts</option>
+                <option>Social Studies</option>
+                <option>CRE</option>
+                <option>Pre-Technical Studies</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Grade</label>
+              <select id="grade">
+                <option value="">--Select Grade--</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+                <option>8</option>
+                <option>9</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Stream</label>
+              <select id="stream">
+                <option value="">--Select Stream--</option>
+                <option>Faith</option>
+                <option>Glory</option>
+                <option>Joy</option>
+                <option>Love</option>
+                <option>Peace</option>
+                <option>Unity</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Term</label>
+              <select id="term">
+                <option value="">--Select Term--</option>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Exam Type</label>
+              <select id="examType">
+                <option value="">--Select Exam Type--</option>
+                <option>Opener Exam</option>
+                <option>Mid Term Exam</option>
+                <option>End Term Exam</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Year</label>
+              <input type="number" id="year" placeholder="Enter Year e.g. 2025" />
+            </div>
+
+            <div>
+              <label>Mean Score</label>
+              <input type="number" id="meanScore" placeholder="Enter Mean Score (0-100)" />
+            </div>
           </div>
 
           <div class="form-actions">
-            <button type="submit">Save Record</button>
-            <button type="button" class="secondary">Clear</button>
+            <button type="submit" id="saveBtn" class="primary-btn">Save</button>
+            <button type="button" id="cancelEdit" class="secondary-btn" style="display:none">Cancel Edit</button>
+          </div>
+
+          <div class="form-extra" style="margin-top:8px;">
+            <label style="font-size:13px;color:#374151;">
+              <input type="checkbox" id="keepTeacher" />
+              Copy teacher to next entry
+            </label>
           </div>
         </form>
-      </div>
 
-      <!-- Right Section for Insights, Table, and More -->
-      <div class="right">
-        <div class="insights">
-          <div class="insight">Insight 1</div>
-          <div class="insight">Insight 2</div>
-          <!-- Additional insights or other info here -->
-        </div>
+        <section class="filters">
+          <h3>Filters & Search</h3>
+          <div class="filter-row">
+            <select id="filterTeacher"><option value="">All Teachers</option></select>
+            <select id="filterGrade"><option value="">All Grades</option></select>
+          </div>
+          <div class="filter-row">
+            <select id="filterStream"><option value="">All Streams</option></select>
+            <select id="filterYear"><option value="">All Years</option></select>
+          </div>
+          <div class="search-row">
+            <input id="searchBox" placeholder="Search by teacher, subject, grade, stream, exam, year..." />
+            <button id="clearFilters">Clear</button>
+          </div>
+        </section>
 
-        <!-- Table Section for Displaying Records -->
-        <div class="table-section">
+        <section class="insights" id="insights">
+          <h3>Smart Insights</h3>
+          <div id="insightsContent">No insights yet.</div>
+        </section>
+      </section>
+
+      <section class="right" id="rightPanel">
+        <section class="table-section">
+          <h3>Records</h3>
           <div class="table-wrap">
-            <table>
+            <table id="recordsTable" aria-describedby="records-description">
               <thead>
                 <tr>
-                  <th>Teacher Name</th>
-                  <th>Score</th>
-                  <th>Actions</th>
+                  <th>Teacher</th>
+                  <th>Subject</th>
+                  <th>Grade</th>
+                  <th>Stream</th>
+                  <th>Term</th>
+                  <th>Exam</th>
+                  <th>Year</th>
+                  <th>Mean</th>
+                  <th>Rubric</th>
                 </tr>
               </thead>
-              <tbody id="record-list">
-                <!-- Dynamic records will be injected here -->
-              </tbody>
+              <tbody></tbody>
             </table>
           </div>
-        </div>
-      </div>
-    </main>
-  </div>
+        </section>
 
-  <!-- Footer Section -->
-  <footer>
-    <p>&copy; 2025 SmartScores. All rights reserved.</p>
-  </footer>
+        <section class="summary-section">
+          <h3>Average Score Summary</h3>
+          <div id="summary"></div>
+        </section>
+
+      </section>
+    </main>
+
+    <footer>
+      <small>SmartScores Recorder — offline-capable PWA. Data stored in browser localStorage.</small>
+    </footer>
+  </div>
 
   <script src="app.js"></script>
 </body>
