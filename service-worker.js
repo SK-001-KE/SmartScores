@@ -16,9 +16,9 @@ const FILES_TO_CACHE = [
 ];
 
 // Install Service Worker and cache files
-self.addEventListener("install", (event) => {
+self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
+    caches.open(CACHE_NAME).then(cache => {
       console.log("[ServiceWorker] Caching app shell...");
       return cache.addAll(FILES_TO_CACHE);
     })
@@ -27,11 +27,11 @@ self.addEventListener("install", (event) => {
 });
 
 // Activate Service Worker and remove old caches
-self.addEventListener("activate", (event) => {
+self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then((keyList) => {
+    caches.keys().then(keyList => {
       return Promise.all(
-        keyList.map((key) => {
+        keyList.map(key => {
           if (key !== CACHE_NAME) {
             console.log("[ServiceWorker] Removing old cache:", key);
             return caches.delete(key);
@@ -44,13 +44,25 @@ self.addEventListener("activate", (event) => {
 });
 
 // Fetch handler: serve cached content when offline
-self.addEventListener("fetch", (event) => {
+self.addEventListener("fetch", event => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
+    caches.match(event.request).then(response => {
       if (response) return response;
 
       return fetch(event.request)
-        .then((res) => {
-          return caches.open(CACHE_NAME).then((cache) => {
+        .then(res => {
+          // Cache the new request
+          return caches.open(CACHE_NAME).then(cache => {
             cache.put(event.request.url, res.clone());
             return res;
+          });
+        })
+        .catch(() => {
+          // Fallback for navigation requests
+          if (event.request.mode === "navigate") {
+            return caches.match("./index.html");
+          }
+        });
+    })
+  );
+});
