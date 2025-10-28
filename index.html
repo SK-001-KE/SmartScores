@@ -110,6 +110,8 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
+      overflow-x: auto;
+      display: block;
     }
 
     th, td {
@@ -129,6 +131,7 @@
       border-left: 4px solid var(--blue);
       background: #f1f5f9;
       font-style: italic;
+      white-space: pre-line;
     }
 
     footer {
@@ -144,6 +147,13 @@
       header h1 {
         display: block;
         font-size: 1.3rem;
+      }
+      button, label[for="importFile"] {
+        width: 100%;
+      }
+      table {
+        display: block;
+        overflow-x: auto;
       }
     }
   </style>
@@ -274,7 +284,7 @@
         </button>
       </div>
       <p style="font-size:0.9rem; color:#555; margin-top:10px;">
-        <i>💡 Tip: You can export your data before switching devices, then import it back anytime.</i>
+        <i>💡 Tip: Export your data before switching devices, then import it back anytime.</i>
       </p>
     </div>
   </main>
@@ -284,8 +294,9 @@
   </footer>
 
   <!-- External Scripts -->
-  <script src="app.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
