@@ -1,8 +1,24 @@
 // SmartScores v2.0 — Complete App Logic
 // © SmartScores 2025
 
+// --------------------- INITIAL DATA & ELEMENTS ---------------------
 let records = JSON.parse(localStorage.getItem('smartRecords') || '[]');
-const form = document.getElementById('dataForm');
+
+const teacher = document.getElementById('teacherName');
+const subject = document.getElementById('subject');
+const grade = document.getElementById('grade');
+const stream = document.getElementById('stream');
+const term = document.getElementById('term');
+const exam = document.getElementById('examType');
+const year = document.getElementById('year');
+const score = document.getElementById('meanScore');
+
+const filterTeacher = document.getElementById('filterTeacher');
+const filterGrade = document.getElementById('filterGrade');
+const filterStream = document.getElementById('filterStream');
+const filterYear = document.getElementById('filterYear');
+const searchInput = document.getElementById('searchInput');
+
 const insightBox = document.getElementById('insightBox');
 const ctx = document.getElementById('barChart')?.getContext('2d');
 let chart;
@@ -11,9 +27,9 @@ let chart;
 const recordIndexInput = document.createElement('input');
 recordIndexInput.type = 'hidden';
 recordIndexInput.id = 'recordIndex';
-form.appendChild(recordIndexInput);
+document.body.appendChild(recordIndexInput);
 
-// Utility functions
+// --------------------- UTILITY FUNCTIONS ---------------------
 function unique(arr) { return [...new Set(arr)]; }
 function avg(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
 function grading(score){
@@ -24,8 +40,7 @@ function grading(score){
 }
 
 // --------------------- SAVE / EDIT RECORD ---------------------
-form.onsubmit = e => {
-  e.preventDefault();
+function saveRecord(){
   const rec = {
     teacher: teacher.value.trim(),
     subject: subject.value,
@@ -36,6 +51,11 @@ form.onsubmit = e => {
     year: year.value,
     score: parseFloat(score.value)
   };
+
+  if (!rec.teacher || !rec.subject || !rec.grade || !rec.stream || !rec.term || !rec.exam || !rec.year || isNaN(rec.score)) {
+    alert("❌ Please fill all fields correctly.");
+    return;
+  }
 
   const idx = recordIndexInput.value || records.findIndex(r =>
     r.teacher === rec.teacher &&
@@ -56,8 +76,35 @@ form.onsubmit = e => {
 
   localStorage.setItem('smartRecords', JSON.stringify(records));
   alert("SmartScores says: ✅ Record saved successfully!");
-  recordIndexInput.value = ''; // reset edit tracker
+  recordIndexInput.value = '';
   updateAll();
+}
+
+// --------------------- FILTER / SEARCH ---------------------
+function getFiltered(){
+  const query = searchInput.value.toLowerCase();
+  return records.filter(r =>
+    (!filterTeacher.value || r.teacher === filterTeacher.value) &&
+    (!filterGrade.value || r.grade === filterGrade.value) &&
+    (!filterStream.value || r.stream === filterStream.value) &&
+    (!filterYear.value || r.year === filterYear.value) &&
+    (!query || 
+      r.teacher.toLowerCase().includes(query) ||
+      r.subject.toLowerCase().includes(query) ||
+      r.grade.toLowerCase().includes(query) ||
+      r.stream.toLowerCase().includes(query) ||
+      r.exam.toLowerCase().includes(query) ||
+      r.term.toLowerCase().includes(query) ||
+      r.year.toString().includes(query))
+  );
+}
+
+// Event listeners for filtering/search
+filterTeacher.onchange = filterGrade.onchange = filterStream.onchange = filterYear.onchange = searchInput.onkeyup = () => {
+  const filtered = getFiltered();
+  renderRecords(filtered);
+  renderSummary(filtered);
+  renderChart(filtered);
 };
 
 // --------------------- POPULATE FILTERS ---------------------
@@ -71,16 +118,6 @@ function populateFilters(){
   filterGrade.innerHTML = '<option value="">All Grades</option>' + grades.map(g=>`<option>${g}</option>`).join('');
   filterStream.innerHTML = '<option value="">All Streams</option>' + streams.map(s=>`<option>${s}</option>`).join('');
   filterYear.innerHTML = '<option value="">All Years</option>' + years.map(y=>`<option>${y}</option>`).join('');
-}
-
-// --------------------- FILTERED RECORDS ---------------------
-function getFiltered(){
-  return records.filter(r=>
-    (!filterTeacher.value || r.teacher===filterTeacher.value) &&
-    (!filterGrade.value || r.grade===filterGrade.value) &&
-    (!filterStream.value || r.stream===filterStream.value) &&
-    (!filterYear.value || r.year===filterYear.value)
-  );
 }
 
 // --------------------- RENDER RECORDS TABLE ---------------------
@@ -107,7 +144,7 @@ function renderRecords(filteredRecords = records){
   });
 }
 
-// --------------------- EDIT / DELETE FUNCTIONS ---------------------
+// --------------------- EDIT / DELETE ---------------------
 function editRecord(idx){
   const r = records[idx];
   teacher.value = r.teacher;
@@ -129,24 +166,7 @@ function deleteRecord(idx){
   }
 }
 
-// --------------------- SEARCH / FILTER BAR ---------------------
-const searchInput = document.createElement('input');
-searchInput.id = 'searchInput';
-searchInput.placeholder = 'Search records...';
-searchInput.style.marginBottom = '10px';
-searchInput.onkeyup = () => {
-  const query = searchInput.value.toLowerCase();
-  const filtered = records.filter(r =>
-    r.teacher.toLowerCase().includes(query) ||
-    r.subject.toLowerCase().includes(query) ||
-    r.grade.toLowerCase().includes(query) ||
-    r.stream.toLowerCase().includes(query)
-  );
-  renderRecords(filtered);
-};
-document.querySelector('#recordsTable').parentElement.insertBefore(searchInput, document.querySelector('#recordsTable'));
-
-// --------------------- DASHBOARD & SUMMARY ---------------------
+// --------------------- DASHBOARD / SUMMARY ---------------------
 function updateAll(){
   populateFilters();
   const filtered = getFiltered();
@@ -180,7 +200,7 @@ function renderChart(filtered){
   });
 }
 
-// --------------------- SUMMARY & INSIGHT ---------------------
+// --------------------- SUMMARY & INSIGHTS ---------------------
 function renderSummary(filtered){
   const tbody = document.querySelector('#summaryTable tbody');
   tbody.innerHTML = '';
@@ -199,7 +219,10 @@ function renderSummary(filtered){
 
     tbody.innerHTML += `
       <tr>
-        <td>${g.teacher}</td><td>${g.grade}</td><td>${g.stream}</td><td>${g.subject}</td>
+        <td>${g.teacher}</td>
+        <td>${g.grade}</td>
+        <td>${g.stream}</td>
+        <td>${g.subject}</td>
         <td>${a1?a1.toFixed(1):''}</td>
         <td>${a2?a2.toFixed(1):''}</td>
         <td>${a3?a3.toFixed(1):''}</td>
@@ -207,7 +230,6 @@ function renderSummary(filtered){
       </tr>`;
   });
 
-  // Smart Insight
   const insights = [];
   Object.values(grouped).forEach(g=>{
     const overall = avg([avg(g.t1), avg(g.t2), avg(g.t3)].filter(v=>v>0));
@@ -218,7 +240,7 @@ function renderSummary(filtered){
   insightBox.innerHTML = insights.length ? insights.join('<br>') : "<i>No insights yet.</i>";
 }
 
-// --------------------- RESET DATA ---------------------
+// --------------------- RESET ---------------------
 function resetData(){
   if(confirm("⚠️ Resetting will permanently delete all records. Proceed?")){
     localStorage.removeItem('smartRecords');
@@ -259,12 +281,10 @@ function importExcel(event){
   reader.readAsText(file);
 }
 
-// --------------------- PDF REPORT ---------------------
+// --------------------- PDF DOWNLOAD ---------------------
 async function downloadPDF(){
   const { jsPDF } = window.jspdf;
-
-  // Inline Base64 logo
-  const logoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."; // replace with full Base64
+  const logoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."; // REPLACE with your base64 logo
 
   const reportArea = document.createElement('div');
   reportArea.style.padding = '20px';
@@ -296,7 +316,7 @@ async function downloadPDF(){
 
   pdf.addImage(imgData, 'PNG', 25, position, imgWidth, imgHeight);
   heightLeft -= pageHeight;
-  while(heightLeft > 0){
+  while (heightLeft > 0) {
     position = heightLeft - imgHeight;
     pdf.addPage();
     pdf.addImage(imgData, 'PNG', 25, position, imgWidth, imgHeight);
