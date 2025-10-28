@@ -1,11 +1,11 @@
 {
-  "name": "SmartScores Teacher Mean Score Tracker v2.0",
+  "name": "SmartScores v2.0",
   "short_name": "SmartScores",
-  "start_url": "index.html",
+  "description": "Teacher Mean Score Tracker",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#1e40af",
-  "theme_color": "#800000",
-  "description": "A teacher-friendly app to record, analyze, and export mean scores.",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
   "icons": [
     {
       "src": "favicon.png",
@@ -17,5 +17,7 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "scope": "/",
+  "orientation": "portrait"
 }
