@@ -3,346 +3,289 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores v2.0 | Teacher Mean Score Tracker</title>
+  <title>SmartScores v2.0 - Teacher Mean Score Tracker</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.png" type="image/png" />
-  <script src="app.js" defer></script>
-
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <meta name="theme-color" content="#2563eb" />
   <style>
     :root {
-      --primary: #1e3a8a;
-      --accent: #800000;
-      --light-bg: #f7f9fc;
-      --card-bg: #fff;
-      --border: #d1d5db;
+      --blue: #2563eb;
+      --maroon: #800000;
+      --white: #ffffff;
+      --bg-light: #f8fafc;
     }
 
     body {
-      font-family: "Segoe UI", Roboto, sans-serif;
-      background-color: var(--light-bg);
+      font-family: "Segoe UI", Arial, sans-serif;
       margin: 0;
-      color: #111827;
+      padding: 0;
+      background: var(--bg-light);
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
 
     header {
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      color: #fff;
-      padding: 15px 25px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      flex-wrap: wrap;
+      background: linear-gradient(90deg, var(--blue), var(--maroon));
+      color: white;
+      text-align: center;
+      padding: 15px;
+    }
+
+    header img {
+      width: 50px;
+      vertical-align: middle;
+      margin-right: 10px;
     }
 
     header h1 {
-      margin: 0;
+      display: inline;
       font-size: 1.6rem;
-      letter-spacing: 0.5px;
+      vertical-align: middle;
+    }
+
+    nav {
+      background: #e2e8f0;
+      padding: 10px;
+      text-align: center;
     }
 
     nav a {
-      color: white;
-      margin-left: 20px;
+      margin: 0 10px;
       text-decoration: none;
-      font-weight: 500;
-      font-size: 0.95rem;
+      color: var(--blue);
+      font-weight: 600;
     }
 
     nav a:hover {
-      text-decoration: underline;
+      color: var(--maroon);
     }
 
     main {
-      max-width: 1100px;
-      margin: 25px auto;
-      padding: 20px;
-    }
-
-    h2 {
-      text-align: center;
-      color: var(--primary);
-      font-size: 1.4rem;
-      margin-bottom: 15px;
+      flex: 1;
+      padding: 15px;
+      max-width: 900px;
+      margin: 0 auto;
     }
 
     .card {
-      background-color: var(--card-bg);
+      background: white;
       border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 25px;
+      padding: 15px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    form {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 15px;
+      margin-bottom: 15px;
     }
 
     label {
-      font-weight: 600;
-      font-size: 0.9rem;
       display: block;
-      margin-bottom: 5px;
+      margin-top: 10px;
+      font-weight: 600;
     }
 
-    input,
-    select {
+    input, select {
       width: 100%;
       padding: 8px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      font-size: 0.95rem;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
 
-    button[type="submit"] {
-      grid-column: 1 / -1;
-      background: var(--primary);
-      color: #fff;
+    button {
+      background: var(--blue);
+      color: white;
       border: none;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: bold;
+      border-radius: 6px;
+      padding: 10px 18px;
       cursor: pointer;
+      margin-top: 10px;
+      font-weight: 600;
     }
 
-    button[type="submit"]:hover {
-      background: #0f2167;
+    button:hover {
+      background: var(--maroon);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      background: var(--card-bg);
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 15px;
-      font-size: 0.9rem;
+      margin-top: 10px;
     }
 
     th, td {
-      padding: 10px 12px;
-      border-bottom: 1px solid #e5e7eb;
+      border: 1px solid #ddd;
+      padding: 8px;
       text-align: center;
     }
 
     th {
-      background-color: var(--primary);
+      background: var(--blue);
       color: white;
-      font-weight: 600;
     }
 
-    tr:nth-child(even) {
-      background-color: #f9fafb;
-    }
-
-    tr:hover {
-      background-color: #eef2ff;
-    }
-
-    .action-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      margin-top: 20px;
-    }
-
-    .btn {
-      background-color: var(--primary);
-      color: #fff;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .btn:hover {
-      background-color: #0f2167;
-    }
-
-    .btn-danger {
-      background-color: var(--accent);
-    }
-
-    .btn-danger:hover {
-      background-color: #a10000;
+    .insight-box {
+      margin-top: 10px;
+      padding: 10px;
+      border-left: 4px solid var(--blue);
+      background: #f1f5f9;
+      font-style: italic;
     }
 
     footer {
       text-align: center;
+      background: #e2e8f0;
+      padding: 10px;
+      font-size: 0.9rem;
       color: #555;
-      padding: 15px 0;
-      border-top: 1px solid #ddd;
-      margin-top: 40px;
     }
 
-    footer p {
-      margin: 3px 0;
-    }
-
-    #insightBox {
-      text-align: center;
-      font-style: italic;
-      margin-top: 15px;
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    @media (min-width: 900px) {
-      .card {
-        padding: 30px;
-      }
-
-      h2 {
-        font-size: 1.6rem;
-      }
-
-      table th, table td {
-        font-size: 0.95rem;
+    /* Mobile layout */
+    @media (max-width: 600px) {
+      header h1 {
+        display: block;
+        font-size: 1.3rem;
       }
     }
   </style>
 </head>
 <body>
   <header>
+    <img src="logo.png" alt="SmartScores Logo" />
     <h1>SmartScores v2.0</h1>
-    <nav>
-      <a href="index.html">🏠 Dashboard</a>
-      <a href="about.html">ℹ️ About</a>
-    </nav>
   </header>
+
+  <nav>
+    <a href="index.html">🏠 Dashboard</a>
+    <a href="about.html">ℹ️ About</a>
+  </nav>
 
   <main>
     <div class="card">
-      <h2>Teacher Mean Score Tracker</h2>
-      <form id="scoreForm">
-        <div>
-          <label>Teacher</label>
-          <input type="text" name="teacher" placeholder="Enter teacher name" required />
-        </div>
+      <h2 style="color: var(--blue);">📋 Record Teacher Mean Scores</h2>
 
-        <div>
-          <label>Subject</label>
-          <select name="subject" required>
-            <option value="">Select</option>
-            <option>Mathematics</option>
-            <option>English</option>
-            <option>Kiswahili</option>
-            <option>Science</option>
-            <option>Agriculture and Nutrition</option>
-            <option>Creative Arts</option>
-            <option>Social Studies</option>
-            <option>CRE</option>
-            <option>Pre-Technical Studies</option>
-          </select>
-        </div>
+      <label>Teacher's Name</label>
+      <input type="text" id="teacherName" placeholder="Enter teacher name" />
 
-        <div>
-          <label>Grade</label>
-          <select name="grade" required>
-            <option value="">Select</option>
-            <option>4</option><option>5</option><option>6</option>
-            <option>7</option><option>8</option><option>9</option>
-          </select>
-        </div>
+      <label>Subject</label>
+      <select id="subject">
+        <option value="">--Select Subject--</option>
+        <option>Mathematics</option>
+        <option>English</option>
+        <option>Kiswahili</option>
+        <option>Science</option>
+        <option>Agriculture and Nutrition</option>
+        <option>Creative Arts</option>
+        <option>Social Studies</option>
+        <option>CRE</option>
+        <option>Pre-Technical Studies</option>
+      </select>
 
-        <div>
-          <label>Stream</label>
-          <select name="stream" required>
-            <option value="">Select</option>
-            <option>Faith</option><option>Glory</option>
-            <option>Joy</option><option>Love</option>
-            <option>Peace</option><option>Unity</option>
-          </select>
-        </div>
+      <label>Grade</label>
+      <select id="grade">
+        <option value="">--Select Grade--</option>
+        <option>4</option><option>5</option><option>6</option>
+        <option>7</option><option>8</option><option>9</option>
+      </select>
 
-        <div>
-          <label>Term</label>
-          <select name="term" required>
-            <option value="">Select</option>
-            <option>Term 1</option>
-            <option>Term 2</option>
-            <option>Term 3</option>
-          </select>
-        </div>
+      <label>Stream</label>
+      <select id="stream">
+        <option value="">--Select Stream--</option>
+        <option>Faith</option><option>Glory</option><option>Joy</option>
+        <option>Love</option><option>Peace</option><option>Unity</option>
+      </select>
 
-        <div>
-          <label>Exam Type</label>
-          <select name="examType" required>
-            <option value="">Select</option>
-            <option>Opener Exam</option>
-            <option>Mid Term Exam</option>
-            <option>End Term Exam</option>
-          </select>
-        </div>
+      <label>Term</label>
+      <select id="term">
+        <option value="">--Select Term--</option>
+        <option>Term 1</option>
+        <option>Term 2</option>
+        <option>Term 3</option>
+      </select>
 
-        <div>
-          <label>Year</label>
-          <input type="number" name="year" placeholder="e.g. 2025" required />
-        </div>
+      <label>Exam Type</label>
+      <select id="examType">
+        <option value="">--Select Exam Type--</option>
+        <option>Opener Exam</option>
+        <option>Mid Term Exam</option>
+        <option>End Term Exam</option>
+      </select>
 
-        <div>
-          <label>Mean Score</label>
-          <input type="number" name="mean" step="0.01" placeholder="Enter mean score" required />
-        </div>
+      <label>Current Year</label>
+      <input type="number" id="year" placeholder="Enter Year e.g. 2025" />
 
-        <button type="submit">💾 Save Record</button>
-      </form>
+      <label>Mean Score</label>
+      <input type="number" id="meanScore" placeholder="Enter Mean Score (0-100)" />
+
+      <button onclick="saveRecord()">💾 Save Record</button>
     </div>
 
     <div class="card">
-      <h2>Records</h2>
+      <h2 style="color: var(--maroon);">📊 Recorded Scores</h2>
       <table id="recordsTable">
         <thead>
           <tr>
-            <th>#</th><th>Teacher</th><th>Subject</th><th>Grade</th>
-            <th>Stream</th><th>Term</th><th>Exam</th><th>Year</th>
-            <th>Mean</th><th>Rubric</th>
+            <th>Teacher</th>
+            <th>Subject</th>
+            <th>Grade</th>
+            <th>Stream</th>
+            <th>Term</th>
+            <th>Exam Type</th>
+            <th>Year</th>
+            <th>Mean Score</th>
+            <th>Rubric</th>
           </tr>
         </thead>
-        <tbody id="recordsBody"></tbody>
+        <tbody></tbody>
       </table>
     </div>
 
     <div class="card">
-      <h2>Average Score Summary</h2>
+      <h2 style="color: var(--blue);">📈 Average Score Summary</h2>
       <table id="summaryTable">
         <thead>
           <tr>
-            <th>Grade</th><th>Subject</th><th>Term</th>
-            <th>Stream</th><th>Average</th><th>Insight</th>
+            <th>Grade</th>
+            <th>Subject</th>
+            <th>Stream</th>
+            <th>Average</th>
           </tr>
         </thead>
-        <tbody id="summaryBody"></tbody>
+        <tbody></tbody>
       </table>
-
-      <div id="insightBox"></div>
-
-      <div class="action-buttons">
-        <button class="btn" onclick="exportToExcel()">📤 Export Excel</button>
-        <label for="importFile" class="btn">📥 Import Excel</label>
-        <input type="file" id="importFile" accept=".csv" onchange="importFromExcel(event)" style="display:none;" />
-        <button class="btn" onclick="downloadPDF()">📄 Download PDF</button>
-        <button class="btn btn-danger" onclick="resetData()">🗑 Reset All</button>
-      </div>
+      <div id="insightBox" class="insight-box"></div>
     </div>
 
-    <footer>
-      <p id="dateText"></p>
-      <p>© SmartScores v2.0 | Kariuki 2025</p>
-    </footer>
+    <!-- SmartScores v2.0 Action Buttons -->
+    <div class="dashboard-controls" style="text-align:center; margin:20px auto; padding:15px; border-radius:12px; background:linear-gradient(135deg,#f0f4ff,#e8f0fe); box-shadow:0 2px 6px rgba(0,0,0,0.1); max-width:900px;">
+      <h2 style="color:#1e3a8a; margin-bottom:12px;">📊 SmartScores Actions</h2>
+      <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px;">
+        <button onclick="downloadPDF()" style="background:#2563eb; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
+          📄 Download PDF Report
+        </button>
+        <button onclick="exportExcel()" style="background:#16a34a; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
+          💾 Export Backup (JSON)
+        </button>
+        <label for="importFile" style="background:#9333ea; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
+          📥 Import Backup
+          <input type="file" id="importFile" accept=".json" onchange="importExcel(event)" style="display:none;">
+        </label>
+        <button onclick="resetData()" style="background:#dc2626; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
+          🧹 Reset All Data
+        </button>
+      </div>
+      <p style="font-size:0.9rem; color:#555; margin-top:10px;">
+        <i>💡 Tip: You can export your data before switching devices, then import it back anytime.</i>
+      </p>
+    </div>
   </main>
 
-  <script>
-    const dateText = document.getElementById("dateText");
-    const now = new Date();
-    const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
-    dateText.textContent = now.toLocaleDateString("en-US", options);
-  </script>
+  <footer>
+    SmartScores v2.0 © Kariuki 2025
+  </footer>
+
+  <!-- External Scripts -->
+  <script src="app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </body>
 </html>
