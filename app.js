@@ -308,3 +308,30 @@ async function downloadPDF(){
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
 
+    const imgWidth = 550;
+    const pageHeight = pdf.internal.pageSize.height;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 20;
+
+    pdf.addImage(imgData, 'PNG', 25, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while(heightLeft > 0){
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 25, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    const filename = `SmartScores_Report_${new Date().getFullYear()}.pdf`;
+    pdf.save(filename);
+    alert("SmartScores says: 📄 PDF report downloaded successfully!");
+  } catch (err) {
+    console.error("PDF generation error:", err);
+    alert("❌ PDF generation failed. See console for details.");
+  }
+}
+
+// --------------------- INITIALIZE ---------------------
+updateAll();
