@@ -281,52 +281,30 @@ function importExcel(event){
   reader.readAsText(file);
 }
 
-// --------------------- PDF DOWNLOAD ---------------------
+// --------------------- PDF DOWNLOAD (NO LOGO) ---------------------
 async function downloadPDF(){
-  const { jsPDF } = window.jspdf;
-  const logoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."; // REPLACE with your base64 logo
+  try {
+    const { jsPDF } = window.jspdf;
 
-  const reportArea = document.createElement('div');
-  reportArea.style.padding = '20px';
-  reportArea.innerHTML = `
-    <div style="text-align:center;">
-      <img src="${logoBase64}" style="width:70px;height:70px;"><br>
-      <h2 style="color:#1e3a8a;margin:0;">SmartScores Report</h2>
-      <p style="font-size:0.9rem;">${new Date().toLocaleString()}</p>
-    </div>
-    <h3 style="color:#800000;">Recorded Scores</h3>
-    ${document.getElementById('recordsTable').outerHTML}
-    <br>
-    <h3 style="color:#800000;">Average Score Summary</h3>
-    ${document.getElementById('summaryTable').outerHTML}
-    <br>
-    <div style="font-style:italic; text-align:center; color:#1e3a8a;">
-      ${insightBox.innerHTML}
-    </div>
-  `;
+    const reportArea = document.createElement('div');
+    reportArea.style.padding = '20px';
+    reportArea.innerHTML = `
+      <div style="text-align:center;">
+        <h2 style="color:#1e3a8a;margin:0;">SmartScores Report</h2>
+        <p style="font-size:0.9rem;">${new Date().toLocaleString()}</p>
+      </div>
+      <h3 style="color:#800000;">Recorded Scores</h3>
+      ${document.getElementById('recordsTable').outerHTML}
+      <br>
+      <h3 style="color:#800000;">Average Score Summary</h3>
+      ${document.getElementById('summaryTable').outerHTML}
+      <br>
+      <div style="font-style:italic; text-align:center; color:#1e3a8a;">
+        ${insightBox.innerHTML}
+      </div>
+    `;
 
-  const canvas = await html2canvas(reportArea, { scale: 2 });
-  const imgData = canvas.toDataURL('image/png');
-  const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
-  const imgWidth = 550;
-  const pageHeight = pdf.internal.pageSize.height;
-  const imgHeight = (canvas.height * imgWidth) / canvas.width;
-  let heightLeft = imgHeight;
-  let position = 20;
+    const canvas = await html2canvas(reportArea, { scale: 2 });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
 
-  pdf.addImage(imgData, 'PNG', 25, position, imgWidth, imgHeight);
-  heightLeft -= pageHeight;
-  while (heightLeft > 0) {
-    position = heightLeft - imgHeight;
-    pdf.addPage();
-    pdf.addImage(imgData, 'PNG', 25, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-  }
-
-  const filename = `SmartScores_Report_${new Date().getFullYear()}.pdf`;
-  pdf.save(filename);
-  alert("SmartScores says: 📄 PDF report downloaded successfully!");
-}
-
-// --------------------- INITIALIZE ---------------------
-updateAll();
