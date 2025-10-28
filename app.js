@@ -439,7 +439,7 @@ function downloadPDF() {
     });
     y = pdf.autoTable.previous.finalY + 12;
 
-    // --- 4. Recorded Scores Table ---
+    // --- 4. Detailed Recorded Scores Table ---
     pdf.setFontSize(16);
     pdf.setTextColor(128, 0, 0); // Maroon
     pdf.text("📜 Detailed Recorded Scores", 10, y);
