@@ -1,292 +1,293 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores v2.0 - Teacher Mean Score Tracker</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <meta name="theme-color" content="#2563eb" />
-  <style>
-    :root {
-      --blue: #2563eb;
-      --maroon: #800000;
-      --white: #ffffff;
-      --bg-light: #f8fafc;
-    }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartScores v2.0 - Teacher Mean Score Tracker</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <meta name="theme-color" content="#2563eb" />
+  <style>
+    :root {
+      --blue: #2563eb;
+      --maroon: #800000;
+      --white: #ffffff;
+      --bg-light: #f8fafc;
+    }
 
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: var(--bg-light);
-      color: #222;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg-light);
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
 
-    header {
-      background: linear-gradient(90deg, var(--blue), var(--maroon));
-      color: white;
-      text-align: center;
-      padding: 15px;
-    }
+    header {
+      background: linear-gradient(90deg, var(--blue), var(--maroon));
+      color: white;
+      text-align: center;
+      padding: 15px;
+    }
 
-    header img {
-      width: 50px;
-      vertical-align: middle;
-      margin-right: 10px;
-    }
+    header img {
+      width: 50px;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
 
-    header h1 {
-      display: inline;
-      font-size: 1.6rem;
-      vertical-align: middle;
-    }
+    header h1 {
+      display: inline;
+      font-size: 1.6rem;
+      vertical-align: middle;
+    }
 
-    nav {
-      background: #e2e8f0;
-      padding: 10px;
-      text-align: center;
-    }
+    nav {
+      background: #e2e8f0;
+      padding: 10px;
+      text-align: center;
+    }
 
-    nav a {
-      margin: 0 10px;
-      text-decoration: none;
-      color: var(--blue);
-      font-weight: 600;
-    }
+    nav a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: var(--blue);
+      font-weight: 600;
+    }
 
-    nav a:hover {
-      color: var(--maroon);
-    }
+    nav a:hover {
+      color: var(--maroon);
+    }
 
-    main {
-      flex: 1;
-      padding: 15px;
-      max-width: 900px;
-      margin: 0 auto;
-    }
+    main {
+      flex: 1;
+      padding: 15px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
 
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 15px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      margin-bottom: 15px;
-    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 15px;
+    }
 
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: 600;
-    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 600;
+    }
 
-    input, select {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
 
-    button {
-      background: var(--blue);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 10px 18px;
-      cursor: pointer;
-      margin-top: 10px;
-      font-weight: 600;
-    }
+    button {
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 18px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-weight: 600;
+    }
 
-    button:hover {
-      background: var(--maroon);
-    }
+    button:hover {
+      background: var(--maroon);
+    }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
 
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: center;
-    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
 
-    th {
-      background: var(--blue);
-      color: white;
-    }
+    th {
+      background: var(--blue);
+      color: white;
+    }
 
-    .insight-box {
-      margin-top: 10px;
-      padding: 10px;
-      border-left: 4px solid var(--blue);
-      background: #f1f5f9;
-      font-style: italic;
-    }
+    .insight-box {
+      margin-top: 10px;
+      padding: 10px;
+      border-left: 4px solid var(--blue);
+      background: #f1f5f9;
+      font-style: italic;
+    }
 
-    footer {
-      text-align: center;
-      background: #e2e8f0;
-      padding: 10px;
-      font-size: 0.9rem;
-      color: #555;
-    }
+    footer {
+      text-align: center;
+      background: #e2e8f0;
+      padding: 10px;
+      font-size: 0.9rem;
+      color: #555;
+    }
 
-    /* Mobile layout */
-    @media (max-width: 600px) {
-      header h1 {
-        display: block;
-        font-size: 1.3rem;
-      }
-    }
-  </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
-</head>
+    /* Mobile layout */
+    @media (max-width: 600px) {
+      header h1 {
+        display: block;
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+  </head>
 <body>
-  <header>
-    <img src="logo.png" alt="SmartScores Logo" />
-    <h1>SmartScores v2.0</h1>
-  </header>
+  <header>
+    <img src="logo.png" alt="SmartScores Logo" />
+    <h1>SmartScores v2.0</h1>
+  </header>
 
-  <nav>
-    <a href="index.html">🏠 Dashboard</a>
-    <a href="about.html">ℹ️ About</a>
-  </nav>
+  <nav>
+    <a href="index.html">🏠 Dashboard</a>
+    <a href="about.html">ℹ️ About</a>
+  </nav>
 
-  <main>
-    <div class="card">
-      <h2 style="color: var(--blue);">📋 Record Teacher Mean Scores</h2>
+  <main>
+    <div class="card">
+      <h2 style="color: var(--blue);">📋 Record Teacher Mean Scores</h2>
 
-      <label>Teacher's Name</label>
-      <input type="text" id="teacherName" placeholder="Enter teacher name" />
+      <label>Teacher's Name</label>
+      <input type="text" id="teacherName" placeholder="Enter teacher name" />
 
-      <label>Subject</label>
-      <select id="subject">
-        <option value="">--Select Subject--</option>
-        <option>Mathematics</option>
-        <option>English</option>
-        <option>Kiswahili</option>
-        <option>Science</option>
-        <option>Agriculture and Nutrition</option>
-        <option>Creative Arts</option>
-        <option>Social Studies</option>
-        <option>CRE</option>
-        <option>Pre-Technical Studies</option>
-      </select>
+      <label>Subject</label>
+      <select id="subject">
+        <option value="">--Select Subject--</option>
+        <option>Mathematics</option>
+        <option>English</option>
+        <option>Kiswahili</option>
+        <option>Science</option>
+        <option>Agriculture and Nutrition</option>
+        <option>Creative Arts</option>
+        <option>Social Studies</option>
+        <option>CRE</option>
+        <option>Pre-Technical Studies</option>
+      </select>
 
-      <label>Grade</label>
-      <select id="grade">
-        <option value="">--Select Grade--</option>
-        <option>4</option><option>5</option><option>6</option>
-        <option>7</option><option>8</option><option>9</option>
-      </select>
+      <label>Grade</label>
+      <select id="grade">
+        <option value="">--Select Grade--</option>
+        <option>4</option><option>5</option><option>6</option>
+        <option>7</option><option>8</option><option>9</option>
+      </select>
 
-      <label>Stream</label>
-      <select id="stream">
-        <option value="">--Select Stream--</option>
-        <option>Faith</option><option>Glory</option><option>Joy</option>
-        <option>Love</option><option>Peace</option><option>Unity</option>
-      </select>
+      <label>Stream</label>
+      <select id="stream">
+        <option value="">--Select Stream--</option>
+        <option>Faith</option><option>Glory</option><option>Joy</option>
+        <option>Love</option><option>Peace</option><option>Unity</option>
+      </select>
 
-      <label>Term</label>
-      <select id="term">
-        <option value="">--Select Term--</option>
-        <option>Term 1</option>
-        <option>Term 2</option>
-        <option>Term 3</option>
-      </select>
+      <label>Term</label>
+      <select id="term">
+        <option value="">--Select Term--</option>
+        <option>Term 1</option>
+        <option>Term 2</option>
+        <option>Term 3</option>
+      </select>
 
-      <label>Exam Type</label>
-      <select id="examType">
-        <option value="">--Select Exam Type--</option>
-        <option>Opener Exam</option>
-        <option>Mid Term Exam</option>
-        <option>End Term Exam</option>
-      </select>
+      <label>Exam Type</label>
+      <select id="examType">
+        <option value="">--Select Exam Type--</option>
+        <option>Opener Exam</option>
+        <option>Mid Term Exam</option>
+        <option>End Term Exam</option>
+      </select>
 
-      <label>Current Year</label>
-      <input type="number" id="year" placeholder="Enter Year e.g. 2025" />
+      <label>Current Year</label>
+      <input type="number" id="year" placeholder="Enter Year e.g. 2025" />
 
-      <label>Mean Score</label>
-      <input type="number" id="meanScore" placeholder="Enter Mean Score (0-100)" />
+      <label>Mean Score</label>
+      <input type="number" id="meanScore" placeholder="Enter Mean Score (0-100)" />
 
-      <button onclick="saveRecord()">💾 Save Record</button>
-    </div>
+      <button onclick="saveRecord()">💾 Save Record</button>
+    </div>
 
-    <div class="card">
-      <h2 style="color: var(--maroon);">📊 Recorded Scores</h2>
-      <table id="recordsTable">
-        <thead>
-          <tr>
-            <th>Teacher</th>
-            <th>Subject</th>
-            <th>Grade</th>
-            <th>Stream</th>
-            <th>Term</th>
-            <th>Exam Type</th>
-            <th>Year</th>
-            <th>Mean Score</th>
-            <th>Rubric</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+    <div class="card">
+      <h2 style="color: var(--maroon);">📊 Recorded Scores</h2>
+      <table id="recordsTable">
+        <thead>
+          <tr>
+            <th>Teacher</th>
+            <th>Subject</th>
+            <th>Grade</th>
+            <th>Stream</th>
+            <th>Term</th>
+            <th>Exam Type</th>
+            <th>Year</th>
+            <th>Mean Score</th>
+            <th>Rubric</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
 
-    <div class="card">
-      <h2 style="color: var(--blue);">📈 Average Score Summary</h2>
-      <table id="summaryTable">
-        <thead>
-          <tr>
-            <th>Grade</th>
-            <th>Subject</th>
-            <th>Stream</th>
-            <th>Average</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div id="insightBox" class="insight-box"></div>
-    </div>
+    <div class="card">
+      <h2 style="color: var(--blue);">📈 Average Score Summary</h2>
+      <table id="summaryTable">
+        <thead>
+          <tr>
+            <th>Grade</th>
+            <th>Subject</th>
+            <th>Stream</th>
+            <th>Average</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="insightBox" class="insight-box"></div>
+    </div>
 
-    <!-- SmartScores v2.0 Action Buttons -->
-    <div class="dashboard-controls" style="text-align:center; margin:20px auto; padding:15px; border-radius:12px; background:linear-gradient(135deg,#f0f4ff,#e8f0fe); box-shadow:0 2px 6px rgba(0,0,0,0.1); max-width:900px;">
-      <h2 style="color:#1e3a8a; margin-bottom:12px;">📊 SmartScores Actions</h2>
-      <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px;">
-        <button onclick="downloadPDF()" style="background:#2563eb; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
-          📄 Download PDF Report
-        </button>
-        <button onclick="exportExcel()" style="background:#16a34a; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
-          💾 Export Backup (JSON)
-        </button>
-        <label for="importFile" style="background:#9333ea; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
-          📥 Import Backup
-          <input type="file" id="importFile" accept=".json" onchange="importExcel(event)" style="display:none;">
-        </label>
-        <button onclick="resetData()" style="background:#dc2626; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
-          🧹 Reset All Data
-        </button>
-      </div>
-      <p style="font-size:0.9rem; color:#555; margin-top:10px;">
-        <i>💡 Tip: You can export your data before switching devices, then import it back anytime.</i>
-      </p>
-    </div>
-  </main>
+        <div class="dashboard-controls" style="text-align:center; margin:20px auto; padding:15px; border-radius:12px; background:linear-gradient(135deg,#f0f4ff,#e8f0fe); box-shadow:0 2px 6px rgba(0,0,0,0.1); max-width:900px;">
+      <h2 style="color:#1e3a8a; margin-bottom:12px;">📊 SmartScores Actions</h2>
+      <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px;">
+        <button onclick="downloadPDF()" style="background:#2563eb; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
+          📄 Download PDF Report
+        </button>
+        <button onclick="exportExcel()" style="background:#16a34a; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
+          💾 Export Backup (JSON)
+        </button>
+        <label for="importFile" style="background:#9333ea; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
+          📥 Import Backup
+          <input type="file" id="importFile" accept=".json" onchange="importExcel(event)" style="display:none;">
+        </label>
+        <button onclick="resetData()" style="background:#dc2626; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
+          🧹 Reset All Data
+        </button>
+      </div>
+      <p style="font-size:0.9rem; color:#555; margin-top:10px;">
+        <i>💡 Tip: You can export your data before switching devices, then import it back anytime.</i>
+      </p>
+    </div>
+  </main>
 
-  <footer>
-    SmartScores v2.0 © Kariuki 2025
-  </footer>
+  <footer>
+    SmartScores v2.0 © Kariuki 2025
+  </footer>
 
-  <!-- External Scripts -->
-  <script src="app.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-</body>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+  
+    <script src="app.js"></script>
+  
+  </body>
 </html>
