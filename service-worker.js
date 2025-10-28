@@ -1,47 +1,30 @@
-// SmartScores v2.0 Service Worker
-const CACHE_NAME = "smartscores-v2";
-const FILES_TO_CACHE = [
-  "/",
-  "/index.html",
-  "/style.css",
-  "/app.js",
-  "/favicon.png",
-  "/manifest.json",
-  "https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js",
-  "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js",
-  "https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.1/dist/jspdf.plugin.autotable.min.js",
+// service-worker.js — SmartScores v2.0
+
+const CACHE_NAME = "smartscores-v2.0";
+const urlsToCache = [
+  "index.html",
+  "about.html",
+  "app.js",
+  "favicon.png",
+  "manifest.json"
 ];
 
-self.addEventListener("install", (evt) => {
-  evt.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log("Pre-caching resources");
-      return cache.addAll(FILES_TO_CACHE);
-    })
+self.addEventListener("install", e => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
-  self.skipWaiting();
 });
 
-self.addEventListener("activate", (evt) => {
-  evt.waitUntil(
-    caches.keys().then((keyList) =>
-      Promise.all(
-        keyList.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log("Removing old cache", key);
-            return caches.delete(key);
-          }
-        })
-      )
-    )
+self.addEventListener("fetch", e => {
+  e.respondWith(
+    caches.match(e.request).then(response => response || fetch(e.request))
   );
-  self.clients.claim();
 });
 
-self.addEventListener("fetch", (evt) => {
-  evt.respondWith(
-    caches.match(evt.request).then((response) => {
-      return response || fetch(evt.request);
-    })
+self.addEventListener("activate", e => {
+  e.waitUntil(
+    caches.keys().then(keys => Promise.all(
+      keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+    ))
   );
 });
