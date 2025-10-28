@@ -7,34 +7,46 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <script src="app.js" defer></script>
+
   <style>
+    :root {
+      --primary: #1e3a8a;
+      --accent: #800000;
+      --light-bg: #f7f9fc;
+      --card-bg: #fff;
+      --border: #d1d5db;
+    }
+
     body {
-      font-family: "Segoe UI", Tahoma, sans-serif;
+      font-family: "Segoe UI", Roboto, sans-serif;
+      background-color: var(--light-bg);
       margin: 0;
-      background-color: #f8faff;
-      color: #222;
+      color: #111827;
     }
 
     header {
-      background: linear-gradient(to right, #1e40af, #800000);
-      color: white;
-      padding: 10px 15px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: #fff;
+      padding: 15px 25px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
       flex-wrap: wrap;
     }
 
     header h1 {
-      font-size: 1.3rem;
       margin: 0;
+      font-size: 1.6rem;
+      letter-spacing: 0.5px;
     }
 
     nav a {
       color: white;
-      margin-left: 15px;
+      margin-left: 20px;
       text-decoration: none;
-      font-weight: 600;
+      font-weight: 500;
+      font-size: 0.95rem;
     }
 
     nav a:hover {
@@ -42,124 +54,156 @@
     }
 
     main {
-      padding: 15px;
-      max-width: 900px;
-      margin: auto;
+      max-width: 1100px;
+      margin: 25px auto;
+      padding: 20px;
     }
 
     h2 {
       text-align: center;
-      color: #1e40af;
-      margin-top: 10px;
+      color: var(--primary);
+      font-size: 1.4rem;
+      margin-bottom: 15px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
 
     form {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 10px;
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
     }
 
     label {
       font-weight: 600;
-      font-size: 0.9em;
+      font-size: 0.9rem;
+      display: block;
+      margin-bottom: 5px;
     }
 
     input,
     select {
       width: 100%;
       padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 0.95em;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.95rem;
     }
 
-    button {
-      background-color: #1e40af;
-      color: white;
+    button[type="submit"] {
+      grid-column: 1 / -1;
+      background: var(--primary);
+      color: #fff;
       border: none;
-      padding: 10px;
-      border-radius: 6px;
-      cursor: pointer;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
       font-weight: bold;
+      cursor: pointer;
     }
 
-    button:hover {
-      background-color: #003366;
+    button[type="submit"]:hover {
+      background: #0f2167;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
-      margin-top: 15px;
+      background: var(--card-bg);
       border-radius: 10px;
       overflow: hidden;
+      margin-top: 15px;
+      font-size: 0.9rem;
     }
 
     th, td {
-      padding: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e7eb;
       text-align: center;
-      border-bottom: 1px solid #ddd;
-      font-size: 0.9em;
     }
 
     th {
-      background-color: #1e40af;
+      background-color: var(--primary);
       color: white;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9fafb;
     }
 
     tr:hover {
-      background-color: #f1f5ff;
+      background-color: #eef2ff;
     }
 
     .action-buttons {
-      margin-top: 15px;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 10px;
+      gap: 12px;
+      margin-top: 20px;
     }
 
     .btn {
-      background-color: #1e40af;
-      color: white;
-      padding: 10px 15px;
+      background-color: var(--primary);
+      color: #fff;
       border: none;
+      padding: 10px 16px;
       border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
+      transition: 0.2s;
     }
 
     .btn:hover {
-      background-color: #0055aa;
+      background-color: #0f2167;
     }
 
     .btn-danger {
-      background-color: maroon;
+      background-color: var(--accent);
     }
 
     .btn-danger:hover {
-      background-color: #b30000;
+      background-color: #a10000;
     }
 
     footer {
       text-align: center;
-      font-size: 0.8em;
       color: #555;
-      margin-top: 20px;
-      padding: 10px;
+      padding: 15px 0;
+      border-top: 1px solid #ddd;
+      margin-top: 40px;
     }
 
-    @media (max-width: 600px) {
-      form {
-        grid-template-columns: 1fr 1fr;
+    footer p {
+      margin: 3px 0;
+    }
+
+    #insightBox {
+      text-align: center;
+      font-style: italic;
+      margin-top: 15px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    @media (min-width: 900px) {
+      .card {
+        padding: 30px;
       }
-      th, td {
-        font-size: 0.8em;
+
+      h2 {
+        font-size: 1.6rem;
+      }
+
+      table th, table td {
+        font-size: 0.95rem;
       }
     }
   </style>
@@ -174,91 +218,119 @@
   </header>
 
   <main>
-    <h2>Teacher Mean Score Tracker</h2>
-    <form id="scoreForm">
-      <label>Teacher</label>
-      <input type="text" name="teacher" placeholder="Enter teacher name" required />
+    <div class="card">
+      <h2>Teacher Mean Score Tracker</h2>
+      <form id="scoreForm">
+        <div>
+          <label>Teacher</label>
+          <input type="text" name="teacher" placeholder="Enter teacher name" required />
+        </div>
 
-      <label>Subject</label>
-      <select name="subject" required>
-        <option value="">Select</option>
-        <option>Mathematics</option>
-        <option>English</option>
-        <option>Kiswahili</option>
-        <option>Science</option>
-        <option>Agriculture and Nutrition</option>
-        <option>Creative Arts</option>
-        <option>Social Studies</option>
-        <option>CRE</option>
-        <option>Pre-Technical Studies</option>
-      </select>
+        <div>
+          <label>Subject</label>
+          <select name="subject" required>
+            <option value="">Select</option>
+            <option>Mathematics</option>
+            <option>English</option>
+            <option>Kiswahili</option>
+            <option>Science</option>
+            <option>Agriculture and Nutrition</option>
+            <option>Creative Arts</option>
+            <option>Social Studies</option>
+            <option>CRE</option>
+            <option>Pre-Technical Studies</option>
+          </select>
+        </div>
 
-      <label>Grade</label>
-      <select name="grade" required>
-        <option value="">Select</option>
-        <option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option>
-      </select>
+        <div>
+          <label>Grade</label>
+          <select name="grade" required>
+            <option value="">Select</option>
+            <option>4</option><option>5</option><option>6</option>
+            <option>7</option><option>8</option><option>9</option>
+          </select>
+        </div>
 
-      <label>Stream</label>
-      <select name="stream" required>
-        <option value="">Select</option>
-        <option>Faith</option><option>Glory</option><option>Joy</option>
-        <option>Love</option><option>Peace</option><option>Unity</option>
-      </select>
+        <div>
+          <label>Stream</label>
+          <select name="stream" required>
+            <option value="">Select</option>
+            <option>Faith</option><option>Glory</option>
+            <option>Joy</option><option>Love</option>
+            <option>Peace</option><option>Unity</option>
+          </select>
+        </div>
 
-      <label>Term</label>
-      <select name="term" required>
-        <option value="">Select</option>
-        <option>Term 1</option><option>Term 2</option><option>Term 3</option>
-      </select>
+        <div>
+          <label>Term</label>
+          <select name="term" required>
+            <option value="">Select</option>
+            <option>Term 1</option>
+            <option>Term 2</option>
+            <option>Term 3</option>
+          </select>
+        </div>
 
-      <label>Exam Type</label>
-      <select name="examType" required>
-        <option value="">Select</option>
-        <option>Opener Exam</option>
-        <option>Mid Term Exam</option>
-        <option>End Term Exam</option>
-      </select>
+        <div>
+          <label>Exam Type</label>
+          <select name="examType" required>
+            <option value="">Select</option>
+            <option>Opener Exam</option>
+            <option>Mid Term Exam</option>
+            <option>End Term Exam</option>
+          </select>
+        </div>
 
-      <label>Year</label>
-      <input type="number" name="year" placeholder="e.g. 2025" required />
+        <div>
+          <label>Year</label>
+          <input type="number" name="year" placeholder="e.g. 2025" required />
+        </div>
 
-      <label>Mean Score</label>
-      <input type="number" name="mean" step="0.01" placeholder="Enter mean score" required />
+        <div>
+          <label>Mean Score</label>
+          <input type="number" name="mean" step="0.01" placeholder="Enter mean score" required />
+        </div>
 
-      <button type="submit">💾 Save Record</button>
-    </form>
-
-    <table id="recordsTable">
-      <thead>
-        <tr>
-          <th>#</th><th>Teacher</th><th>Subject</th><th>Grade</th>
-          <th>Stream</th><th>Term</th><th>Exam</th><th>Year</th>
-          <th>Mean</th><th>Rubric</th>
-        </tr>
-      </thead>
-      <tbody id="recordsBody"></tbody>
-    </table>
-
-    <h2>Average Score Summary</h2>
-    <table id="summaryTable">
-      <thead>
-        <tr>
-          <th>Grade</th><th>Subject</th><th>Term</th><th>Stream</th><th>Average</th><th>Insight</th>
-        </tr>
-      </thead>
-      <tbody id="summaryBody"></tbody>
-    </table>
-
-    <div class="action-buttons">
-      <button class="btn" onclick="exportToExcel()">📤 Export Excel</button>
-      <label for="importFile" class="btn">📥 Import Excel</label>
-      <input type="file" id="importFile" accept=".csv" onchange="importFromExcel(event)" style="display:none;" />
-      <button class="btn" onclick="downloadPDF()">📄 Download PDF</button>
-      <button class="btn btn-danger" onclick="resetData()">🗑 Reset All</button>
+        <button type="submit">💾 Save Record</button>
+      </form>
     </div>
 
-    <div id="insightBox"></div>
+    <div class="card">
+      <h2>Records</h2>
+      <table id="recordsTable">
+        <thead>
+          <tr>
+            <th>#</th><th>Teacher</th><th>Subject</th><th>Grade</th>
+            <th>Stream</th><th>Term</th><th>Exam</th><th>Year</th>
+            <th>Mean</th><th>Rubric</th>
+          </tr>
+        </thead>
+        <tbody id="recordsBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Average Score Summary</h2>
+      <table id="summaryTable">
+        <thead>
+          <tr>
+            <th>Grade</th><th>Subject</th><th>Term</th>
+            <th>Stream</th><th>Average</th><th>Insight</th>
+          </tr>
+        </thead>
+        <tbody id="summaryBody"></tbody>
+      </table>
+
+      <div id="insightBox"></div>
+
+      <div class="action-buttons">
+        <button class="btn" onclick="exportToExcel()">📤 Export Excel</button>
+        <label for="importFile" class="btn">📥 Import Excel</label>
+        <input type="file" id="importFile" accept=".csv" onchange="importFromExcel(event)" style="display:none;" />
+        <button class="btn" onclick="downloadPDF()">📄 Download PDF</button>
+        <button class="btn btn-danger" onclick="resetData()">🗑 Reset All</button>
+      </div>
+    </div>
 
     <footer>
       <p id="dateText"></p>
