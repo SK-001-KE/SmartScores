@@ -7,6 +7,12 @@ const insightBox = document.getElementById('insightBox');
 const ctx = document.getElementById('barChart')?.getContext('2d');
 let chart;
 
+// Hidden input to track edits
+const recordIndexInput = document.createElement('input');
+recordIndexInput.type = 'hidden';
+recordIndexInput.id = 'recordIndex';
+form.appendChild(recordIndexInput);
+
 // Utility functions
 function unique(arr) { return [...new Set(arr)]; }
 function avg(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
@@ -17,7 +23,7 @@ function grading(score){
   return {label:"Below Expectations", color:"#ef4444", emoji:"⚠️"};
 }
 
-// Save form data
+// --------------------- SAVE / EDIT RECORD ---------------------
 form.onsubmit = e => {
   e.preventDefault();
   const rec = {
@@ -30,8 +36,8 @@ form.onsubmit = e => {
     year: year.value,
     score: parseFloat(score.value)
   };
-  
-  const idx = records.findIndex(r =>
+
+  const idx = recordIndexInput.value || records.findIndex(r =>
     r.teacher === rec.teacher &&
     r.subject === rec.subject &&
     r.grade === rec.grade &&
@@ -40,7 +46,7 @@ form.onsubmit = e => {
     r.exam === rec.exam &&
     r.year === rec.year
   );
-  
+
   if(idx > -1){
     if(!confirm("⚠️ This record already exists. Do you want to overwrite it?")) return;
     records[idx] = rec;
@@ -50,10 +56,11 @@ form.onsubmit = e => {
 
   localStorage.setItem('smartRecords', JSON.stringify(records));
   alert("SmartScores says: ✅ Record saved successfully!");
+  recordIndexInput.value = ''; // reset edit tracker
   updateAll();
 };
 
-// Populate filters
+// --------------------- POPULATE FILTERS ---------------------
 function populateFilters(){
   const teachers = unique(records.map(r=>r.teacher)).sort();
   const grades = unique(records.map(r=>r.grade)).sort();
@@ -66,7 +73,7 @@ function populateFilters(){
   filterYear.innerHTML = '<option value="">All Years</option>' + years.map(y=>`<option>${y}</option>`).join('');
 }
 
-// Filtered records
+// --------------------- FILTERED RECORDS ---------------------
 function getFiltered(){
   return records.filter(r=>
     (!filterTeacher.value || r.teacher===filterTeacher.value) &&
@@ -76,15 +83,79 @@ function getFiltered(){
   );
 }
 
-// Update dashboard & summary
+// --------------------- RENDER RECORDS TABLE ---------------------
+function renderRecords(filteredRecords = records){
+  const tbody = document.querySelector('#recordsTable tbody');
+  tbody.innerHTML = '';
+  filteredRecords.forEach((r, idx) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${r.teacher}</td>
+      <td>${r.subject}</td>
+      <td>${r.grade}</td>
+      <td>${r.stream}</td>
+      <td>${r.term}</td>
+      <td>${r.exam}</td>
+      <td>${r.year}</td>
+      <td>${r.score}</td>
+      <td>
+        <button onclick="editRecord(${idx})">Edit</button>
+        <button onclick="deleteRecord(${idx})">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// --------------------- EDIT / DELETE FUNCTIONS ---------------------
+function editRecord(idx){
+  const r = records[idx];
+  teacher.value = r.teacher;
+  subject.value = r.subject;
+  grade.value = r.grade;
+  stream.value = r.stream;
+  term.value = r.term;
+  exam.value = r.exam;
+  year.value = r.year;
+  score.value = r.score;
+  recordIndexInput.value = idx;
+}
+
+function deleteRecord(idx){
+  if(confirm("🗑️ Are you sure you want to delete this record?")){
+    records.splice(idx,1);
+    localStorage.setItem('smartRecords', JSON.stringify(records));
+    updateAll();
+  }
+}
+
+// --------------------- SEARCH / FILTER BAR ---------------------
+const searchInput = document.createElement('input');
+searchInput.id = 'searchInput';
+searchInput.placeholder = 'Search records...';
+searchInput.style.marginBottom = '10px';
+searchInput.onkeyup = () => {
+  const query = searchInput.value.toLowerCase();
+  const filtered = records.filter(r =>
+    r.teacher.toLowerCase().includes(query) ||
+    r.subject.toLowerCase().includes(query) ||
+    r.grade.toLowerCase().includes(query) ||
+    r.stream.toLowerCase().includes(query)
+  );
+  renderRecords(filtered);
+};
+document.querySelector('#recordsTable').parentElement.insertBefore(searchInput, document.querySelector('#recordsTable'));
+
+// --------------------- DASHBOARD & SUMMARY ---------------------
 function updateAll(){
   populateFilters();
   const filtered = getFiltered();
+  renderRecords(filtered);
   renderSummary(filtered);
   renderChart(filtered);
 }
 
-// Chart
+// --------------------- CHART ---------------------
 function renderChart(filtered){
   if(!ctx) return;
   if(chart) chart.destroy();
@@ -109,7 +180,7 @@ function renderChart(filtered){
   });
 }
 
-// Summary & insight
+// --------------------- SUMMARY & INSIGHT ---------------------
 function renderSummary(filtered){
   const tbody = document.querySelector('#summaryTable tbody');
   tbody.innerHTML = '';
@@ -123,7 +194,7 @@ function renderSummary(filtered){
 
   Object.values(grouped).forEach(g=>{
     const a1 = avg(g.t1), a2 = avg(g.t2), a3 = avg(g.t3);
-    const overall = avg([a1, a2, a3].filter(v=>v>0));
+    const overall = avg([a1,a2,a3].filter(v=>v>0));
     const gradeInfo = grading(overall);
 
     tbody.innerHTML += `
@@ -147,7 +218,7 @@ function renderSummary(filtered){
   insightBox.innerHTML = insights.length ? insights.join('<br>') : "<i>No insights yet.</i>";
 }
 
-// Reset all data
+// --------------------- RESET DATA ---------------------
 function resetData(){
   if(confirm("⚠️ Resetting will permanently delete all records. Proceed?")){
     localStorage.removeItem('smartRecords');
@@ -157,7 +228,7 @@ function resetData(){
   }
 }
 
-// Export to Excel
+// --------------------- EXPORT / IMPORT ---------------------
 function exportExcel(){
   const data = JSON.stringify(records);
   const blob = new Blob([data], {type:'application/json'});
@@ -168,7 +239,6 @@ function exportExcel(){
   alert("SmartScores says: 💾 Backup exported successfully!");
 }
 
-// Import data
 function importExcel(event){
   const file = event.target.files[0];
   if(!file) return;
@@ -189,15 +259,18 @@ function importExcel(event){
   reader.readAsText(file);
 }
 
-// Auto-download PDF report
+// --------------------- PDF REPORT ---------------------
 async function downloadPDF(){
   const { jsPDF } = window.jspdf;
+
+  // Inline Base64 logo
+  const logoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."; // replace with full Base64
 
   const reportArea = document.createElement('div');
   reportArea.style.padding = '20px';
   reportArea.innerHTML = `
     <div style="text-align:center;">
-      <img src="logo_smartscores.png" style="width:70px;height:70px;"><br>
+      <img src="${logoBase64}" style="width:70px;height:70px;"><br>
       <h2 style="color:#1e3a8a;margin:0;">SmartScores Report</h2>
       <p style="font-size:0.9rem;">${new Date().toLocaleString()}</p>
     </div>
@@ -223,7 +296,7 @@ async function downloadPDF(){
 
   pdf.addImage(imgData, 'PNG', 25, position, imgWidth, imgHeight);
   heightLeft -= pageHeight;
-  while (heightLeft > 0) {
+  while(heightLeft > 0){
     position = heightLeft - imgHeight;
     pdf.addPage();
     pdf.addImage(imgData, 'PNG', 25, position, imgWidth, imgHeight);
@@ -235,5 +308,5 @@ async function downloadPDF(){
   alert("SmartScores says: 📄 PDF report downloaded successfully!");
 }
 
-// Initialize on load
+// --------------------- INITIALIZE ---------------------
 updateAll();
