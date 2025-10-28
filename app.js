@@ -72,4 +72,15 @@ function downloadPDF(){
   const doc=new jsPDF();doc.setFontSize(18);doc.text("SmartScores Report",14,20);let startY=30;
   const recordHeaders=["Teacher","Subject","Grade","Stream","Term","Exam Type","Year","Mean Score","Rubric"];
   const recordBody=records.map(r=>[r.teacherName,r.subject,r.grade,r.stream,r.term,r.examType,r.year,r.meanScore,r.rubric+" "+r.colorTag]);
-  doc.autoTable({head:[recordHeaders],body:recordBody,startY,styles:{fontSize:10
+  doc.autoTable({head:[recordHeaders],body:recordBody,startY,styles:{fontSize:10}});
+  startY=doc.lastAutoTable.finalY+10;
+  const summaryData=[];const summaryMap={};
+  records.forEach(r=>{const key=`${r.grade}-${r.subject}-${r.stream}`;if(!summaryMap[key])summaryMap[key]={total:0,count:0};summaryMap[key].total+=r.meanScore;summaryMap[key].count+=1;});
+  for(const key in summaryMap){const [grade,subject,stream]=key.split("-");const avg=(summaryMap[key].total/summaryMap[key].count).toFixed(2);summaryData.push([grade,subject,stream,avg]);}
+  doc.autoTable({head:[["Grade","Subject","Stream","Average"]],body:summaryData,startY,styles:{fontSize:10}});
+  startY=doc.lastAutoTable.finalY+10;const insightsText=document.getElementById("insightBox").innerText;
+  doc.setFontSize(12);doc.text("Insights:",14,startY);startY+=6;doc.setFontSize(10);doc.text(doc.splitTextToSize(insightsText,180),14,startY);
+  doc.save("SmartScores_Report.pdf");
+}
+
+renderRecords();renderSummary();
