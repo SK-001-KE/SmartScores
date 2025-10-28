@@ -2,260 +2,98 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#1e40af" />
-  <title>SmartScores v1.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartScores – Teacher Mean Score Tracker</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icons/icon-512.png" type="image/png" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    body {
-      font-family: "Segoe UI", Tahoma, sans-serif;
-      margin: 12px;
-      background: #f9fafb;
-      color: #111;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 15px;
-    }
-
-    h1 {
-      color: #1e40af;
-      font-size: 1.8rem;
-      margin: 0;
-    }
-
-    .form-section, #insightSection {
-      background: #fff;
-      padding: 16px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: 600;
-    }
-
-    input, select, button {
-      width: 100%;
-      box-sizing: border-box;
-      margin-top: 6px;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-    }
-
-    button {
-      margin-top: 12px;
-      background: #1e40af;
-      color: #fff;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    button:hover { background: #1d4ed8; }
-
-    #summaryTable {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-    }
-
-    #summaryTable th, #summaryTable td {
-      border: 1px solid #ccc;
-      padding: 6px;
-      text-align: center;
-    }
-
-    #summaryTable th { background: #e5e7eb; }
-
-    #insightSection h3 {
-      margin-top: 0;
-      color: #1e40af;
-    }
-
-    .tag {
-      font-weight: 600;
-      color: white;
-      padding: 3px 6px;
-      border-radius: 6px;
-    }
-    .BE { background: #dc2626; }
-    .AE { background: #ea580c; }
-    .ME { background: #2563eb; }
-    .EE { background: #16a34a; }
-
-    .action-buttons {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-      flex-wrap: wrap;
-    }
-    .action-buttons button {
-      flex: 1;
-    }
-
-    /* About Modal */
-    #aboutModal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
-      justify-content: center;
-      align-items: center;
-      z-index: 999;
-    }
-    #aboutBox {
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 90%;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-
-    @media (max-width: 480px) {
-      body { font-size: 15px; }
-      h1 { font-size: 1.4rem; }
-    }
-  </style>
+  <link rel="icon" href="favicon.png" type="image/png" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
-    <h1>SmartScores v1.0</h1>
-    <p><em>Teacher Mean Score Tracker — Kariuki 2025</em></p>
+    <h1>SmartScores – Teacher Mean Score Tracker</h1>
   </header>
 
-  <div class="form-section">
-    <label>Teacher Name:</label>
-    <input type="text" id="teacherName" required />
+  <main>
+    <section class="form-section">
+      <label>Teacher Name</label>
+      <input type="text" id="teacherName" placeholder="Enter name" required>
 
-    <label>Subject:</label>
-    <select id="subject" required>
-      <option value="">Select Subject</option>
-      <option>Mathematics</option>
-      <option>English</option>
-      <option>Kiswahili</option>
-      <option>Science</option>
-      <option>Agriculture and Nutrition</option>
-      <option>Creative Arts</option>
-      <option>Social Studies</option>
-      <option>CRE</option>
-      <option>Pre-Technical Studies</option>
-    </select>
+      <label>Grade</label>
+      <select id="grade">
+        <option>4</option><option>5</option><option>6</option>
+        <option>7</option><option>8</option><option>9</option>
+      </select>
 
-    <label>Grade:</label>
-    <select id="grade">
-      <option value="">Select Grade</option>
-      <option>4</option><option>5</option><option>6</option>
-      <option>7</option><option>8</option><option>9</option>
-    </select>
+      <label>Stream</label>
+      <select id="stream">
+        <option>Faith</option><option>Glory</option><option>Joy</option>
+        <option>Love</option><option>Peace</option><option>Unity</option>
+      </select>
 
-    <label>Stream:</label>
-    <select id="stream">
-      <option value="">Select Stream</option>
-      <option>Faith</option><option>Glory</option><option>Joy</option>
-      <option>Love</option><option>Peace</option><option>Unity</option>
-    </select>
+      <label>Subject</label>
+      <select id="subject">
+        <option>Mathematics</option><option>English</option><option>Kiswahili</option>
+        <option>Science</option><option>Agriculture and Nutrition</option>
+        <option>Creative Arts</option><option>Social Studies</option>
+        <option>CRE</option><option>Pre-Technical Studies</option>
+      </select>
 
-    <label>Term:</label>
-    <select id="term">
-      <option value="">Select Term</option>
-      <option>Term 1</option><option>Term 2</option><option>Term 3</option>
-    </select>
+      <label>Term</label>
+      <select id="term">
+        <option>Term 1</option><option>Term 2</option><option>Term 3</option>
+      </select>
 
-    <label>Exam Type:</label>
-    <select id="examType">
-      <option value="">Select Exam Type</option>
-      <option>Opener Exam</option>
-      <option>Mid Term Exam</option>
-      <option>End Term Exam</option>
-    </select>
+      <label>Exam Type</label>
+      <select id="examType">
+        <option>Opener Exam</option><option>Mid Term Exam</option><option>End Term Exam</option>
+      </select>
 
-    <label>Year:</label>
-    <input type="number" id="year" min="2020" max="2100" value="2025" />
+      <label>Current Year</label>
+      <input type="number" id="year" placeholder="2025" />
 
-    <label>Mean Score:</label>
-    <input type="number" id="meanScore" min="0" max="100" placeholder="0-100" />
+      <label>Mean Score</label>
+      <input type="number" id="meanScore" placeholder="0–100" min="0" max="100" />
 
-    <div class="action-buttons">
-      <button id="saveBtn">💾 Save</button>
-      <button id="pdfBtn" style="background:#15803d;">⬇️ PDF</button>
-      <button id="resetBtn" style="background:#dc2626;">🗑️ Reset</button>
-      <button id="aboutBtn" style="background:#6b21a8;">ℹ️ About</button>
+      <button id="saveBtn">💾 Save Record</button>
+      <button id="exportExcel">📤 Export Excel</button>
+      <input type="file" id="importExcel" accept=".xlsx" style="display:none;">
+      <button id="importBtn">📥 Import Excel</button>
+      <button id="resetBtn" class="danger">🗑️ Reset Data</button>
+      <button id="downloadPdf">📄 Download PDF</button>
+    </section>
+
+    <section id="recordsSection">
+      <h2>Saved Records</h2>
+      <table id="recordsTable">
+        <thead>
+          <tr>
+            <th>Teacher</th><th>Grade</th><th>Stream</th><th>Subject</th>
+            <th>Term</th><th>Exam Type</th><th>Year</th><th>Mean</th><th>Grade Label</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div id="summarySection"></div>
+      <div id="insightSection"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>SmartScores v2.0 • Kariuki 2025</p>
+  </footer>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="modal hidden">
+    <div class="modal-content">
+      <p id="confirmMessage"></p>
+      <button id="confirmYes">Yes</button>
+      <button id="confirmNo">No</button>
     </div>
   </div>
 
-  <section>
-    <table id="summaryTable">
-      <thead>
-        <tr>
-          <th>Teacher</th><th>Subject</th><th>Grade</th><th>Stream</th>
-          <th>Term</th><th>Exam</th><th>Year</th><th>Mean</th><th>Performance</th><th>Date</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
-
-  <div id="insightSection">
-    <h3>🧠 Insight</h3>
-    <p id="insightText">No data yet. Add records to see performance feedback.</p>
-  </div>
-
-  <!-- About Modal -->
-  <div id="aboutModal">
-    <div id="aboutBox">
-      <h3>About SmartScores v1.0</h3>
-      <p>SmartScores is a Progressive Web App for tracking teachers’ mean scores and performance insights.</p>
-      <p>Created by Kariuki 2025 🎓</p>
-      <button onclick="closeAbout()">Close</button>
-    </div>
-  </div>
-
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="app.js"></script>
-  <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-      .then(() => console.log('✅ Service Worker registered'))
-      .catch((err) => console.error('Service Worker failed:', err));
-  }
-</script>
-  <!-- Confirmation / Prompt Modal -->
-<div id="confirmModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:9999;">
-  <div style="background:#fff; max-width:420px; width:90%; border-radius:10px; padding:16px; box-shadow:0 6px 18px rgba(0,0,0,0.2);">
-    <h3 id="confirmTitle" style="margin:0 0 8px 0; color:#1e40af;">Confirm</h3>
-    <p id="confirmMessage" style="margin:0 0 12px 0; color:#333;">Message</p>
-    <div style="display:flex; gap:8px; justify-content:flex-end;">
-      <button id="confirmCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;background:#fff;">Cancel</button>
-      <button id="confirmNo" style="padding:8px 12px;border-radius:8px;border:1px solid #1e40af;background:#fff;color:#1e40af;">No</button>
-      <button id="confirmYes" style="padding:8px 12px;border-radius:8px;background:#1e40af;color:#fff;">Yes</button>
-    </div>
-  </div>
-</div>
-  <div class="action-buttons">
-  <button id="saveBtn">💾 Save</button>
-  <button id="pdfBtn" style="background:#15803d;">⬇️ PDF</button>
-  <button id="exportXlsxBtn" style="background:#0f172a;">📥 Export Excel</button>
-  <button id="exportJsonBtn" style="background:#0f172a;">📂 Export JSON</button>
-  <button id="importBtn" style="background:#f97316;">📤 Import</button>
-  <button id="resetBtn" style="background:#dc2626;">🗑️ Reset</button>
-  <button id="aboutBtn" style="background:#6b21a8;">ℹ️ About</button>
-</div>
-
-
-<!-- Hidden file input for importing JSON/XLSX -->
-<input id="importFileInput" type="file" accept=".json,application/json, .xlsx, .xls" style="display:none" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-
 </body>
 </html>
