@@ -67,6 +67,7 @@
             padding: 15px;
             max-width: 900px;
             margin: 0 auto;
+            width: 100%; /* Ensure main takes full width of its container on mobile */
         }
 
         .card {
@@ -81,25 +82,29 @@
             display: block;
             margin-top: 10px;
             font-weight: 600;
+            color: #333;
         }
 
         input, select {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
             margin-top: 5px;
             border-radius: 6px;
             border: 1px solid #ccc;
+            box-sizing: border-box; /* Crucial for responsive forms */
         }
-
+        
         button {
             background: var(--blue);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 10px 18px;
             cursor: pointer;
             margin-top: 10px;
             font-weight: 600;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         button:hover {
@@ -110,6 +115,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
+            font-size: 0.9rem;
         }
 
         th, td {
@@ -121,36 +127,62 @@
         th {
             background: var(--blue);
             color: white;
+            position: sticky;
+            top: 0;
         }
 
         .insight-box {
-            margin-top: 10px;
-            padding: 10px;
-            border-left: 4px solid var(--blue);
-            background: #f1f5f9;
+            margin-top: 15px;
+            padding: 15px;
+            border-left: 5px solid var(--maroon);
+            background: #ffe6e6; /* Light pink/red background for attention */
             font-style: italic;
+            border-radius: 8px;
+            font-weight: 500;
+            color: #800000;
         }
 
         footer {
             text-align: center;
             background: #e2e8f0;
-            padding: 10px;
+            padding: 15px;
             font-size: 0.9rem;
             color: #555;
+            margin-top: 20px;
+        }
+        
+        .dashboard-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
         }
 
-        /* Mobile layout */
+        /* Mobile layout adjustments */
         @media (max-width: 600px) {
             header h1 {
                 display: block;
                 font-size: 1.3rem;
+            }
+            .dashboard-controls button,
+            .dashboard-controls label {
+                width: 100%; /* Full width buttons on mobile */
+                margin-top: 5px;
+            }
+            .dashboard-controls {
+                flex-direction: column;
+            }
+            table th, table td {
+                padding: 6px 4px; /* Smaller padding for narrow screens */
+                font-size: 0.75rem;
             }
         }
     </style>
 </head>
 <body>
     <header>
-        <img src="logo.png" alt="SmartScores Logo" />
+        <!-- Assuming you will add logo.png -->
+        <img src="logo.png" alt="SmartScores Logo" onerror="this.onerror=null;this.src='https://placehold.co/50x50/2563eb/ffffff?text=SS'" />
         <h1>SmartScores v2.0</h1>
     </header>
 
@@ -163,118 +195,78 @@
         <div class="card">
             <h2 style="color: var(--blue);">📋 Record Teacher Mean Scores</h2>
 
-            <label>Teacher's Name</label>
-            <input type="text" id="teacherName" placeholder="Enter teacher name" />
-
-            <label>Subject</label>
-            <select id="subject">
-                <option value="">--Select Subject--</option>
-                <option>Mathematics</option>
-                <option>English</option>
-                <option>Kiswahili</option>
-                <option>Science</option>
-                <option>Agriculture and Nutrition</option>
-                <option>Creative Arts</option>
-                <option>Social Studies</option>
-                <option>CRE</option>
-                <option>Pre-Technical Studies</option>
-            </select>
-
-            <label>Grade</label>
-            <select id="grade">
-                <option value="">--Select Grade--</option>
-                <option>4</option><option>5</option><option>6</option>
-                <option>7</option><option>8</option><option>9</option>
-            </select>
-
-            <label>Stream</label>
-            <select id="stream">
-                <option value="">--Select Stream--</option>
-                <option>Faith</option><option>Glory</option><option>Joy</option>
-                <option>Love</option><option>Peace</option><option>Unity</option>
-            </select>
-
-            <label>Term</label>
-            <select id="term">
-                <option value="">--Select Term--</option>
-                <option>Term 1</option>
-                <option>Term 2</option>
-                <option>Term 3</option>
-            </select>
-
-            <label>Exam Type</label>
-            <select id="examType">
-                <option value="">--Select Exam Type--</option>
-                <option>Opener Exam</option>
-                <option>Mid Term Exam</option>
-                <option>End Term Exam</option>
-            </select>
-
-            <label>Current Year</label>
-            <input type="number" id="year" placeholder="Enter Year e.g. 2025" />
-
-            <label>Mean Score</label>
-            <input type="number" id="meanScore" placeholder="Enter Mean Score (0-100)" />
-
-            <button onclick="saveRecord()">💾 Save Record</button>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                <div><label>Teacher's Name</label><input type="text" id="teacherName" placeholder="Enter teacher name" required /></div>
+                <div><label>Subject</label><select id="subject" required><option value="">--Select Subject--</option><option>Mathematics</option><option>English</option><option>Kiswahili</option><option>Science</option><option>Agriculture and Nutrition</option><option>Creative Arts</option><option>Social Studies</option><option>CRE</option><option>Pre-Technical Studies</option></select></div>
+                <div><label>Grade</label><select id="grade" required><option value="">--Select Grade--</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+                <div><label>Stream</label><select id="stream" required><option value="">--Select Stream--</option><option>Faith</option><option>Glory</option><option>Joy</option><option>Love</option><option>Peace</option><option>Unity</option></select></div>
+                <div><label>Term</label><select id="term" required><option value="">--Select Term--</option><option>Term 1</option><option>Term 2</option><option>Term 3</option></select></div>
+                <div><label>Exam Type</label><select id="examType" required><option value="">--Select Exam Type--</option><option>Opener Exam</option><option>Mid Term Exam</option><option>End Term Exam</option></select></div>
+                <div><label>Current Year</label><input type="number" id="year" placeholder="e.g. 2025" required /></div>
+                <div><label>Mean Score</label><input type="number" id="meanScore" placeholder="Score (0-100)" min="0" max="100" step="0.01" required /></div>
+            </div>
+            
+            <button onclick="saveRecord()" style="width: 100%; margin-top: 20px;">💾 Save New Record</button>
         </div>
 
         <div class="card">
-            <h2 style="color: var(--maroon);">📊 Recorded Scores</h2>
-            <table id="recordsTable">
-                <thead>
-                    <tr>
-                        <th>Teacher</th>
-                        <th>Subject</th>
-                        <th>Grade</th>
-                        <th>Stream</th>
-                        <th>Term</th>
-                        <th>Exam Type</th>
-                        <th>Year</th>
-                        <th>Mean Score</th>
-                        <th>Rubric</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <h2 style="color: var(--maroon);">📊 Recorded Scores (Detailed View)</h2>
+            <div style="overflow-x: auto;">
+                <table id="recordsTable">
+                    <thead>
+                        <tr>
+                            <th>Teacher</th>
+                            <th>Subject</th>
+                            <th>Grade</th>
+                            <th>Stream</th>
+                            <th>Term</th>
+                            <th>Exam Type</th>
+                            <th>Year</th>
+                            <th>Mean Score</th>
+                            <th>Rubric</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
 
         <div class="card">
             <h2 style="color: var(--blue);">📈 Average Score Summary</h2>
-            <table id="summaryTable">
-                <thead>
-                    <tr>
-                        <th>Grade</th>
-                        <th>Subject</th>
-                        <th>Stream</th>
-                        <th>Average</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-            <div id="insightBox" class="insight-box"></div>
+            <div style="overflow-x: auto;">
+                <table id="summaryTable">
+                    <thead>
+                        <tr>
+                            <th>Grade</th>
+                            <th>Subject</th>
+                            <th>Stream</th>
+                            <th>Average</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="insightBox" class="insight-box">No records available to generate insights.</div>
         </div>
 
-        <div class="dashboard-controls" style="text-align:center; margin:20px auto; padding:15px; border-radius:12px; background:linear-gradient(135deg,#f0f4ff,#e8f0fe); box-shadow:0 2px 6px rgba(0, 0, 0, 0.1); max-width:900px;">
-            <h2 style="color:#1e3a8a; margin-bottom:12px;">📊 SmartScores Actions</h2>
-            <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px;">
-                <button onclick="downloadPDF()" style="background:#2563eb; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
-                    📄 Download PDF Report
+        <!-- SmartScores v2.0 Action Buttons -->
+        <div class="card" style="background:#e8f0fe;">
+            <h2 style="color:#1e3a8a; margin-bottom:12px; text-align: center;">💾 Data Management & Reporting</h2>
+            <div class="dashboard-controls">
+                <button onclick="downloadPDF()" style="background:#059669;">
+                    📄 Generate PDF Report
                 </button>
-                <button onclick="exportExcel()" style="background:#16a34a; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
+                <button onclick="exportExcel()" style="background:#7e22ce;">
                     💾 Export Backup (JSON)
                 </button>
-                <label for="importFile" style="background:#9333ea; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
+                <label for="importFile" style="background:#ca8a04; color:white; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600; display: inline-flex; align-items: center; justify-content: center; margin-top:10px;">
                     📥 Import Backup
                     <input type="file" id="importFile" accept=".json" onchange="importExcel(event)" style="display:none;">
                 </label>
-                <button onclick="resetData()" style="background:#dc2626; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600;">
+                <button onclick="resetData()" style="background:#dc2626;">
                     🧹 Reset All Data
                 </button>
             </div>
-            <p style="font-size:0.9rem; color:#555; margin-top:10px;">
-                <i>💡 Tip: You can export your data before switching devices, then import it back anytime.</i>
-            </p>
         </div>
     </main>
 
@@ -282,9 +274,12 @@
         SmartScores v2.0 © Kariuki 2025
     </footer>
 
+    <!-- 🌟 PDF LIBRARIES LOADED HERE (REQUIRED FOR PDF GENERATION) 🌟 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
+    <!-- Your Application Logic -->
     <script src="app.js"></script>
 </body>
 </html>
