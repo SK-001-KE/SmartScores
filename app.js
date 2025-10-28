@@ -1,202 +1,213 @@
-// SMARTSCORES v1.0 – TEACHER MEAN SCORE TRACKER
-// © Kariuki 2025
+/* ============================================================
+   SmartScores v2.0
+   Teacher Mean Score Tracker
+   Author: Kariuki 2025
+   ============================================================ */
 
-let records = JSON.parse(localStorage.getItem("smartScores")) || [];
 const form = document.getElementById("scoreForm");
-const tableBody = document.querySelector("#recordsTable tbody");
-const summaryBody = document.querySelector("#summaryTable tbody");
+const tableBody = document.getElementById("recordsBody");
+const summaryBody = document.getElementById("summaryBody");
 const insightBox = document.getElementById("insightBox");
-const dateSpan = document.getElementById("currentDate");
 
-// Long format date
-dateSpan.textContent = new Date().toLocaleDateString("en-GB", {
-  weekday: "long",
-  year: "numeric",
-  month: "long",
-  day: "numeric"
-});
-
-// 💬 SmartScores Custom Notification
-function showSmartAlert(message) {
-  const box = document.createElement("div");
-  box.textContent = message;
-  Object.assign(box.style, {
-    position: "fixed",
-    bottom: "20px",
-    right: "20px",
-    background: "#003366",
-    color: "white",
-    padding: "10px 15px",
-    borderRadius: "8px",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-    zIndex: 9999,
-    fontWeight: "600",
-    fontSize: "0.9rem",
-    transition: "opacity 0.5s ease"
-  });
-  document.body.appendChild(box);
-  setTimeout(() => { box.style.opacity = "0"; }, 2500);
-  setTimeout(() => box.remove(), 3000);
+// --- Utility to get and save local data ---
+function getRecords() {
+  return JSON.parse(localStorage.getItem("smartScores") || "[]");
+}
+function saveRecords(records) {
+  localStorage.setItem("smartScores", JSON.stringify(records));
 }
 
-// 🧾 Save Record
-form.onsubmit = e => {
+// --- Determine rubric + color ---
+function getRubric(mean) {
+  if (mean >= 75) return { label: "Exceeding Expectations", color: "#00b300", emoji: "🌟" };
+  if (mean >= 41) return { label: "Meeting Expectations", color: "#2196f3", emoji: "👍" };
+  if (mean >= 21) return { label: "Approaching Expectations", color: "#ff9800", emoji: "🟡" };
+  return { label: "Below Expectations", color: "#f44336", emoji: "❌" };
+}
+
+// --- Add Record ---
+form.addEventListener("submit", e => {
   e.preventDefault();
 
-  const rec = {
-    teacher: form.teacher.value.trim(),
-    grade: form.grade.value,
-    stream: form.stream.value,
-    subject: form.subject.value,
-    term: form.term.value,
-    examType: form.examType.value,
-    year: form.year.value,
-    mean: parseFloat(form.mean.value)
-  };
+  const teacher = form.teacher.value.trim();
+  const subject = form.subject.value;
+  const grade = form.grade.value;
+  const stream = form.stream.value;
+  const term = form.term.value;
+  const examType = form.examType.value;
+  const year = form.year.value;
+  const mean = parseFloat(form.mean.value);
 
-  // Check for duplicate
-  const idx = records.findIndex(r =>
-    r.teacher === rec.teacher &&
-    r.subject === rec.subject &&
-    r.grade === rec.grade &&
-    r.stream === rec.stream &&
-    r.term === rec.term &&
-    r.examType === rec.examType &&
-    r.year === rec.year
-  );
-
-  if (idx > -1) {
-    if (!confirm("⚠️ SmartScores says: This record already exists. Overwrite it?")) return;
-    records[idx] = rec;
-  } else {
-    records.push(rec);
+  if (!teacher || isNaN(mean)) {
+    alert("Please fill all fields correctly.");
+    return;
   }
 
-  localStorage.setItem("smartScores", JSON.stringify(records));
-  form.mean.value = ""; // clear mean only
-  showSmartAlert("💬 SmartScores says: Record saved successfully!");
-  updateDisplay();
-};
+  const records = getRecords();
+  const existingIndex = records.findIndex(r =>
+    r.teacher === teacher &&
+    r.subject === subject &&
+    r.grade === grade &&
+    r.stream === stream &&
+    r.term === term &&
+    r.examType === examType &&
+    r.year === year
+  );
 
-// 🧮 Display Records
-function updateDisplay() {
+  if (existingIndex !== -1) {
+    if (!confirm("SmartScores says: A record for this combination exists. Overwrite it?")) return;
+    records[existingIndex].mean = mean;
+  } else {
+    records.push({ teacher, subject, grade, stream, term, examType, year, mean });
+  }
+
+  saveRecords(records);
+  form.mean.value = ""; // clear only mean
+  alert("💬 SmartScores says: Record saved successfully.");
+  renderTable();
+  renderSummary();
+});
+
+// --- Render Table ---
+function renderTable() {
+  const records = getRecords();
   tableBody.innerHTML = "";
+
   records.forEach((r, i) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+    const { label, color } = getRubric(r.mean);
+    const row = document.createElement("tr");
+    row.innerHTML = `
       <td>${i + 1}</td>
       <td>${r.teacher}</td>
+      <td>${r.subject}</td>
       <td>${r.grade}</td>
       <td>${r.stream}</td>
-      <td>${r.subject}</td>
       <td>${r.term}</td>
       <td>${r.examType}</td>
       <td>${r.year}</td>
-      <td>${r.mean}</td>
+      <td style="color:${color};font-weight:600;">${r.mean}</td>
+      <td><span style="color:${color};">${label}</span></td>
     `;
-    tableBody.appendChild(tr);
+    tableBody.appendChild(row);
   });
-  updateSummary();
 }
 
-// 📊 Summary per Grade/Subject/Term/Stream
-function updateSummary() {
-  const summary = {};
+// --- Render Summary by Grade–Subject–Term ---
+function renderSummary() {
+  const records = getRecords();
+  summaryBody.innerHTML = "";
+
+  const grouped = {};
   records.forEach(r => {
     const key = `${r.grade}-${r.subject}-${r.term}-${r.stream}`;
-    if (!summary[key]) summary[key] = { total: 0, count: 0 };
-    summary[key].total += r.mean;
-    summary[key].count++;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(r.mean);
   });
 
-  summaryBody.innerHTML = "";
-  let insights = [];
-
-  for (const key in summary) {
+  Object.keys(grouped).forEach(key => {
     const [grade, subject, term, stream] = key.split("-");
-    const avg = (summary[key].total / summary[key].count).toFixed(2);
-    let remark = "";
-    let color = "";
+    const avg = (
+      grouped[key].reduce((a, b) => a + b, 0) / grouped[key].length
+    ).toFixed(2);
+    const { label, color, emoji } = getRubric(avg);
 
-    if (avg >= 75) { remark = "Exceeding Expectations"; color = "green"; }
-    else if (avg >= 41) { remark = "Meeting Expectations"; color = "blue"; }
-    else if (avg >= 21) { remark = "Approaching Expectations"; color = "orange"; }
-    else { remark = "Below Expectations"; color = "red"; }
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+    const row = document.createElement("tr");
+    row.innerHTML = `
       <td>${grade}</td>
-      <td>${stream}</td>
       <td>${subject}</td>
       <td>${term}</td>
-      <td>${avg}</td>
-      <td style="color:${color}; font-weight:600;">${remark}</td>
+      <td>${stream}</td>
+      <td style="color:${color};font-weight:600;">${avg}</td>
+      <td><span style="color:${color};">${emoji} ${label}</span></td>
     `;
-    summaryBody.appendChild(tr);
+    summaryBody.appendChild(row);
+  });
 
-    insights.push(`📘 ${subject} (${grade}${stream} - ${term}): ${remark} (${avg}%)`);
+  generateInsight(records);
+}
+
+// --- Smart Insight ---
+function generateInsight(records) {
+  if (!records.length) {
+    insightBox.innerHTML = "";
+    return;
   }
 
-  insightBox.innerHTML = insights.length
-    ? `<h3>SmartScores Insight 💡</h3><ul>${insights.map(i => `<li>${i}</li>`).join("")}</ul>`
-    : `<p>No data available yet.</p>`;
+  const avg = (
+    records.reduce((a, r) => a + r.mean, 0) / records.length
+  ).toFixed(2);
+  const { label, color, emoji } = getRubric(avg);
+
+  let message = "";
+  if (avg >= 75) message = "Excellent performance across all entries!";
+  else if (avg >= 41) message = "Good job! Most records meet expectations.";
+  else if (avg >= 21) message = "Keep improving — several areas are close to the target.";
+  else message = "Performance is below expectations. Review strategies.";
+
+  insightBox.innerHTML = `
+    <div style="border-left:5px solid ${color}; padding:10px; margin-top:15px; background:#f5f7fa; border-radius:6px;">
+      <strong>🤖 SmartScores Insight:</strong><br>
+      <span style="color:${color}; font-weight:600;">${emoji} ${label}</span> — ${message}
+      <div style="margin-top:5px;font-size:0.9em;">Overall Average: <b>${avg}</b></div>
+    </div>
+  `;
 }
 
-// 🧾 Export to Excel
-function exportToExcel() {
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.json_to_sheet(records);
-  XLSX.utils.book_append_sheet(wb, ws, "SmartScores");
-  XLSX.writeFile(wb, "SmartScores_Export.xlsx");
-  showSmartAlert("💬 SmartScores says: Data exported successfully!");
-}
-
-// 📥 Import from Excel
-function importFromExcel(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type: "array" });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    records = XLSX.utils.sheet_to_json(sheet);
-    localStorage.setItem("smartScores", JSON.stringify(records));
-    updateDisplay();
-    showSmartAlert("💬 SmartScores says: Data imported successfully!");
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-// 🗑️ Reset All Records
+// --- Reset Data ---
 function resetData() {
   if (confirm("⚠️ SmartScores says: This will delete all records. Proceed?")) {
     localStorage.removeItem("smartScores");
-    records = [];
-    updateDisplay();
-    showSmartAlert("💬 SmartScores says: All data cleared!");
+    renderTable();
+    renderSummary();
+    insightBox.innerHTML = "";
+    alert("All data cleared successfully.");
   }
 }
 
-// 🧾 Download PDF Report
-function downloadPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: "portrait" });
-  doc.setFontSize(14);
-  doc.text("SmartScores Mean Score Summary", 14, 15);
-  doc.text(`Date: ${new Date().toLocaleDateString("en-GB", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}`, 14, 25);
+// --- Export Excel ---
+function exportToExcel() {
+  const records = getRecords();
+  if (!records.length) return alert("No data to export!");
 
-  const tableData = [["Grade", "Stream", "Subject", "Term", "Avg", "Remark"]];
-  summaryBody.querySelectorAll("tr").forEach(row => {
-    const cells = Array.from(row.children).map(td => td.innerText);
-    tableData.push(cells);
-  });
+  const csv = [
+    ["Teacher","Subject","Grade","Stream","Term","ExamType","Year","Mean"],
+    ...records.map(r => [r.teacher, r.subject, r.grade, r.stream, r.term, r.examType, r.year, r.mean])
+  ].map(e => e.join(",")).join("\n");
 
-  doc.autoTable({ startY: 35, head: [tableData[0]], body: tableData.slice(1) });
-  doc.text("Kariuki 2025 • SmartScores", 14, doc.lastAutoTable.finalY + 15);
-  doc.save("SmartScores_Report.pdf");
-  showSmartAlert("💬 SmartScores says: PDF report downloaded!");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "SmartScores_v2.0_Data.csv";
+  a.click();
 }
 
-// Initialize
-updateDisplay();
+// --- Import Excel ---
+function importFromExcel(event) {
+  const file = event.target.files[0];
+  const reader = new FileReader();
+  reader.onload = e => {
+    const lines = e.target.result.split("\n").slice(1);
+    const imported = lines.map(l => {
+      const [teacher, subject, grade, stream, term, examType, year, mean] = l.split(",");
+      return { teacher, subject, grade, stream, term, examType, year, mean: parseFloat(mean) };
+    }).filter(r => r.teacher);
+    const existing = getRecords();
+    saveRecords([...existing, ...imported]);
+    renderTable();
+    renderSummary();
+    alert("SmartScores says: Imported successfully!");
+  };
+  reader.readAsText(file);
+}
+
+// --- Download PDF (using print) ---
+function downloadPDF() {
+  alert("💬 SmartScores says: Use your browser's 'Save as PDF' to download report.");
+  window.print();
+}
+
+// --- On Load ---
+document.addEventListener("DOMContentLoaded", () => {
+  renderTable();
+  renderSummary();
+});
