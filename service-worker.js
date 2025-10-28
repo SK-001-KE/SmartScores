@@ -1,61 +1,52 @@
-const CACHE_NAME = 'smartscores-cache-v1';
-const FILES_TO_CACHE = [
+// service-worker.js — SmartScores v2.0 Service Worker
+
+const CACHE_NAME = 'smartscores-v2';
+const CACHE_FILES = [
   '/',
   '/index.html',
-  '/styles.css',
+  '/data-entry.html',
+  '/recorded-scores.html',
+  '/summary-insights.html',
   '/app.js',
+  '/styles.css',
+  '/favicon.png',
+  '/logo.png',
   '/manifest.json',
-  '/icons/icon-192.svg',
-  '/icons/icon-512.svg',
-  // External libs cached via network-first strategy when available
+  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
 ];
 
+// Install event — Cache files
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      // Cache core files
-      return cache.addAll(FILES_TO_CACHE);
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(CACHE_FILES);
+    })
   );
 });
 
+// Activate event — Clear old caches
 self.addEventListener('activate', (event) => {
+  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.map(k => {
-        if (k !== CACHE_NAME) return caches.delete(k);
-      }))
-    ).then(() => self.clients.claim())
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (!cacheWhitelist.includes(cacheName)) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
 });
 
+// Fetch event — Serve cached files
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-
-  // For html requests, use network-first then fallback to cache
-  if (event.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
-    event.respondWith(
-      fetch(event.request).then(res => {
-        const copy = res.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-        return res;
-      }).catch(() => caches.match('/index.html'))
-    );
-    return;
-  }
-
-  // For API/other resources, try cache first then network
   event.respondWith(
-    caches.match(event.request).then(cacheRes => {
-      return cacheRes || fetch(event.request).then(fetchRes => {
-        // cache fetched files (best-effort)
-        return caches.open(CACHE_NAME).then(cache => {
-          try { cache.put(event.request, fetchRes.clone()); } catch(e){/*skip caching opaque resources*/ }
-          return fetchRes;
-        });
-      }).catch(() => {
-        // Fallback for images and fonts could be added here
-      });
+    caches.match(event.request).then((cachedResponse) => {
+      // Return cached file if available, otherwise fetch it from network
+      return cachedResponse || fetch(event.request);
     })
   );
 });
