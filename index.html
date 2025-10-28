@@ -9,6 +9,7 @@
 </head>
 <body>
   <div class="app">
+    <!-- Header Section -->
     <header>
       <div class="header-left">
         <h1>SmartScores Recorder</h1>
@@ -18,38 +19,51 @@
         <button>Save</button>
       </div>
     </header>
+
+    <!-- Main Content Section -->
     <main>
       <div class="left">
         <form id="record-form">
+          <!-- Teacher Name Input -->
           <div class="form-grid">
             <label for="teacher-name">Teacher Name:</label>
             <input type="text" id="teacher-name" placeholder="Enter teacher's name" required>
-            <!-- Add more form fields here as needed -->
           </div>
+
+          <!-- Additional form fields for scores and other inputs -->
+          <div class="form-grid">
+            <label for="score">Score:</label>
+            <input type="number" id="score" placeholder="Enter score" required>
+          </div>
+
           <div class="form-actions">
             <button type="submit">Save Record</button>
             <button type="button" class="secondary">Clear</button>
           </div>
         </form>
       </div>
+
+      <!-- Right Section for Insights, Table, and More -->
       <div class="right">
         <div class="insights">
           <div class="insight">Insight 1</div>
           <div class="insight">Insight 2</div>
-          <!-- Additional content here -->
+          <!-- Additional insights or other info here -->
         </div>
 
+        <!-- Table Section for Displaying Records -->
         <div class="table-section">
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Teacher Name</th>
+                  <th>Score</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="record-list">
-                <!-- Dynamic records will be rendered here -->
+                <!-- Dynamic records will be injected here -->
               </tbody>
             </table>
           </div>
@@ -57,6 +71,12 @@
       </div>
     </main>
   </div>
+
+  <!-- Footer Section -->
+  <footer>
+    <p>&copy; 2025 SmartScores. All rights reserved.</p>
+  </footer>
+
   <script src="app.js"></script>
 </body>
 </html>
