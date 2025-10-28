@@ -114,9 +114,9 @@ function renderSummary() {
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${grade}</td>
+      <td>${stream}</td>
       <td>${subject}</td>
       <td>${term}</td>
-      <td>${stream}</td>
       <td style="color:${color};font-weight:600;">${avg}</td>
       <td><span style="color:${color};">${emoji} ${label}</span></td>
     `;
