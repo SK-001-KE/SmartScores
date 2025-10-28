@@ -1,285 +1,259 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SmartScores v2.0 - Teacher Mean Score Tracker</title>
-    <link rel="manifest" href="manifest.json" />
-    <link rel="icon" type="image/png" href="favicon.png" />
-    <meta name="theme-color" content="#2563eb" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartScores Teacher Performance Dashboard</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --blue: #2563eb;
-            --maroon: #800000;
-            --white: #ffffff;
-            --bg-light: #f8fafc;
-        }
-
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: var(--bg-light);
-            color: #222;
-            display: flex;
-            flex-direction: column;
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
             min-height: 100vh;
         }
-
-        header {
-            background: linear-gradient(90deg, var(--blue), var(--maroon));
-            color: white;
-            text-align: center;
-            padding: 15px;
+        /* Custom modal overlay for error/success messages */
+        #customMessageBoxOverlay {
+            transition: opacity 0.3s ease-in-out;
         }
-
-        header img {
-            width: 50px;
-            vertical-align: middle;
-            margin-right: 10px;
+        #customMessageBox {
+            animation: slideIn 0.3s ease-out;
         }
-
-        header h1 {
-            display: inline;
-            font-size: 1.6rem;
-            vertical-align: middle;
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
         }
-
-        nav {
-            background: #e2e8f0;
-            padding: 10px;
-            text-align: center;
-        }
-
-        nav a {
-            margin: 0 10px;
-            text-decoration: none;
-            color: var(--blue);
+        .input-group label {
             font-weight: 600;
-        }
-
-        nav a:hover {
-            color: var(--maroon);
-        }
-
-        main {
-            flex: 1;
-            padding: 15px;
-            max-width: 900px;
-            margin: 0 auto;
-            width: 100%; /* Ensure main takes full width of its container on mobile */
-        }
-
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 15px;
-        }
-
-        label {
+            margin-bottom: 4px;
             display: block;
-            margin-top: 10px;
-            font-weight: 600;
-            color: #333;
+            color: #1f2937;
         }
-
-        input, select {
-            width: 100%;
+        .input-group select, .input-group input {
+            border: 1px solid #d1d5db;
             padding: 10px;
-            margin-top: 5px;
             border-radius: 6px;
-            border: 1px solid #ccc;
-            box-sizing: border-box; /* Crucial for responsive forms */
-        }
-        
-        button {
-            background: var(--blue);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 18px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-weight: 600;
-            transition: background 0.2s;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        button:hover {
-            background: var(--maroon);
-        }
-
-        table {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 0.9rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
+        .input-group select:focus, .input-group input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            outline: none;
         }
-
-        th {
-            background: var(--blue);
-            color: white;
-            position: sticky;
-            top: 0;
-        }
-
-        .insight-box {
-            margin-top: 15px;
-            padding: 15px;
-            border-left: 5px solid var(--maroon);
-            background: #ffe6e6; /* Light pink/red background for attention */
-            font-style: italic;
-            border-radius: 8px;
-            font-weight: 500;
-            color: #800000;
-        }
-
-        footer {
-            text-align: center;
-            background: #e2e8f0;
-            padding: 15px;
-            font-size: 0.9rem;
-            color: #555;
-            margin-top: 20px;
-        }
-        
-        .dashboard-controls {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        /* Mobile layout adjustments */
-        @media (max-width: 600px) {
-            header h1 {
-                display: block;
-                font-size: 1.3rem;
-            }
-            .dashboard-controls button,
-            .dashboard-controls label {
-                width: 100%; /* Full width buttons on mobile */
-                margin-top: 5px;
-            }
-            .dashboard-controls {
-                flex-direction: column;
-            }
-            table th, table td {
-                padding: 6px 4px; /* Smaller padding for narrow screens */
-                font-size: 0.75rem;
-            }
+        .data-card {
+            background-color: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
         }
     </style>
+
+    <!-- CRITICAL FIX: Loading jsPDF and jsPDF-AutoTable -->
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- jsPDF AutoTable Plugin (MUST be loaded after jsPDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    
 </head>
-<body>
-    <header>
-        <!-- Assuming you will add logo.png -->
-        <img src="logo.png" alt="SmartScores Logo" onerror="this.onerror=null;this.src='https://placehold.co/50x50/2563eb/ffffff?text=SS'" />
-        <h1>SmartScores v2.0</h1>
+<body class="p-4 sm:p-8">
+
+    <!-- Header -->
+    <header class="text-center mb-8">
+        <h1 class="text-4xl font-extrabold text-gray-800">SmartScores 📊</h1>
+        <p class="text-lg text-gray-500 mt-2">Teacher Mean Score Performance Tracking</p>
     </header>
 
-    <nav>
-        <a href="index.html">🏠 Dashboard</a>
-        <a href="about.html">ℹ️ About</a>
-    </nav>
+    <main class="max-w-7xl mx-auto">
+        
+        <!-- 1. Input Form -->
+        <div class="data-card bg-white border border-blue-500 border-opacity-20">
+            <h2 class="text-2xl font-bold text-blue-700 mb-6 border-b pb-3">Add New Mean Score Record</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <div class="input-group">
+                    <label for="teacherName">Teacher Name</label>
+                    <input type="text" id="teacherName" placeholder="e.g., Jane Doe">
+                </div>
+                
+                <div class="input-group">
+                    <label for="subject">Subject</label>
+                    <select id="subject">
+                        <option value="">Select Subject</option>
+                        <option value="Math">Mathematics</option>
+                        <option value="English">English</option>
+                        <option value="Kiswahili">Kiswahili</option>
+                        <option value="Science">Science</option>
+                        <option value="Social Studies">Social Studies</option>
+                        <option value="CRE">CRE</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
 
-    <main>
-        <div class="card">
-            <h2 style="color: var(--blue);">📋 Record Teacher Mean Scores</h2>
+                <div class="input-group">
+                    <label for="grade">Grade/Class</label>
+                    <select id="grade">
+                        <option value="">Select Grade</option>
+                        <option value="Grade 4">Grade 4</option>
+                        <option value="Grade 5">Grade 5</option>
+                        <option value="Grade 6">Grade 6</option>
+                        <option value="Class 7">Class 7</option>
+                        <option value="Class 8">Class 8</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="stream">Stream</label>
+                    <select id="stream">
+                        <option value="">Select Stream</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="General">General</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="term">Term</label>
+                    <select id="term">
+                        <option value="">Select Term</option>
+                        <option value="Term 1">Term 1</option>
+                        <option value="Term 2">Term 2</option>
+                        <option value="Term 3">Term 3</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="examType">Exam Type</label>
+                    <select id="examType">
+                        <option value="">Select Exam</option>
+                        <option value="Opener">Opener</option>
+                        <option value="Mid-Term">Mid-Term</option>
+                        <option value="End-Term">End-Term</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="year">Year</label>
+                    <input type="number" id="year" placeholder="e.g., 2024" min="2020" max="2050">
+                </div>
 
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-                <div><label>Teacher's Name</label><input type="text" id="teacherName" placeholder="Enter teacher name" required /></div>
-                <div><label>Subject</label><select id="subject" required><option value="">--Select Subject--</option><option>Mathematics</option><option>English</option><option>Kiswahili</option><option>Science</option><option>Agriculture and Nutrition</option><option>Creative Arts</option><option>Social Studies</option><option>CRE</option><option>Pre-Technical Studies</option></select></div>
-                <div><label>Grade</label><select id="grade" required><option value="">--Select Grade--</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
-                <div><label>Stream</label><select id="stream" required><option value="">--Select Stream--</option><option>Faith</option><option>Glory</option><option>Joy</option><option>Love</option><option>Peace</option><option>Unity</option></select></div>
-                <div><label>Term</label><select id="term" required><option value="">--Select Term--</option><option>Term 1</option><option>Term 2</option><option>Term 3</option></select></div>
-                <div><label>Exam Type</label><select id="examType" required><option value="">--Select Exam Type--</option><option>Opener Exam</option><option>Mid Term Exam</option><option>End Term Exam</option></select></div>
-                <div><label>Current Year</label><input type="number" id="year" placeholder="e.g. 2025" required /></div>
-                <div><label>Mean Score</label><input type="number" id="meanScore" placeholder="Score (0-100)" min="0" max="100" step="0.01" required /></div>
+                <div class="input-group col-span-1 md:col-span-2">
+                    <label for="meanScore">Mean Score (%)</label>
+                    <input type="number" id="meanScore" placeholder="e.g., 65.5" min="0" max="100" step="0.01">
+                </div>
+
+                <div class="input-group flex items-end justify-end">
+                    <button onclick="saveRecord()" class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 shadow-md shadow-green-300">
+                        <span class="text-lg">💾 Save Record</span>
+                    </button>
+                </div>
+
             </div>
-            
-            <button onclick="saveRecord()" style="width: 100%; margin-top: 20px;">💾 Save New Record</button>
         </div>
 
-        <div class="card">
-            <h2 style="color: var(--maroon);">📊 Recorded Scores (Detailed View)</h2>
-            <div style="overflow-x: auto;">
-                <table id="recordsTable">
-                    <thead>
+        <!-- 2. Dashboard Controls -->
+        <div class="data-card bg-white flex flex-wrap gap-4 justify-between items-center border border-gray-300">
+            <h2 class="text-xl font-bold text-gray-700">Data Management Tools</h2>
+            <div class="flex flex-wrap gap-3">
+                
+                <button onclick="downloadPDF()" class="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5 8V4a2 2 0 012-2h6a2 2 0 012 2v4a2 2 0 012 2v5a2 2 0 01-2 2H7a2 2 0 01-2-2v-5a2 2 0 012-2h6zM7 9a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Generate PDF Report</span>
+                </button>
+                
+                <button onclick="document.getElementById('fileInput').click()" class="flex items-center space-x-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M4 4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V8a2 2 0 00-2-2h-5L9 4H4z" />
+                    </svg>
+                    <span>Import Data (JSON)</span>
+                </button>
+                <input type="file" id="fileInput" accept=".json" onchange="importExcel(event)" class="hidden">
+
+                <button onclick="exportExcel()" class="flex items-center space-x-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v5a1 1 0 102 0V8z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Export Data (JSON)</span>
+                </button>
+
+                <button onclick="resetData()" class="flex items-center space-x-2 bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.725-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Reset All Data</span>
+                </button>
+
+            </div>
+        </div>
+
+
+        <!-- 3. Overall Insight -->
+        <div id="insightBox" class="data-card bg-blue-50 border-l-4 border-blue-600 text-blue-800 font-semibold mb-8">
+            No records available to generate insights.
+        </div>
+
+        
+        <!-- 4. Summary Table -->
+        <div class="data-card">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4 border-b pb-3">Average Score Summary by Class</h2>
+            <div class="overflow-x-auto">
+                <table id="summaryTable" class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <th>Teacher</th>
-                            <th>Subject</th>
-                            <th>Grade</th>
-                            <th>Stream</th>
-                            <th>Term</th>
-                            <th>Exam Type</th>
-                            <th>Year</th>
-                            <th>Mean Score</th>
-                            <th>Rubric</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stream</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Average Score (%)</th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <!-- Summary rows will be injected here -->
+                    </tbody>
                 </table>
             </div>
         </div>
 
-        <div class="card">
-            <h2 style="color: var(--blue);">📈 Average Score Summary</h2>
-            <div style="overflow-x: auto;">
-                <table id="summaryTable">
-                    <thead>
+        <!-- 5. Detailed Records Table -->
+        <div class="data-card">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4 border-b pb-3">Detailed Recorded Scores</h2>
+            <div class="overflow-x-auto">
+                <table id="recordsTable" class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <th>Grade</th>
-                            <th>Subject</th>
-                            <th>Stream</th>
-                            <th>Average</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stream</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Term</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Exam Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mean Score (%)</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rubric</th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <!-- Record rows will be injected here -->
+                    </tbody>
                 </table>
             </div>
-            <div id="insightBox" class="insight-box">No records available to generate insights.</div>
         </div>
 
-        <!-- SmartScores v2.0 Action Buttons -->
-        <div class="card" style="background:#e8f0fe;">
-            <h2 style="color:#1e3a8a; margin-bottom:12px; text-align: center;">💾 Data Management & Reporting</h2>
-            <div class="dashboard-controls">
-                <button onclick="downloadPDF()" style="background:#059669;">
-                    📄 Generate PDF Report
-                </button>
-                <button onclick="exportExcel()" style="background:#7e22ce;">
-                    💾 Export Backup (JSON)
-                </button>
-                <label for="importFile" style="background:#ca8a04; color:white; border-radius:8px; padding:10px 18px; cursor:pointer; font-weight:600; display: inline-flex; align-items: center; justify-content: center; margin-top:10px;">
-                    📥 Import Backup
-                    <input type="file" id="importFile" accept=".json" onchange="importExcel(event)" style="display:none;">
-                </label>
-                <button onclick="resetData()" style="background:#dc2626;">
-                    🧹 Reset All Data
-                </button>
-            </div>
-        </div>
     </main>
-
-    <footer>
-        SmartScores v2.0 © Kariuki 2025
-    </footer>
-
-    <!-- 🌟 PDF LIBRARIES LOADED HERE (REQUIRED FOR PDF GENERATION) 🌟 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-
-    <!-- Your Application Logic -->
+    
+    <!-- Load Application Logic -->
     <script src="app.js"></script>
+
 </body>
 </html>
