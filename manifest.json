@@ -1,12 +1,33 @@
 {
-  "name": "SmartScores Teacher Mean Score Tracker v2.0",
+  "name": "SmartScores v2.0",
   "short_name": "SmartScores",
+  "description": "Teacher Mean Score Tracker — record, analyze, and export student performance.",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#1e40af",
-  "theme_color": "#800000",
-  "description": "A teacher-friendly app to record, analyze, and export mean scores.",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
   "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
     {
       "src": "favicon.png",
       "sizes": "192x192",
@@ -17,5 +38,7 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "categories": ["education", "productivity"],
+  "prefer_related_applications": false
 }
