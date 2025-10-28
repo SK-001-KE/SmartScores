@@ -3,6 +3,7 @@
 
 let records = JSON.parse(localStorage.getItem('smartRecords') || '[]');
 
+// Form fields
 const teacher = document.getElementById('teacherName');
 const subject = document.getElementById('subject');
 const grade = document.getElementById('grade');
@@ -12,6 +13,7 @@ const exam = document.getElementById('examType');
 const year = document.getElementById('year');
 const score = document.getElementById('meanScore');
 
+// Filters
 const filterTeacher = document.getElementById('filterTeacher');
 const filterGrade = document.getElementById('filterGrade');
 const filterStream = document.getElementById('filterStream');
@@ -22,11 +24,13 @@ const insightBox = document.getElementById('insightBox');
 let chart;
 const ctx = document.getElementById('barChart')?.getContext('2d');
 
+// Hidden index for editing
 const recordIndexInput = document.createElement('input');
 recordIndexInput.type = 'hidden';
 recordIndexInput.id = 'recordIndex';
 document.body.appendChild(recordIndexInput);
 
+// -------------------- UTILITY --------------------
 function unique(arr){ return [...new Set(arr)]; }
 function avg(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
 function grading(score){
@@ -49,7 +53,12 @@ function saveRecord(){
     score: parseFloat(score.value)
   };
   const idx = recordIndexInput.value ? parseInt(recordIndexInput.value) : -1;
-  if(idx>-1){ records[idx]=rec; recordIndexInput.value=''; } else { records.push(rec); }
+  if(idx>-1){ 
+    records[idx]=rec; 
+    recordIndexInput.value=''; 
+  } else { 
+    records.push(rec); 
+  }
   localStorage.setItem('smartRecords', JSON.stringify(records));
   alert("✅ Record saved successfully!");
   clearForm();
@@ -85,7 +94,7 @@ function getFiltered(){
   return filtered;
 }
 
-// -------------------- RENDER RECORDS --------------------
+// -------------------- RECORDS --------------------
 function renderRecords(){
   const tbody = document.querySelector('#recordsTable tbody'); tbody.innerHTML='';
   getFiltered().forEach((r, idx)=>{
@@ -97,10 +106,17 @@ function renderRecords(){
   });
 }
 function editRecord(idx){
-  const r = records[idx]; teacher.value=r.teacher; subject.value=r.subject; grade.value=r.grade; stream.value=r.stream; term.value=r.term; exam.value=r.exam; year.value=r.year; score.value=r.score; recordIndexInput.value=idx;
+  const r = records[idx]; 
+  teacher.value=r.teacher; subject.value=r.subject; grade.value=r.grade; stream.value=r.stream; 
+  term.value=r.term; exam.value=r.exam; year.value=r.year; score.value=r.score; 
+  recordIndexInput.value=idx;
 }
 function deleteRecord(idx){
-  if(confirm("⚠️ Delete this record?")){ records.splice(idx,1); localStorage.setItem('smartRecords', JSON.stringify(records)); updateAll(); }
+  if(confirm("⚠️ Delete this record?")){
+    records.splice(idx,1); 
+    localStorage.setItem('smartRecords', JSON.stringify(records)); 
+    updateAll(); 
+  }
 }
 
 // -------------------- SUMMARY & INSIGHTS --------------------
@@ -128,11 +144,22 @@ function renderChart(){
   if(!ctx) return; if(chart) chart.destroy();
   const filtered = getFiltered();
   const subjects = unique(filtered.map(r=>r.subject));
-  const termAverages = [1,2,3].map(t=>subjects.map(sub=>{ const subset=filtered.filter(r=>r.term==t && r.subject==sub); return avg(subset.map(s=>s.score)); }));
-  chart = new Chart(ctx,{type:'bar',data:{labels:subjects,datasets:[{label:'Term 1',data:termAverages[0],backgroundColor:'#3b82f6'},{label:'Term 2',data:termAverages[1],backgroundColor:'#f59e0b'},{label:'Term 3',data:termAverages[2],backgroundColor:'#10b981'}]},options:{responsive:true,scales:{y:{beginAtZero:true,max:100}}}});
+  const termAverages = [1,2,3].map(t=>subjects.map(sub=>{
+    const subset=filtered.filter(r=>r.term==t && r.subject==sub); 
+    return avg(subset.map(s=>s.score)); 
+  }));
+  chart = new Chart(ctx,{
+    type:'bar',
+    data:{labels:subjects,datasets:[
+      {label:'Term 1',data:termAverages[0],backgroundColor:'#3b82f6'},
+      {label:'Term 2',data:termAverages[1],backgroundColor:'#f59e0b'},
+      {label:'Term 3',data:termAverages[2],backgroundColor:'#10b981'}
+    ]},
+    options:{responsive:true,scales:{y:{beginAtZero:true,max:100}}}
+  });
 }
 
-// -------------------- UPDATE ALL --------------------
+// -------------------- UPDATE --------------------
 function updateAll(){ populateFilters(); renderRecords(); renderSummary(); renderChart(); }
 searchInput.addEventListener('input', updateAll);
 filterTeacher.addEventListener('change', updateAll);
@@ -142,19 +169,44 @@ filterYear.addEventListener('change', updateAll);
 
 // -------------------- RESET / EXPORT / IMPORT --------------------
 function resetData(){ if(confirm("⚠️ Reset all records?")){ records=[]; localStorage.removeItem('smartRecords'); updateAll(); } }
-function exportExcel(){ const blob=new Blob([JSON.stringify(records)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`SmartScores_Backup_${new Date().getFullYear()}.json`; a.click(); }
-function importExcel(e){ const file=e.target.files[0]; if(!file) return; const reader=new FileReader(); reader.onload=ev=>{ try{ const imported=JSON.parse(ev.target.result); if(Array.isArray(imported)){ records=imported; localStorage.setItem('smartRecords', JSON.stringify(records)); updateAll(); alert("📥 Import successful!"); } }catch(err){ alert("❌ Invalid file!"); } }; reader.readAsText(file); }
+function exportExcel(){ 
+  const blob=new Blob([JSON.stringify(records)],{type:'application/json'}); 
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); 
+  a.download=`SmartScores_Backup_${new Date().getFullYear()}.json`; a.click(); 
+}
+function importExcel(e){ 
+  const file=e.target.files[0]; 
+  if(!file) return; 
+  const reader=new FileReader(); 
+  reader.onload=ev=>{
+    try{
+      const imported=JSON.parse(ev.target.result); 
+      if(Array.isArray(imported)){
+        records=imported; 
+        localStorage.setItem('smartRecords', JSON.stringify(records)); 
+        updateAll(); 
+        alert("📥 Import successful!"); 
+      } 
+    }catch(err){ alert("❌ Invalid file!"); }
+  }; 
+  reader.readAsText(file); 
+}
 
 // -------------------- PDF --------------------
-async function downloadPDF(){
-  try{
-    const { jsPDF } = window.jspdf;
-    const reportArea = document.createElement('div'); reportArea.style.padding='20px';
-    reportArea.innerHTML=`<h2 style="text-align:center; color:#1e3a8a;">SmartScores Report</h2>
+async function downloadPDF() {
+  try {
+    const { jsPDF } = window.jspdf || jspdf;
+    const reportArea = document.createElement('div');
+    reportArea.style.padding = '20px';
+    reportArea.innerHTML = `
+      <h2 style="text-align:center; color:#1e3a8a;">SmartScores Report</h2>
       <p style="text-align:center; font-size:0.9rem;">${new Date().toLocaleString()}</p>
-      <h3 style="color:#800000;">Recorded Scores</h3>${document.getElementById('recordsTable').outerHTML}
-      <h3 style="color:#800000;">Average Score Summary</h3>${document.getElementById('summaryTable').outerHTML}
-      <div style="font-style:italic; text-align:center; color:#1e3a8a;">${insightBox.innerHTML}</div>`;
+      <h3 style="color:#800000;">Recorded Scores</h3>
+      ${document.getElementById('recordsTable').outerHTML}
+      <h3 style="color:#800000;">Average Score Summary</h3>
+      ${document.getElementById('summaryTable').outerHTML}
+      <div style="font-style:italic; text-align:center; color:#1e3a8a;">${insightBox.innerHTML}</div>
+    `;
     const canvas = await html2canvas(reportArea,{scale:2});
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({orientation:'portrait',unit:'pt',format:'a4'});
@@ -162,8 +214,9 @@ async function downloadPDF(){
     const imgHeight=(canvas.height*imgWidth)/canvas.width; let heightLeft=imgHeight; let position=20;
     pdf.addImage(imgData,'PNG',25,position,imgWidth,imgHeight); heightLeft-=pageHeight;
     while(heightLeft>0){ position=heightLeft-imgHeight; pdf.addPage(); pdf.addImage(imgData,'PNG',25,position,imgWidth,imgHeight); heightLeft-=pageHeight; }
-    pdf.save(`SmartScores_Report_${new Date().getFullYear()}.pdf`); alert("📄 PDF downloaded!");
-  }catch(err){ console.error(err); alert("❌ PDF failed!"); }
+    pdf.save(`SmartScores_Report_${new Date().getFullYear()}.pdf`);
+    alert("📄 PDF downloaded!");
+  } catch(err) { console.error(err); alert("❌ PDF generation failed!"); }
 }
 
 // -------------------- INITIALIZE --------------------
