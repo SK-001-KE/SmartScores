@@ -33,12 +33,6 @@
       padding: 15px;
     }
 
-    header img {
-      width: 50px;
-      vertical-align: middle;
-      margin-right: 10px;
-    }
-
     header h1 {
       display: inline;
       font-size: 1.6rem;
@@ -131,6 +125,20 @@
       font-style: italic;
     }
 
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+      justify-content: center;
+    }
+
+    .filters select, .filters input {
+      width: auto;
+      flex: 1;
+      min-width: 120px;
+    }
+
     footer {
       text-align: center;
       background: #e2e8f0;
@@ -139,36 +147,14 @@
       color: #555;
     }
 
-    .filters-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 10px;
-      justify-content: flex-start;
-    }
-
-    .filters-container select, #searchInput {
-      width: auto;
-      flex: 1;
-      min-width: 120px;
-    }
-
-    /* Mobile layout */
     @media (max-width: 600px) {
-      header h1 {
-        display: block;
-        font-size: 1.3rem;
-      }
-
-      .filters-container {
-        flex-direction: column;
-      }
+      header h1 { font-size: 1.3rem; display: block; }
+      .filters { flex-direction: column; align-items: stretch; }
     }
   </style>
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="SmartScores Logo" />
     <h1>SmartScores v2.0</h1>
   </header>
 
@@ -178,10 +164,9 @@
   </nav>
 
   <main>
-    <!-- RECORD FORM -->
+    <!-- Record Entry Form -->
     <div class="card">
       <h2 style="color: var(--blue);">📋 Record Teacher Mean Scores</h2>
-
       <label>Teacher's Name</label>
       <input type="text" id="teacherName" placeholder="Enter teacher name" />
 
@@ -216,9 +201,9 @@
       <label>Term</label>
       <select id="term">
         <option value="">--Select Term--</option>
-        <option>Term 1</option>
-        <option>Term 2</option>
-        <option>Term 3</option>
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
       </select>
 
       <label>Exam Type</label>
@@ -229,7 +214,7 @@
         <option>End Term Exam</option>
       </select>
 
-      <label>Current Year</label>
+      <label>Year</label>
       <input type="number" id="year" placeholder="Enter Year e.g. 2025" />
 
       <label>Mean Score</label>
@@ -238,16 +223,21 @@
       <button onclick="saveRecord()">💾 Save Record</button>
     </div>
 
-    <!-- FILTERS + SEARCH -->
+    <!-- Filters + Search -->
     <div class="card">
-      <h2 style="color: var(--maroon);">📊 Recorded Scores</h2>
-      <div class="filters-container">
+      <h2 style="color: var(--maroon);">🔎 Filter & Search Records</h2>
+      <div class="filters">
         <select id="filterTeacher"></select>
         <select id="filterGrade"></select>
         <select id="filterStream"></select>
         <select id="filterYear"></select>
-        <input type="text" id="searchInput" placeholder="🔍 Search records...">
+        <input type="text" id="searchInput" placeholder="Search..." />
       </div>
+    </div>
+
+    <!-- Recorded Scores Table -->
+    <div class="card">
+      <h2 style="color: var(--maroon);">📊 Recorded Scores</h2>
       <table id="recordsTable">
         <thead>
           <tr>
@@ -266,7 +256,7 @@
       </table>
     </div>
 
-    <!-- SUMMARY -->
+    <!-- Average Score Summary -->
     <div class="card">
       <h2 style="color: var(--blue);">📈 Average Score Summary</h2>
       <table id="summaryTable">
@@ -287,21 +277,15 @@
       <div id="insightBox" class="insight-box"></div>
     </div>
 
-    <!-- ACTION BUTTONS -->
-    <div class="dashboard-controls" style="text-align:center; margin:20px auto; padding:15px; border-radius:12px; background:linear-gradient(135deg,#f0f4ff,#e8f0fe); box-shadow:0 2px 6px rgba(0,0,0,0.1); max-width:900px;">
-      <h2 style="color:#1e3a8a; margin-bottom:12px;">📊 SmartScores Actions</h2>
-      <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px;">
-        <button onclick="downloadPDF()" style="background:#2563eb; color:white;">📄 Download PDF Report</button>
-        <button onclick="exportExcel()" style="background:#16a34a; color:white;">💾 Export Backup (JSON)</button>
-        <label for="importFile" style="background:#9333ea; color:white; cursor:pointer; padding:10px 18px; border-radius:8px;">
-          📥 Import Backup
-          <input type="file" id="importFile" accept=".json" onchange="importExcel(event)" style="display:none;">
-        </label>
-        <button onclick="resetData()" style="background:#dc2626; color:white;">🧹 Reset All Data</button>
-      </div>
-      <p style="font-size:0.9rem; color:#555; margin-top:10px;">
-        <i>💡 Tip: Export your data before switching devices; import it back anytime.</i>
-      </p>
+    <!-- Action Buttons -->
+    <div class="card" style="text-align:center;">
+      <button onclick="downloadPDF()">📄 Download PDF Report</button>
+      <button onclick="exportExcel()">💾 Export Backup (JSON)</button>
+      <label style="cursor:pointer; background:#9333ea; color:white; padding:10px 18px; border-radius:8px;">
+        📥 Import Backup
+        <input type="file" id="importFile" accept=".json" onchange="importExcel(event)" style="display:none;">
+      </label>
+      <button onclick="resetData()" style="background:#dc2626;">🧹 Reset All Data</button>
     </div>
   </main>
 
@@ -309,9 +293,10 @@
     SmartScores v2.0 © Kariuki 2025
   </footer>
 
-  <!-- External Scripts -->
-  <script src="app.js"></script>
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
