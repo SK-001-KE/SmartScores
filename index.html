@@ -3,100 +3,319 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores – Teacher Mean Score Tracker</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.png" type="image/png" />
-  <link rel="stylesheet" href="style.css" />
+  <title>SmartScores Teacher Mean Score Tracker v2.0</title>
+  <link rel="icon" href="favicon.png" />
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      margin: 0;
+      background: #f8faff;
+      color: #222;
+    }
+    header {
+      background: linear-gradient(to right, #1e40af, #800000);
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    header h1 { margin: 0; font-size: 1.3rem; }
+    nav a {
+      color: white;
+      margin-left: 15px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    nav a:hover { text-decoration: underline; }
+    main {
+      padding: 15px;
+      max-width: 1000px;
+      margin: auto;
+    }
+    form, .dashboard, .summary {
+      background: white;
+      padding: 16px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h2 {
+      color: #1e40af;
+      border-bottom: 2px solid #800000;
+      padding-bottom: 5px;
+    }
+    label { font-weight: 600; margin-top: 8px; display: block; }
+    input, select, button {
+      padding: 10px;
+      margin-top: 5px;
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    button {
+      background: #1e40af;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover { background: #153e75; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #e0e7ff;
+    }
+    .grade-tag {
+      padding: 4px 8px;
+      border-radius: 6px;
+      color: white;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+    .EE { background: #16a34a; }
+    .ME { background: #3b82f6; }
+    .AE { background: #facc15; color: black; }
+    .BE { background: #ef4444; }
+    .insight {
+      background: #f0f9ff;
+      border-left: 5px solid #1e40af;
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 8px;
+    }
+    .insight h3 { margin-top: 0; }
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #555;
+      margin: 20px 0;
+    }
+    @media (max-width:600px) {
+      header h1 { font-size: 1.1rem; }
+      button { font-size: 0.9rem; }
+      th, td { font-size: 0.8rem; }
+    }
+    #smartAlert {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #1e40af;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      z-index: 9999;
+      font-weight: 600;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>SmartScores – Teacher Mean Score Tracker</h1>
-  </header>
+<header>
+  <h1>SmartScores Teacher Mean Score Tracker v2.0</h1>
+  <nav>
+    <a href="index.html">🏠 Dashboard</a>
+    <a href="about.html">ℹ️ About</a>
+  </nav>
+</header>
 
-  <main>
-    <section class="form-section">
-      <label>Teacher Name</label>
-      <input type="text" id="teacherName" placeholder="Enter name" required>
+<main>
+  <form id="dataForm">
+    <h2>Record Entry</h2>
+    <label>Teacher Name:</label>
+    <input id="teacher" required />
 
-      <label>Grade</label>
-      <select id="grade">
-        <option>4</option><option>5</option><option>6</option>
-        <option>7</option><option>8</option><option>9</option>
-      </select>
+    <label>Subject:</label>
+    <select id="subject">
+      <option>Mathematics</option>
+      <option>English</option>
+      <option>Kiswahili</option>
+      <option>Science</option>
+      <option>Agriculture and Nutrition</option>
+      <option>Creative Arts</option>
+      <option>Social Studies</option>
+      <option>CRE</option>
+      <option>Pre-Technical Studies</option>
+    </select>
 
-      <label>Stream</label>
-      <select id="stream">
-        <option>Faith</option><option>Glory</option><option>Joy</option>
-        <option>Love</option><option>Peace</option><option>Unity</option>
-      </select>
+    <label>Grade (Class):</label>
+    <select id="grade">
+      <option>4</option><option>5</option><option>6</option>
+      <option>7</option><option>8</option><option>9</option>
+    </select>
 
-      <label>Subject</label>
-      <select id="subject">
-        <option>Mathematics</option><option>English</option><option>Kiswahili</option>
-        <option>Science</option><option>Agriculture and Nutrition</option>
-        <option>Creative Arts</option><option>Social Studies</option>
-        <option>CRE</option><option>Pre-Technical Studies</option>
-      </select>
+    <label>Stream:</label>
+    <select id="stream">
+      <option>Faith</option><option>Glory</option><option>Joy</option>
+      <option>Love</option><option>Peace</option><option>Unity</option>
+    </select>
 
-      <label>Term</label>
-      <select id="term">
-        <option>Term 1</option><option>Term 2</option><option>Term 3</option>
-      </select>
+    <label>Term:</label>
+    <select id="term"><option>Term 1</option><option>Term 2</option><option>Term 3</option></select>
 
-      <label>Exam Type</label>
-      <select id="examType">
-        <option>Opener Exam</option><option>Mid Term Exam</option><option>End Term Exam</option>
-      </select>
+    <label>Exam Type:</label>
+    <select id="examType">
+      <option>Opener Exam</option>
+      <option>Mid Term Exam</option>
+      <option>End Term Exam</option>
+    </select>
 
-      <label>Current Year</label>
-      <input type="number" id="year" placeholder="2025" />
+    <label>Year:</label>
+    <input type="number" id="year" value="2025" />
 
-      <label>Mean Score</label>
-      <input type="number" id="meanScore" placeholder="0–100" min="0" max="100" />
+    <label>Score (Mean %):</label>
+    <input type="number" id="mean" required min="0" max="100" />
 
-      <button id="saveBtn">💾 Save Record</button>
-      <button id="exportExcel">📤 Export Excel</button>
-      <input type="file" id="importExcel" accept=".xlsx" style="display:none;">
-      <button id="importBtn">📥 Import Excel</button>
-      <button id="resetBtn" class="danger">🗑️ Reset Data</button>
-      <button id="downloadPdf">📄 Download PDF</button>
-    </section>
+    <button type="submit">💾 Save Record</button>
+  </form>
 
-    <section id="recordsSection">
-      <h2>Saved Records</h2>
-      <table id="recordsTable">
-        <thead>
-          <tr>
-            <th>Teacher</th><th>Grade</th><th>Stream</th><th>Subject</th>
-            <th>Term</th><th>Exam Type</th><th>Year</th><th>Mean</th><th>Grade Label</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <div id="summarySection"></div>
-      <div id="insightSection"></div>
-    </section>
-  </main>
-
-  <footer>
-    <p>SmartScores v2.0 • Kariuki 2025</p>
-  </footer>
-
-  <!-- Confirmation Modal -->
-  <div id="confirmModal" class="modal hidden">
-    <div class="modal-content">
-      <p id="confirmMessage"></p>
-      <div class="modal-buttons">
-        <button id="confirmYes">✅ Yes</button>
-        <button id="confirmNo">❌ No</button>
-      </div>
-    </div>
+  <div class="dashboard">
+    <h2>Dashboard</h2>
+    <button id="exportExcel">⬇️ Export Excel</button>
+    <button id="importExcel">⬆️ Import Excel</button>
+    <button id="printSummary">🖨️ Print Summary</button>
+    <button id="downloadPdf">📄 Download PDF</button>
+    <button id="resetApp" style="background:#800000;">🗑️ Reset Data</button>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.1/dist/jspdf.plugin.autotable.min.js"></script>
-  <script src="app.js"></script>
+  <div class="summary">
+    <h2>Average Score Summary</h2>
+    <table id="summaryTable">
+      <thead>
+        <tr>
+          <th>Teacher</th><th>Grade</th><th>Stream</th>
+          <th>Subject</th><th>Term</th><th>Average</th><th>Grade</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div id="insightSection" class="insight">
+      <h3>📊 Smart Insight</h3>
+      <p id="insightText">Enter data to see insights.</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>© SmartScores v2.0 — Kariuki 2025 | <span id="date"></span></p>
+</footer>
+
+<div id="smartAlert"></div>
+
+<script>
+  const form = document.getElementById('dataForm');
+  const tableBody = document.querySelector('#summaryTable tbody');
+  const insightText = document.getElementById('insightText');
+  const smartAlert = document.getElementById('smartAlert');
+  let records = JSON.parse(localStorage.getItem('smartScores') || '[]');
+
+  document.getElementById("date").textContent = new Date().toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  function showSmartAlert(msg) {
+    smartAlert.textContent = msg;
+    smartAlert.style.opacity = 1;
+    setTimeout(() => { smartAlert.style.opacity = 0; }, 2500);
+  }
+
+  form.onsubmit = e => {
+    e.preventDefault();
+    const rec = {
+      teacher: teacher.value.trim(),
+      subject: subject.value,
+      grade: grade.value,
+      stream: stream.value,
+      term: term.value,
+      examType: examType.value,
+      year: year.value,
+      mean: parseFloat(mean.value)
+    };
+    const idx = records.findIndex(r =>
+      r.teacher === rec.teacher &&
+      r.subject === rec.subject &&
+      r.grade === rec.grade &&
+      r.stream === rec.stream &&
+      r.term === rec.term &&
+      r.examType === rec.examType &&
+      r.year === rec.year
+    );
+    if (idx > -1) {
+      if (!confirm("⚠️ SmartScores says: This record already exists. Overwrite it?")) return;
+      records[idx] = rec;
+    } else records.push(rec);
+
+    localStorage.setItem("smartScores", JSON.stringify(records));
+    mean.value = "";
+    showSmartAlert("💬 SmartScores says: Record saved successfully!");
+    updateSummary();
+  };
+
+  function updateSummary() {
+    tableBody.innerHTML = '';
+    const grouped = {};
+    records.forEach(r => {
+      const key = `${r.teacher}|${r.grade}|${r.stream}|${r.subject}|${r.term}`;
+      if (!grouped[key]) grouped[key] = { ...r, scores: [] };
+      grouped[key].scores.push(r.mean);
+    });
+
+    Object.values(grouped).forEach(g => {
+      const avg = g.scores.reduce((a,b)=>a+b)/g.scores.length;
+      let gradeTag = "", label = "";
+      if (avg >= 75) { label="Exceeding Expectations"; gradeTag="EE"; }
+      else if (avg >= 41) { label="Meeting Expectations"; gradeTag="ME"; }
+      else if (avg >= 21) { label="Approaching Expectations"; gradeTag="AE"; }
+      else { label="Below Expectations"; gradeTag="BE"; }
+
+      tableBody.innerHTML += `
+        <tr>
+          <td>${g.teacher}</td><td>${g.grade}</td><td>${g.stream}</td>
+          <td>${g.subject}</td><td>${g.term}</td>
+          <td>${avg.toFixed(1)}%</td>
+          <td><span class="grade-tag ${gradeTag}">${label}</span></td>
+        </tr>`;
+    });
+
+    generateInsight();
+  }
+
+  function generateInsight() {
+    if (!records.length) {
+      insightText.textContent = "Enter data to see insights.";
+      return;
+    }
+    const avg = records.reduce((a,b)=>a+b.mean,0)/records.length;
+    let summary = `📈 Overall average score is ${avg.toFixed(1)}%. `;
+    if (avg >= 75) summary += "Excellent performance! 🎉";
+    else if (avg >= 41) summary += "Good progress. Keep pushing! 👍";
+    else summary += "Needs improvement. Let's aim higher next term 💪";
+    insightText.textContent = summary;
+  }
+
+  document.getElementById('resetApp').onclick = () => {
+    if (confirm("⚠️ SmartScores says: This will delete ALL your data. Continue?")) {
+      localStorage.removeItem('smartScores');
+      records = [];
+      updateSummary();
+      showSmartAlert("🗑️ SmartScores says: All data deleted!");
+    }
+  };
+
+  updateSummary();
+</script>
 </body>
 </html>
