@@ -174,12 +174,44 @@
   };
 
   const updateDashboardStats = () => {
-    const records = loadRecords();
-    if (el.totalRecords()) el.totalRecords().textContent = records.length;
-    const overallAvg = records.length > 0
-      ? (records.reduce((a, r) => a + r.mean, 0) / records.length).toFixed(1)
-      : 0;
-    if (el.avgScore()) el.avgScore().textContent = overallAvg + '%';
+  const records = loadRecords();
+  if (el.totalTeachers()) el.totalTeachers().textContent = records.length;
+
+  let topSubject = '-', worstSubject = '-', lastEntry = 'Never';
+  let topSubjectAvg = 0, worstSubjectAvg = Infinity;
+  
+  // Process the records to calculate stats
+  const subjectStats = {};
+  records.forEach(r => {
+    if (!subjectStats[r.subject]) subjectStats[r.subject] = { sum: 0, count: 0 };
+    subjectStats[r.subject].sum += r.mean;
+    subjectStats[r.subject].count++;
+  });
+
+  for (const [subject, stats] of Object.entries(subjectStats)) {
+    const avg = stats.sum / stats.count;
+    if (avg > topSubjectAvg) {
+      topSubject = subject;
+      topSubjectAvg = avg;
+    }
+    if (avg < worstSubjectAvg) {
+      worstSubject = subject;
+      worstSubjectAvg = avg;
+    }
+  }
+
+  if (el.topSubject()) el.topSubject().textContent = topSubject;
+  if (el.worstSubject()) el.worstSubject().textContent = worstSubject;
+
+  // Last entry (most recent)
+  if (records.length > 0) {
+    const lastRecord = records[records.length - 1];
+    lastEntry = `${lastRecord.subject} (${lastRecord.term} - ${lastRecord.year})`;
+  }
+
+  if (el.lastEntry()) el.lastEntry().textContent = lastEntry;
+};
+
 
     const subjectAvgs = {};
     records.forEach(r => {
