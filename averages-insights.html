@@ -16,15 +16,15 @@
   </header>
 
   <nav>
-    <a href="index.html">🏠 Dashboard</a>
     <a href="data-entry.html">📋 Data Entry</a>
     <a href="recorded-scores.html">📊 Recorded Scores</a>
+    <a href="index.html">🏠 Dashboard</a>
   </nav>
 
   <main>
     <div class="card">
-      <h2 style="color: var(--blue);">📊 Averages of Recorded Scores</h2>
-      <table id="averagesTable">
+      <h2 style="color: var(--blue);">📈 Averages and Insights</h2>
+      <table id="averageScoresTable">
         <thead>
           <tr>
             <th>Subject</th>
@@ -37,11 +37,7 @@
         </thead>
         <tbody></tbody>
       </table>
-    </div>
-
-    <div class="card">
-      <h2 style="color: var(--maroon);">🧠 AI Insights</h2>
-      <div id="insightBox" class="insight-box"></div>
+      <button onclick="downloadPDF()">📄 Download PDF</button>
     </div>
   </main>
 
