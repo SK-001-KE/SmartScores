@@ -255,6 +255,90 @@ const toggleChart = () => {
     chartToggleButton.textContent = 'Show Chart';
   }
 };
+  const STORAGE_KEY = 'smartScoresTargets';
+
+// Function to load the targets from localStorage
+const loadTargets = () => {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
+
+// Function to save the targets to localStorage
+const saveTargets = (targets) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(targets));
+};
+
+// Function to save a new target
+const saveTarget = () => {
+  const target = {
+    subject: document.getElementById('targetSubject').value,
+    grade: document.getElementById('targetGrade').value,
+    stream: document.getElementById('targetStream').value,
+    term: document.getElementById('targetTerm').value,
+    examType: document.getElementById('targetExamType').value,
+    targetScore: parseFloat(document.getElementById('targetScore').value),
+  };
+
+  // Validate input
+  if (!target.subject || !target.grade || !target.stream || !target.term || !target.examType || isNaN(target.targetScore)) {
+    alert('Please fill all fields correctly.');
+    return;
+  }
+
+  const targets = loadTargets();
+  targets.push(target);
+  saveTargets(targets);
+
+  // Clear input fields
+  document.getElementById('targetSubject').value = '';
+  document.getElementById('targetGrade').value = '';
+  document.getElementById('targetStream').value = '';
+  document.getElementById('targetTerm').value = '';
+  document.getElementById('targetExamType').value = '';
+  document.getElementById('targetScore').value = '';
+
+  alert('Target saved successfully!');
+  renderTargetsTable();
+};
+
+// Function to render the targets table
+const renderTargetsTable = () => {
+  const targets = loadTargets();
+  const tbody = document.querySelector('#targetsTable tbody');
+  tbody.innerHTML = ''; // Clear existing rows
+
+  targets.forEach((target, index) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${target.subject}</td>
+      <td>${target.grade}</td>
+      <td>${target.stream}</td>
+      <td>${target.term}</td>
+      <td>${target.examType}</td>
+      <td>${target.targetScore}%</td>
+      <td><button onclick="deleteTarget(${index})">Delete</button></td>
+    `;
+    tbody.appendChild(row);
+  });
+};
+
+// Function to delete a target from the table and localStorage
+const deleteTarget = (index) => {
+  const targets = loadTargets();
+  targets.splice(index, 1); // Remove the target at the specified index
+  saveTargets(targets); // Save the updated targets
+  renderTargetsTable(); // Re-render the table
+};
+
+// Initialize the page and render the targets table
+document.addEventListener('DOMContentLoaded', () => {
+  renderTargetsTable();
+});
+
 // Download data as PDF
 const downloadPDF = () => {
   const doc = new jsPDF();
