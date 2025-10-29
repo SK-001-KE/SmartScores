@@ -5,75 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartScores v2.0 - Dashboard</title>
   <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="favicon.png" />
   <meta name="theme-color" content="#2563eb" />
-  <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f8fafc;
-      color: #222;
-    }
-    header {
-      background: linear-gradient(90deg, #2563eb, #800000);
-      color: white;
-      text-align: center;
-      padding: 15px;
-    }
-    nav {
-      background: #e2e8f0;
-      padding: 10px;
-      text-align: center;
-    }
-    nav a {
-      margin: 0 15px;
-      text-decoration: none;
-      color: #2563eb;
-      font-weight: 600;
-    }
-    nav a:hover {
-      color: #800000;
-    }
-    main {
-      padding: 20px;
-      max-width: 900px;
-      margin: 0 auto;
-      text-align: center;
-    }
-    footer {
-      text-align: center;
-      background: #e2e8f0;
-      padding: 10px;
-      font-size: 0.9rem;
-      color: #555;
-    }
-    h2 {
-      color: #2563eb;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header>
-    <h1>SmartScores v2.0</h1>
+    <img src="logo.png" alt="SmartScores Logo" />
+    <h1>Welcome to SmartScores v2.0</h1>
   </header>
 
   <nav>
-    <a href="index.html">🏠 Dashboard</a>
     <a href="data-entry.html">📋 Data Entry</a>
     <a href="recorded-scores.html">📊 Recorded Scores</a>
+    <a href="averages-and-insights.html">📈 Averages and Insights</a>
   </nav>
 
   <main>
-    <h2>Welcome to SmartScores</h2>
-    <p>SmartScores helps teachers track and record student performance across various subjects and terms. Here's how you can use it:</p>
-    <ul>
-      <li>Navigate to <strong>Data Entry</strong> to add student scores for a particular subject, term, and teacher.</li>
-      <li>Go to <strong>Recorded Scores</strong> to view all saved records and insights.</li>
-    </ul>
+    <div class="card">
+      <h2 style="color: var(--blue);">📋 SmartScores Dashboard</h2>
+      <p>Welcome to the SmartScores v2.0 app! This application helps you manage and track the academic performance of your students.</p>
+      <p>To get started:</p>
+      <ul>
+        <li>Use the <b>Data Entry</b> page to input new student scores.</li>
+        <li>View recorded scores and their averages on the <b>Recorded Scores</b> page.</li>
+        <li>Get detailed subject averages and AI-powered insights on the <b>Averages and Insights</b> page.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2 style="color: var(--maroon);">📊 SmartScores Features:</h2>
+      <ul>
+        <li>Record scores for each student.</li>
+        <li>View subject-wise performance averages and insights.</li>
+        <li>Analyze termly averages and overall class performance.</li>
+      </ul>
+    </div>
   </main>
 
   <footer>
     SmartScores v2.0 © Kariuki 2025
   </footer>
+
+  <script src="app.js"></script>
 </body>
 </html>
