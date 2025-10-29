@@ -218,6 +218,118 @@
     renderAIInsights();
   };
 
+  // ── Render records with Edit/Delete
+const renderRecords = () => {
+  const tbody = el.recordsTbody(); if (!tbody) return;
+  const records = loadRecords();
+  tbody.innerHTML = '';
+  records.forEach((r, idx) => {
+    const rub = rubric(r.mean);
+    tbody.innerHTML += `
+      <tr data-index="${idx}">
+        <td>${r.teacher}</td>
+        <td>${r.subject}</td>
+        <td>${r.grade}</td>
+        <td>${r.stream}</td>
+        <td>${r.term}</td>
+        <td>${r.examType}</td>
+        <td>${r.year}</td>
+        <td>${r.mean.toFixed(1)}%</td>
+        <td><span style="background:${rub.color};color:#fff;padding:4px 8px;border-radius:6px;">
+          ${rub.emoji} ${rub.text}
+        </span></td>
+        <td style="white-space:nowrap;">
+          <button onclick="editRecord(${idx})" style="background:#f59e0b;margin:0 4px;padding:6px 10px;" title="Edit">Edit</button>
+          <button onclick="deleteRecord(${idx})" style="background:#ef4444;margin:0 4px;padding:6px 10px;" title="Delete">Delete</button>
+        </td>
+      </tr>`;
+  });
+};
+
+// ── Edit: Fill form + highlight row
+window.editRecord = (idx) => {
+  const records = loadRecords();
+  const r = records[idx];
+  if (!r) return;
+
+  // Fill form
+  el.teacher().value = r.teacher;
+  el.subject().value = r.subject;
+  el.grade().value = r.grade;
+  el.stream().value = r.stream;
+  el.term().value = r.term;
+  el.examType().value = r.examType;
+  el.year().value = r.year;
+  el.mean().value = r.mean;
+
+  // Highlight row + store index
+  document.querySelectorAll('#recordsTable tr').forEach(tr => tr.style.background = '');
+  document.querySelector(`#recordsTable tr[data-index="${idx}"]`).style.background = '#fffbe6';
+
+  // Change button to "Update"
+  const saveBtn = document.querySelector('button[onclick="saveRecord()"]');
+  if (saveBtn) {
+    saveBtn.textContent = 'Update Record';
+    saveBtn.onclick = () => updateRecord(idx);
+  }
+
+  // Scroll to form
+  document.querySelector('.form-group')?.scrollIntoView({ behavior: 'smooth' });
+};
+
+// ── Update after edit
+const updateRecord = (idx) => {
+  const updated = {
+    teacher: el.teacher().value.trim(),
+    subject: el.subject().value,
+    grade: el.grade().value,
+    stream: el.stream().value,
+    term: el.term().value,
+    examType: el.examType().value,
+    year: el.year().value,
+    mean: Number(el.mean().value)
+  };
+
+  // Validate same as save
+  if (!updated.teacher || Number.isNaN(updated.mean)) return showAlert('Fill all fields.');
+  if (updated.mean < 0 || updated.mean > 100) return showAlert('Mean 0–100.');
+
+  const records = loadRecords();
+  records[idx] = updated;
+  saveRecords(records);
+  localStorage.setItem(TEACHER_KEY, updated.teacher);
+  resetForm();
+  showAlert('Updated!');
+  renderAll();
+};
+
+// ── Delete with confirm
+window.deleteRecord = (idx) => {
+  if (!confirm('Delete this record? This cannot be undone.')) return;
+  const records = loadRecords();
+  records.splice(idx, 1);
+  saveRecords(records);
+  showAlert('Deleted.');
+  renderAll();
+};
+
+// ── Reset form after save/update
+const resetForm = () => {
+  el.mean().value = '';
+  const saveBtn = document.querySelector('button[onclick]');
+  if (saveBtn) {
+    saveBtn.textContent = 'Save Record';
+    saveBtn.onclick = saveRecord;
+  }
+  document.querySelectorAll('#recordsTable tr').forEach(tr => tr.style.background = '');
+};
+
+// Update saveRecord to reset on new save
+window.saveRecord = () => {
+  // ... existing save logic ...
+  resetForm();
+  renderAll();
+};
   // NEW: PDF with Teacher Name
   window.downloadPDF = () => {
     if (!window.jspdf || !window.html2canvas) {
