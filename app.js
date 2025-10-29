@@ -41,63 +41,60 @@
     return { text: 'Below', code: 'BE', color: '#ef4444', emoji: '❌' };
   };
 
- // Save a new record
+ // Utility function to load records from localStorage
+const loadRecords = () => {
+    return JSON.parse(localStorage.getItem('smartScoresRecords') || '[]');
+};
+
+// Utility function to save records to localStorage
+const saveRecords = (records) => {
+    localStorage.setItem('smartScoresRecords', JSON.stringify(records));
+};
+
+// Function to save the data entry
 window.saveRecord = () => {
-  const record = {
-    teacher: el.teacher()?.value.trim(),
-    subject: el.subject()?.value,
-    grade: el.grade()?.value,
-    stream: el.stream()?.value,
-    term: el.term()?.value,
-    examType: el.examType()?.value,
-    year: el.year()?.value,
-    mean: Number(el.mean()?.value)
-  };
+    const teacherName = document.getElementById('teacherName').value;
+    const subject = document.getElementById('subject').value;
+    const grade = document.getElementById('grade').value;
+    const stream = document.getElementById('stream').value;
+    const term = document.getElementById('term').value;
+    const examType = document.getElementById('examType').value;
+    const year = document.getElementById('year').value;
+    const meanScore = parseFloat(document.getElementById('meanScore').value);
 
-  // Validate input
-  if (!record.teacher || !record.subject || !record.grade || !record.stream || 
-      !record.term || !record.examType || !record.year || Number.isNaN(record.mean)) {
-    showAlert('Please fill all fields.');
-    return;
-  }
-
-  // Validate the mean score and year
-  if (record.mean < 0 || record.mean > 100) {
-    showAlert('Mean score must be between 0 and 100.');
-    return;
-  }
-
-  if (record.year < 2000 || record.year > 2100) {
-    showAlert('Year must be between 2000 and 2100.');
-    return;
-  }
-
-  // Prevent duplicate records (if the same record already exists)
-  const records = loadRecords();
-  const exists = records.some(r =>
-    r.teacher === record.teacher &&
-    r.subject === record.subject &&
-    r.grade === record.grade &&
-    r.stream === record.stream &&
-    r.term === record.term &&
-    r.examType === record.examType &&
-    r.year === record.year
-  );
-
+    // Validate the input fields
+    if (!teacherName || !subject || !grade || !stream || !term || !examType || !year || isNaN(meanScore)) {
+        alert('Please fill in all fields correctly.');
+        return;
+    }
   if (exists) {
     showAlert('This record already exists!');
     return;
-  }
+    
+    // Create a new record object
+    const newRecord = {
+        teacherName,
+        subject,
+        grade,
+        stream,
+        term,
+        examType,
+        year,
+        meanScore
+    };
 
-  // Save the new record
-  records.push(record);
-  saveRecords(records);
+    // Load the existing records, add the new one, and save back to localStorage
+    const records = loadRecords();
+    records.push(newRecord);
+    saveRecords(records);
 
-  // Clear the mean input field after saving
-  el.mean().value = ''; 
+    // Clear form fields after saving the record
+    document.getElementById('data-entry-form').reset();
 
-  // Show success alert
-  showAlert('Record saved!');
+    alert('Record saved successfully!');
+};
+
+
 
   // Update dashboard stats after saving the record
   updateDashboardStats();
