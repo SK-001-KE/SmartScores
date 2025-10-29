@@ -70,70 +70,57 @@
       </div>
       <div class="form-group">
         <label>Subject</label>
-        <select id="subject">
-          <option value="">--Select Subject--</option>
-          <option>Mathematics</option>
-          <option>English</option>
-          <option>Kiswahili</option>
-          <option>Science</option>
-          <option>Agriculture and Nutrition</option>
-          <option>Creative Arts</option>
-          <option>Social Studies</option>
-          <option>CRE</option>
-          <option>Pre-Technical Studies</option>
-        </select>
+        <input type="text" id="subject" required />
       </div>
       <div class="form-group">
         <label>Grade</label>
-        <select id="grade">
-          <option value="">--Select Grade--</option>
-          <option>4</option>
-          <option>5</option>
-          <option>6</option>
-          <option>7</option>
-          <option>8</option>
-          <option>9</option>
+        <select id="grade" required>
+          <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
         </select>
       </div>
       <div class="form-group">
         <label>Stream</label>
-        <select id="stream">
-          <option value="">--Select Stream--</option>
-          <option>Faith</option>
-          <option>Glory</option>
-          <option>Joy</option>
-          <option>Love</option>
-          <option>Peace</option>
-          <option>Unity</option>
-        </select>
+        <input type="text" id="stream" required />
       </div>
       <div class="form-group">
         <label>Term</label>
         <select id="term" required>
-          <option>Term 1</option>
-          <option>Term 2</option>
-          <option>Term 3</option>
+          <option>Term 1</option><option>Term 2</option><option>Term 3</option>
         </select>
       </div>
       <div class="form-group">
         <label>Exam Type</label>
-        <select id="examType">
-          <option value="">--Select Exam Type--</option>
-          <option>Opener Exam</option>
-          <option>Mid Term Exam</option>
-          <option>End Term Exam</option>
+        <select id="examType" required>
+          <option>Mid-Term</option><option>End-Term</option><option>CAT</option>
         </select>
       </div>
       <div class="form-group">
         <label>Year</label>
-        <input type="number" id="year" placeholder="Enter Year e.g. 2025" required />
+        <input type="number" id="year" min="2000" max="2100" required />
       </div>
       <div class="form-group">
         <label>Mean Score (%)</label>
-        <input type="number" id="mean" placeholder="Enter Mean Score (0-100)" min="0" max="100" step="0.1" required />
+        <input type="number" id="meanScore" min="0" max="100" step="0.1" required />
       </div>
       <button type="submit" class="btn">Save Record</button>
     </form>
+
+    <h2>Recorded Data</h2>
+    <table id="recordsTable">
+      <thead>
+        <tr>
+          <th>No.</th><th>Teacher</th><th>Subject</th><th>Grade</th><th>Stream</th><th>Term</th><th>Exam Type</th><th>Year</th><th>Mean Score</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h2>Dashboard Stats</h2>
+    <p>Total Records: <span id="totalRecords">0</span></p>
+    <p>Average Score: <span id="avgScore">0%</span></p>
+    <p>Top Subject: <span id="topSubject">N/A</span></p>
+    <p>Worst Subject: <span id="worstSubject">N/A</span></p>
+    <p>Last Entry: <span id="lastEntry">Never</span></p>
   </div>
 
   <footer>SmartScores v2.9.5 © Kariuki 2025</footer>
