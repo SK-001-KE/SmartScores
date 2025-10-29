@@ -8,6 +8,38 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.ico" />
   <script src="app.js" defer></script>
+   <style>
+    :root {
+      --maroon: #800000; --blue: #2563eb; --white: #ffffff;
+      --light-gray: #f9f9f9; --dark-gray: #333;
+      --bg-primary: var(--light-gray); --bg-secondary: var(--white);
+      --text-primary: var(--dark-gray);
+    }
+    [data-theme="dark"] {
+      --bg-primary: #1a1a1a; --bg-secondary: #2a2a2a;
+      --text-primary: #ffffff; --maroon: #a40000; --blue: #4f94ff;
+    }
+    body { font-family: Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); margin: 0; padding: 0; transition: 0.3s; }
+    header { background: var(--blue); color: white; padding: 15px; text-align: center; }
+    nav { background: var(--maroon); padding: 12px 0; text-align: center; }
+    nav a { color: white; text-decoration: none; font-weight: bold; margin: 0 15px; padding: 8px 16px; border-radius: 6px; }
+    nav a:hover, nav a.active { background: var(--blue); }
+    .content { max-width: 800px; margin: 30px auto; padding: 0 15px; }
+    .form-group { margin: 15px 0; text-align: left; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    select, input { width: 100%; padding: 10px; border: 2px solid #ccc; border-radius: 6px; font-size: 16px; }
+    select:focus, input:focus { border-color: var(--blue); outline: none; }
+    .btn { background: var(--blue); color: white; border: none; padding: 12px 20px; margin: 10px 5px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .btn:hover { background: #1d4ed8; }
+    .btn-danger { background: #dc2626; }
+    .btn-danger:hover { background: #b91c1c; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; background: var(--bg-secondary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
+    th { background: var(--maroon); color: white; padding: 12px; }
+    td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+    tr:hover { background: #f1f5f9; }
+    footer { background: var(--dark-gray); color: white; text-align: center; padding: 12px; margin-top: 50px; font-size: 0.9em; }
+    @media (max-width: 768px) { .btn { width: 100%; margin: 8px 0; } }
+  </style>
 
 </head>
 <body>
