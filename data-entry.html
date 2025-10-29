@@ -1,144 +1,111 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
-  <link rel="stylesheet" href="style.css" />
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores - Data Entry</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.ico" />
-  <script src="app.js" defer></script>
-  <style>
-    :root {
-      --maroon: #800000; --blue: #2563eb; --white: #ffffff;
-      --light-gray: #f9f9f9; --dark-gray: #333;
-      --bg-primary: var(--light-gray); --bg-secondary: var(--white);
-      --text-primary: var(--dark-gray);
-    }
-    [data-theme="dark"] {
-      --bg-primary: #1a1a1a; --bg-secondary: #2a2a2a;
-      --text-primary: #ffffff; --maroon: #a40000; --blue: #4f94ff;
-    }
-    body { font-family: Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); margin: 0; padding: 0; transition: 0.3s; }
-    header { background: var(--blue); color: white; padding: 15px; text-align: center; }
-    nav { background: var(--maroon); padding: 12px 0; text-align: center; }
-    nav a { color: white; text-decoration: none; font-weight: bold; margin: 0 15px; padding: 8px 16px; border-radius: 6px; }
-    nav a:hover, nav a.active { background: var(--blue); }
-    .content { max-width: 800px; margin: 30px auto; padding: 0 15px; }
-    .form-group { margin: 15px 0; text-align: left; }
-    label { display: block; margin-bottom: 5px; font-weight: bold; }
-    select, input { width: 100%; padding: 10px; border: 2px solid #ccc; border-radius: 6px; font-size: 16px; }
-    select:focus, input:focus { border-color: var(--blue); outline: none; }
-    .btn { background: var(--blue); color: white; border: none; padding: 12px 20px; margin: 10px 5px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-    .btn:hover { background: #1d4ed8; }
-    .btn-danger { background: #dc2626; }
-    .btn-danger:hover { background: #b91c1c; }
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; background: var(--bg-secondary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
-    th { background: var(--maroon); color: white; padding: 12px; }
-    td { padding: 10px 12px; border-bottom: 1px solid #eee; }
-    tr:hover { background: #f1f5f9; }
-    footer { background: var(--dark-gray); color: white; text-align: center; padding: 12px; margin-top: 50px; font-size: 0.9em; }
-    @media (max-width: 768px) { .btn { width: 100%; margin: 8px 0; } }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartScores - Data Entry</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div style="position:fixed;top:10px;right:10px;z-index:1000;">
-    <button onclick="toggleDarkMode()" style="background:var(--blue);color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;">Dark Mode</button>
-  </div>
+    <!-- Navigation -->
+    <div class="nav">
+        <button onclick="window.location.href='dashboard.html'">Dashboard</button>
+        <button onclick="window.location.href='data-entry.html'" class="active">Data Entry</button>
+        <button onclick="window.location.href='recorded-scores.html'">Recorded Scores</button>
+        <button onclick="window.location.href='averages-insights.html'">Averages & Insights</button>
+    </div>
 
-  <header>
-    <h1>
-      <img src="icon-192x192.png" alt="SmartScores" style="height:40px;vertical-align:middle;margin-right:10px;border-radius:8px;">
-      SmartScores
-    </h1>
-    <p>Set targets. Track performance. Improve. Easy.</p>
-  </header>
+    <!-- Content -->
+    <div id="content">
+        <h1>Enter Teacher Data</h1>
+        <p>Please fill in the details and click "Save Record" to save.</p>
 
-  <nav>
-    <a href="index.html">Dashboard</a>
-    <a href="data-entry.html" class="active">Data Entry</a>
-    <a href="recorded-scores.html">Recorded Scores</a>
-    <a href="averages-insights.html">Averages & Insights</a>
-    <a href="set-targets.html">Set Targets</a>
-  </nav>
+        <!-- Data Entry Form -->
+        <form id="data-entry-form" onsubmit="saveRecord(); return false;">
+            <div class="form-group">
+                <label for="teacherName">Teacher Name:</label>
+                <input type="text" id="teacherName" required />
+            </div>
 
-  <div class="content">
-           <form onsubmit="saveRecord(); return false;">
-  <!-- Form fields for Teacher Name, Subject, etc. -->
-  <button type="submit" class="btn">Save Record</button>
-</form>
+            <div class="form-group">
+                <label for="subject">Subject:</label>
+                <select id="subject" required>
+                    <option value="">--Select Subject--</option>
+                    <option>Mathematics</option>
+                    <option>English</option>
+                    <option>Kiswahili</option>
+                    <option>Science</option>
+                    <option>Agriculture and Nutrition</option>
+                    <option>Creative Arts</option>
+                    <option>Social Studies</option>
+                    <option>CRE</option>
+                    <option>Pre-Technical Studies</option>
+                </select>
+            </div>
 
-        <label>Teacher Name</label>
-        <input type="text" id="teacherName" required />
-      </div>
-      <div class="form-group">
-        <label>Subject</label>
-        <select id="subject">
-          <option value="">--Select Subject--</option>
-          <option>Mathematics</option>
-          <option>English</option>
-          <option>Kiswahili</option>
-          <option>Science</option>
-          <option>Agriculture and Nutrition</option>
-          <option>Creative Arts</option>
-          <option>Social Studies</option>
-          <option>CRE</option>
-          <option>Pre-Technical Studies</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Grade</label>
-        <select id="grade">
-          <option value="">--Select Grade--</option>
-          <option>4</option>
-          <option>5</option>
-          <option>6</option>
-          <option>7</option>
-          <option>8</option>
-          <option>9</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Stream</label>
-        <select id="stream">
-          <option value="">--Select Stream--</option>
-          <option>Faith</option>
-          <option>Glory</option>
-          <option>Joy</option>
-          <option>Love</option>
-          <option>Peace</option>
-          <option>Unity</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Term</label>
-        <select id="term" required>
-          <option>Term 1</option>
-          <option>Term 2</option>
-          <option>Term 3</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Exam Type</label>
-        <select id="examType">
-          <option value="">--Select Exam Type--</option>
-          <option>Opener Exam</option>
-          <option>Mid Term Exam</option>
-          <option>End Term Exam</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Year</label>
-        <input type="number" id="year" placeholder="Enter Year e.g. 2025" required />
-      </div>
-      <div class="form-group">
-        <label>Mean Score (%)</label>
-        <input type="number" id="mean" placeholder="Enter Mean Score (0-100)" min="0" max="100" step="0.1" required />
-      </div>
-      <button type="submit" class="btn">Save Record</button>
-    </form>
-  </div>
+            <div class="form-group">
+                <label for="grade">Grade:</label>
+                <select id="grade" required>
+                    <option value="">--Select Grade--</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                    <option>9</option>
+                </select>
+            </div>
 
-  <footer>SmartScores v2.9.5 © Kariuki 2025</footer>
+            <div class="form-group">
+                <label for="stream">Stream:</label>
+                <select id="stream" required>
+                    <option value="">--Select Stream--</option>
+                    <option>Faith</option>
+                    <option>Glory</option>
+                    <option>Joy</option>
+                    <option>Love</option>
+                    <option>Peace</option>
+                    <option>Unity</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="term">Term:</label>
+                <select id="term" required>
+                    <option value="">--Select Term--</option>
+                    <option>Term 1</option>
+                    <option>Term 2</option>
+                    <option>Term 3</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="examType">Exam Type:</label>
+                <select id="examType" required>
+                    <option value="">--Select Exam Type--</option>
+                    <option>Opener Exam</option>
+                    <option>Mid Term Exam</option>
+                    <option>End Term Exam</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="year">Year:</label>
+                <input type="text" id="year" required />
+            </div>
+
+            <div class="form-group">
+                <label for="meanScore">Mean Score (%):</label>
+                <input type="number" id="meanScore" min="0" max="100" step="0.1" required />
+            </div>
+
+            <button type="submit" class="btn">Save Record</button>
+        </form>
+    </div>
+
+    <!-- Footer -->
+    <footer>SmartScores v2.9.5 © Kariuki 2025</footer>
+
+    <script src="app.js"></script>
 </body>
 </html>
