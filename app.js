@@ -353,44 +353,60 @@ const saveTargets = (targets) => {
 };
 
 // Function to save a new target
+// Save target to localStorage
 const saveTarget = () => {
-  const target = {
-    subject: document.getElementById('targetSubject').value,
-    grade: document.getElementById('targetGrade').value,
-    stream: document.getElementById('targetStream').value,
-    term: document.getElementById('targetTerm').value,
-    examType: document.getElementById('targetExamType').value,
-    targetScore: parseFloat(document.getElementById('targetScore').value),
-  };
+  // Get the values from the form
+  const subject = document.getElementById('targetSubject').value;
+  const grade = document.getElementById('targetGrade').value;
+  const stream = document.getElementById('targetStream').value;
+  const term = document.getElementById('targetTerm').value;
+  const examType = document.getElementById('targetExamType').value;
+  const targetScore = parseFloat(document.getElementById('targetScore').value);
 
-  // Validate input
-  if (!target.subject || !target.grade || !target.stream || !target.term || !target.examType || isNaN(target.targetScore)) {
-    alert('Please fill all fields correctly.');
+  // Validate the input fields
+  if (!subject || !grade || !stream || !term || !examType || isNaN(targetScore)) {
+    alert("Please fill in all fields correctly.");
     return;
   }
 
-  const targets = loadTargets();
+  // Create target object
+  const target = {
+    subject,
+    grade,
+    stream,
+    term,
+    examType,
+    targetScore,
+  };
+
+  // Load existing targets from localStorage or initialize an empty array
+  let targets = JSON.parse(localStorage.getItem('smartScoresTargets')) || [];
+
+  // Add the new target to the array
   targets.push(target);
-  saveTargets(targets);
 
-  // Clear input fields
-  document.getElementById('targetSubject').value = '';
-  document.getElementById('targetGrade').value = '';
-  document.getElementById('targetStream').value = '';
-  document.getElementById('targetTerm').value = '';
-  document.getElementById('targetExamType').value = '';
-  document.getElementById('targetScore').value = '';
+  // Save the updated targets back to localStorage
+  localStorage.setItem('smartScoresTargets', JSON.stringify(targets));
 
-  alert('Target saved successfully!');
+  // Clear the form
+  document.querySelector('form').reset();
+
+  // Render the updated list of targets
   renderTargetsTable();
+
+  alert("Target saved successfully!");
 };
 
-// Function to render the targets table
+// Render the list of targets in the table
 const renderTargetsTable = () => {
-  const targets = loadTargets();
-  const tbody = document.querySelector('#targetsTable tbody');
-  tbody.innerHTML = ''; // Clear existing rows
+  // Get the targets from localStorage
+  const targets = JSON.parse(localStorage.getItem('smartScoresTargets')) || [];
 
+  // Get the table body element
+  const tbody = document.querySelector('#targetsTable tbody');
+  tbody.innerHTML = ''; // Clear any existing rows
+
+  // Loop through the targets and create table rows
   targets.forEach((target, index) => {
     const row = document.createElement('tr');
     row.innerHTML = `
@@ -400,18 +416,25 @@ const renderTargetsTable = () => {
       <td>${target.term}</td>
       <td>${target.examType}</td>
       <td>${target.targetScore}%</td>
-      <td><button onclick="deleteTarget(${index})">Delete</button></td>
+      <td><button onclick="deleteTarget(${index})" class="btn-danger">Delete</button></td>
     `;
     tbody.appendChild(row);
   });
 };
 
-// Function to delete a target from the table and localStorage
+// Delete a target from localStorage and the table
 const deleteTarget = (index) => {
-  const targets = loadTargets();
-  targets.splice(index, 1); // Remove the target at the specified index
-  saveTargets(targets); // Save the updated targets
-  renderTargetsTable(); // Re-render the table
+  // Load existing targets
+  const targets = JSON.parse(localStorage.getItem('smartScoresTargets')) || [];
+
+  // Remove the target at the specified index
+  targets.splice(index, 1);
+
+  // Save the updated targets back to localStorage
+  localStorage.setItem('smartScoresTargets', JSON.stringify(targets));
+
+  // Re-render the table with the updated list
+  renderTargetsTable();
 };
 
 // Initialize the page and render the targets table
