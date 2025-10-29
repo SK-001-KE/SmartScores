@@ -1,122 +1,246 @@
+// ===== SmartScores v2.0 - app.js =====
 (function () {
-  // Check if service workers are supported in the browser
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then((registration) => {
-          console.log('Service Worker registered with scope:', registration.scope);
-        })
-        .catch((error) => {
-          console.error('Service Worker registration failed:', error);
-        });
+  const STORAGE_KEY = "smartScoresRecords";
+
+  // --- Register Service Worker ---
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("service-worker.js")
+        .then((reg) =>
+          console.log("✅ Service Worker registered:", reg.scope)
+        )
+        .catch((err) => console.error("❌ SW registration failed:", err));
     });
   }
 
-  const STORAGE_KEY = 'smartScores';
-
-  // load records
+  // ===== Helper Functions =====
   function loadRecords() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : [];
     } catch (e) {
+      console.error("Error loading records:", e);
       return [];
     }
   }
 
-  // save records
   function saveRecords(records) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
   }
 
-  // clear all data
+  function showMessage(msg) {
+    alert(msg);
+  }
+
+  function safeNum(x) {
+    const n = Number(x);
+    return isNaN(n) ? 0 : n;
+  }
+
+  // ===== Save Record Logic =====
+  window.saveRecord = function saveRecord() {
+    const teacher = document.getElementById("teacherName")?.value.trim();
+    const subject = document.getElementById("subject")?.value.trim();
+    const grade = document.getElementById("grade")?.value.trim();
+    const stream = document.getElementById("stream")?.value.trim();
+    const term = document.getElementById("term")?.value.trim();
+    const examType = document.getElementById("examType")?.value.trim();
+    const year = document.getElementById("year")?.value.trim();
+    const mean = Number(document.getElementById("meanScore")?.value.trim());
+
+    if (
+      !teacher ||
+      !subject ||
+      !grade ||
+      !stream ||
+      !term ||
+      !examType ||
+      !year ||
+      Number.isNaN(mean)
+    ) {
+      showMessage("⚠️ Please fill in all fields correctly.");
+      return;
+    }
+
+    const records = loadRecords();
+    const exists = records.findIndex(
+      (r) =>
+        r.teacher === teacher &&
+        r.subject === subject &&
+        r.grade === grade &&
+        r.stream === stream &&
+        r.term === term &&
+        r.examType === examType &&
+        r.year === year
+    );
+
+    if (exists > -1) {
+      if (confirm("Record exists. Overwrite it?")) {
+        records[exists].mean = mean;
+      } else return;
+    } else {
+      records.push({
+        teacher,
+        subject,
+        grade,
+        stream,
+        term,
+        examType,
+        year,
+        mean,
+      });
+    }
+
+    saveRecords(records);
+    document.getElementById("meanScore").value = "";
+    showMessage("✅ Record saved successfully!");
+    renderRecords();
+  };
+
+  // ===== Render Recorded Scores =====
+  window.renderRecords = function renderRecords() {
+    const tbody = document.querySelector("#recordsTable tbody");
+    if (!tbody) return;
+    const records = loadRecords();
+    tbody.innerHTML = "";
+
+    records.forEach((r) => {
+      const row = document.createElement("tr");
+      const rub = rubric(r.mean);
+      row.innerHTML = `
+        <td>${r.teacher}</td>
+        <td>${r.subject}</td>
+        <td>${r.grade}</td>
+        <td>${r.stream}</td>
+        <td>${r.term}</td>
+        <td>${r.examType}</td>
+        <td>${r.year}</td>
+        <td>${r.mean.toFixed(1)}%</td>
+        <td><span style="background:${rub.color}; color:#fff; padding:4px 8px; border-radius:6px;">${rub.code}</span></td>
+      `;
+      tbody.appendChild(row);
+    });
+  };
+
+  // ===== Rubric Function =====
+  function rubric(score) {
+    if (score >= 75) return { code: "EE", color: "#16a34a" };
+    if (score >= 41) return { code: "ME", color: "#2563eb" };
+    if (score >= 21) return { code: "AE", color: "#f59e0b" };
+    return { code: "BE", color: "#ef4444" };
+  }
+
+  // ===== Clear All Records =====
   window.clearAllData = function () {
-    if (confirm('⚠️ This will delete all recorded data. Are you sure you want to continue?')) {
+    if (
+      confirm("⚠️ This will permanently delete all records. Continue?")
+    ) {
       localStorage.removeItem(STORAGE_KEY);
-      alert('🧹 All data cleared successfully.');
+      showMessage("🧹 All data cleared!");
       renderRecords();
-      renderSummaryAndInsight();
+      renderAverages();
     }
   };
 
-  // export backup
+  // ===== Export Backup =====
   window.exportBackup = function () {
     const records = loadRecords();
-    if (!records.length) { alert('No data to export.'); return; }
-    const blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
+    if (!records.length) {
+      showMessage("No data to export.");
+      return;
+    }
+
+    const blob = new Blob([JSON.stringify(records, null, 2)], {
+      type: "application/json",
+    });
+    const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `SmartScores_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `SmartScores_Backup_${new Date()
+      .toISOString()
+      .slice(0, 10)}.json`;
     a.click();
-    alert('💾 Data backup exported successfully!');
   };
 
-  // import backup
+  // ===== Import Backup =====
   window.importBackup = function (event) {
-    const file = event.target.files && event.target.files[0];
+    const file = event.target.files[0];
     if (!file) return;
+
     const reader = new FileReader();
-    reader.onload = function (e) {
+    reader.onload = (e) => {
       try {
         const imported = JSON.parse(e.target.result);
-        if (!Array.isArray(imported)) throw new Error('Invalid format');
-        if (confirm('Import will replace current records. Continue?')) {
+        if (!Array.isArray(imported)) throw new Error("Invalid format");
+        if (
+          confirm("⚠️ Importing will replace your current records. Continue?")
+        ) {
           saveRecords(imported);
-          alert('📥 Data imported successfully!');
+          showMessage("📥 Backup imported successfully!");
           renderRecords();
-          renderSummaryAndInsight();
+          renderAverages();
         }
       } catch (err) {
-        alert('Invalid file format. Please upload a valid SmartScores backup file.');
+        showMessage("❌ Invalid backup file.");
       }
     };
     reader.readAsText(file);
-    event.target.value = '';
   };
 
-  // render records
-  function renderRecords() {
+  // ===== Render Averages and Insights =====
+  window.renderAverages = function renderAverages() {
+    const tbody = document.querySelector("#averageScoresTable tbody");
+    if (!tbody) return;
     const records = loadRecords();
-    const recordsTable = document.getElementById('recordsTable');
-    const recordsTbody = recordsTable.querySelector('tbody');
-    recordsTbody.innerHTML = '';
-    records.forEach((r, i) => {
-      const row = document.createElement('tr');
-      const rRub = rubric(safeNum(r.mean));
+    tbody.innerHTML = "";
+
+    const groups = {};
+
+    // group by subject, grade, stream, term, year
+    for (const r of records) {
+      const key = [r.subject, r.grade, r.stream, r.term, r.year].join("|");
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(r.mean);
+    }
+
+    for (const [key, means] of Object.entries(groups)) {
+      const [subject, grade, stream, term, year] = key.split("|");
+      const avg = means.reduce((a, b) => a + b, 0) / means.length;
+
+      const row = document.createElement("tr");
       row.innerHTML = `
-        <td>${i + 1}</td>
-        <td>${escapeHtml(r.teacher)}</td>
-        <td>${escapeHtml(r.subject)}</td>
-        <td>${escapeHtml(r.grade)}</td>
-        <td>${escapeHtml(r.stream)}</td>
-        <td>${escapeHtml(r.term)}</td>
-        <td>${escapeHtml(r.examType)}</td>
-        <td>${escapeHtml(r.year)}</td>
-        <td style="font-weight:700">${safeNum(r.mean).toFixed(1)}%</td>
-        <td><span style="background:${rRub.color}; color:#fff; padding:4px 8px; border-radius:6px; font-weight:700">${rRub.text}</span></td>
+        <td>${subject}</td>
+        <td>${grade}</td>
+        <td>${stream}</td>
+        <td>${term}</td>
+        <td>${year}</td>
+        <td>${avg.toFixed(2)}%</td>
       `;
-      recordsTbody.appendChild(row);
-    });
-  }
+      tbody.appendChild(row);
+    }
+  };
 
-  // rubric helper
-  function rubric(score) {
-    if (score >= 75) return { text: 'Exceeding Expectations', code: 'EE', color: '#16a34a' };
-    if (score >= 41) return { text: 'Meeting Expectations', code: 'ME', color: '#2563eb' };
-    if (score >= 21) return { text: 'Approaching Expectations', code: 'AE', color: '#f59e0b' };
-    return { text: 'Below Expectations', code: 'BE', color: '#ef4444' };
-  }
+  // ===== PDF Download (Averages & Insights) =====
+  window.downloadPDF = function downloadPDF() {
+    const averagesTable = document.getElementById("averageScoresTable");
+    if (!averagesTable) return alert("No data to download!");
 
-  // helper to escape HTML
-  function escapeHtml(s) {
-    if (s === undefined || s === null) return '';
-    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-  }
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
 
-  // initial render
+    pdf.text("SmartScores Averages & Insights", 14, 16);
+    pdf.autoTable({ html: "#averageScoresTable", startY: 25 });
+    pdf.save(`SmartScores_Averages_${new Date()
+      .toISOString()
+      .slice(0, 10)}.pdf`);
+    alert("📄 PDF downloaded successfully!");
+  };
+
+  // ===== Auto-Initialize on Each Page =====
   function init() {
     renderRecords();
+    renderAverages();
   }
 
-  init();
+  document.addEventListener("DOMContentLoaded", init);
 })();
