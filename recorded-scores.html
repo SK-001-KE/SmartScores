@@ -9,4 +9,102 @@
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;
-      margin:
+      margin: 0;
+      padding: 0;
+      background: #f8fafc;
+      color: #222;
+    }
+    header {
+      background: linear-gradient(90deg, #2563eb, #800000);
+      color: white;
+      text-align: center;
+      padding: 15px;
+    }
+    nav {
+      background: #e2e8f0;
+      padding: 10px;
+      text-align: center;
+    }
+    nav a {
+      margin: 0 15px;
+      text-decoration: none;
+      color: #2563eb;
+      font-weight: 600;
+    }
+    nav a:hover {
+      color: #800000;
+    }
+    main {
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #2563eb;
+      color: white;
+    }
+    footer {
+      text-align: center;
+      background: #e2e8f0;
+      padding: 10px;
+      font-size: 0.9rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SmartScores v2.0</h1>
+  </header>
+
+  <nav>
+    <a href="index.html">🏠 Dashboard</a>
+    <a href="data-entry.html">📋 Data Entry</a>
+    <a href="recorded-scores.html">📊 Recorded Scores</a>
+  </nav>
+
+  <main>
+    <h2>📊 Recorded Scores & Insights</h2>
+
+    <!-- Table for recorded data -->
+    <table id="recordsTable">
+      <thead>
+        <tr>
+          <th>Teacher</th>
+          <th>Subject</th>
+          <th>Grade</th>
+          <th>Stream</th>
+          <th>Term</th>
+          <th>Exam Type</th>
+          <th>Year</th>
+          <th>Mean Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Data will be dynamically added here -->
+      </tbody>
+    </table>
+
+    <h3>💡 Insights</h3>
+    <div id="insightBox">
+      <!-- Insights will be dynamically added here -->
+    </div>
+  </main>
+
+  <footer>
+    SmartScores v2.0 © Kariuki 2025
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
