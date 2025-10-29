@@ -77,32 +77,67 @@
     return insights.slice(0, 5); // Top 5 insights
   };
 
-  window.saveRecord = () => {
-    const record = {
-      teacher: el.teacher()?.value.trim(),
-      subject: el.subject()?.value,
-      grade: el.grade()?.value,
-      stream: el.stream()?.value,
-      term: el.term()?.value,
-      examType: el.examType()?.value,
-      year: el.year()?.value,
-      mean: Number(el.mean()?.value)
-    };
+window.saveRecord = () => {
+  const record = {
+    teacher: el.teacher()?.value.trim(),
+    subject: el.subject()?.value,
+    grade: el.grade()?.value,
+    stream: el.stream()?.value,
+    term: el.term()?.value,
+    examType: el.examType()?.value,
+    year: el.year()?.value,
+    mean: Number(el.mean()?.value)
+  };
 
-    if (!record.teacher || !record.subject || !record.grade || !record.stream || 
-        !record.term || !record.examType || !record.year || Number.isNaN(record.mean)) {
-      showAlert('Please fill all fields.');
-      return;
-    }
+  // Input validation
+  if (!record.teacher || !record.subject || !record.grade || !record.stream || 
+      !record.term || !record.examType || !record.year || Number.isNaN(record.mean)) {
+    showAlert('Please fill all fields.');
+    return;
+  }
 
-    if (record.mean < 0 || record.mean > 100) {
-      showAlert('Mean score must be between 0 and 100.');
-      return;
-    }
-    if (record.year < 2000 || record.year > 2100) {
-      showAlert('Year must be between 2000 and 2100.');
-      return;
-    }
+  // Data validation
+  if (record.mean < 0 || record.mean > 100) {
+    showAlert('Mean score must be between 0 and 100.');
+    return;
+  }
+  if (record.year < 2000 || record.year > 2100) {
+    showAlert('Year must be between 2000 and 2100.');
+    return;
+  }
+
+  // Check if the record already exists
+  const records = loadRecords();
+  const exists = records.some(r =>
+    r.teacher === record.teacher &&
+    r.subject === record.subject &&
+    r.grade === record.grade &&
+    r.stream === record.stream &&
+    r.term === record.term &&
+    r.examType === record.examType &&
+    r.year === record.year
+  );
+
+  if (exists) {
+    showAlert('This record already exists!');
+    return;
+  }
+
+  // Save the new record
+  records.push(record);
+  saveRecords(records);
+
+  // Clear the mean score field and show confirmation
+  el.mean().value = '';
+  showAlert('Record saved!');
+
+  // Update the stats live after saving the record
+  updateDashboardStats();  // This ensures live updating of stats
+
+  // Re-render the records and averages
+  renderAll();
+};
+
 
     const records = loadRecords();
     const exists = records.some(r =>
