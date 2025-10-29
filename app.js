@@ -192,24 +192,28 @@
   };
 
   window.importData = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      try {
-        const data = JSON.parse(ev.target.result);
-        if (Array.isArray(data) && data.every(r => r.mean !== undefined)) {
-          saveRecords(data);
-          showAlert('Data imported successfully!');
-          renderAll();
-        } else throw '';
-      } catch {
-        showAlert('Invalid backup file.');
-      }
-    };
-    reader.readAsText(file);
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!file.name.endsWith('.json')) {
+    showAlert('Please select a .json backup file.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (Array.isArray(data) && data.length > 0 && data[0].mean !== undefined) {
+        saveRecords(data);
+        showAlert('Data imported successfully!');
+        renderAll();
+      } else throw '';
+    } catch {
+      showAlert('Invalid backup file.');
+    }
   };
-
+  reader.readAsText(file);
+};
+  
   window.clearAllData = () => {
     if (confirm('Delete ALL data? This cannot be undone.')) {
       localStorage.removeItem(STORAGE_KEY);
