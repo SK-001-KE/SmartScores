@@ -17,7 +17,8 @@
     importFile: () => document.getElementById('importFile'),
     totalRecords: () => document.getElementById('totalRecords'),
     avgScore: () => document.getElementById('avgScore'),
-    topSubject: () => document.getElementById('topSubject')
+    topSubject: () => document.getElementById('topSubject'),
+    insights: () => document.getElementById('insights') // NEW
   };
 
   const showAlert = (msg) => alert(msg);
@@ -38,6 +39,42 @@
     if (score >= 41) return { text: 'Meeting', code: 'ME', color: '#2563eb', emoji: 'Check' };
     if (score >= 21) return { text: 'Approaching', code: 'AE', color: '#f59e0b', emoji: 'Warning' };
     return { text: 'Below', code: 'BE', color: '#ef4444', emoji: 'Exclamation' };
+  };
+
+  const generateAIInsights = () => {
+    const records = loadRecords();
+    if (records.length === 0) return [];
+
+    const subjectStats = {};
+    records.forEach(r => {
+      const key = `${r.subject}|${r.grade}`;
+      if (!subjectStats[key]) subjectStats[key] = { sum: 0, count: 0, records: [] };
+      subjectStats[key].sum += r.mean;
+      subjectStats[key].count++;
+      subjectStats[key].records.push(r);
+    });
+
+    const insights = [];
+    for (const [key, data] of Object.entries(subjectStats)) {
+      const avg = data.sum / data.count;
+      const [subject, grade] = key.split('|');
+      if (avg < 40) {
+        insights.push(`You need to check on **${subject}** in **Grade ${grade}** – average is only **${avg.toFixed(1)}%**.`);
+      } else if (avg < 60) {
+        insights.push(`**${subject}** in **Grade ${grade}** is approaching expectations (**${avg.toFixed(1)}%**). Consider revision sessions.`);
+      } else if (avg > 80) {
+        insights.push(`Great job! **${subject}** in **Grade ${grade}** is exceeding expectations (**${avg.toFixed(1)}%**).`);
+      }
+    }
+
+    const best = Object.entries(subjectStats)
+      .reduce((a, b) => (b[1].sum / b[1].count) > (a[1].sum / a[1].count) ? b : a, [null, { sum: 0, count: 1 }]);
+    if (best[0]) {
+      const [subject, grade] = best[0].split('|');
+      insights.unshift(`**Top performer:** **${subject}** in **Grade ${grade}** with **${(best[1].sum / best[1].count).toFixed(1)}%**.`);
+    }
+
+    return insights.slice(0, 5); // Top 5 insights
   };
 
   window.saveRecord = () => {
@@ -69,13 +106,9 @@
 
     const records = loadRecords();
     const exists = records.some(r =>
-      r.teacher === record.teacher &&
-      r.subject === record.subject &&
-      r.grade === record.grade &&
-      r.stream === record.stream &&
-      r.term === record.term &&
-      r.examType === record.examType &&
-      r.year === record.year
+      r.teacher === record.teacher && r.subject === record.subject &&
+      r.grade === record.grade && r.stream === record.stream &&
+      r.term === record.term && r.examType === record.examType && r.year === record.year
     );
     if (exists) {
       showAlert('This record already exists!');
@@ -94,11 +127,10 @@
     if (!tbody) return;
     const records = loadRecords();
     tbody.innerHTML = '';
-    records.forEach((r, i) => {
+    records.forEach(r => {
       const rub = rubric(r.mean);
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${i + 1}</td>
         <td>${r.teacher}</td>
         <td>${r.subject}</td>
         <td>${r.grade}</td>
@@ -144,7 +176,6 @@
   const updateDashboardStats = () => {
     const records = loadRecords();
     if (el.totalRecords()) el.totalRecords().textContent = records.length;
-
     const overallAvg = records.length > 0
       ? (records.reduce((a, r) => a + r.mean, 0) / records.length).toFixed(1)
       : 0;
@@ -164,15 +195,25 @@
     if (el.topSubject()) el.topSubject().textContent = top.name;
   };
 
+  const renderAIInsights = () => {
+    const container = el.insights();
+    if (!container) return;
+    const insights = generateAIInsights();
+    container.innerHTML = insights.length > 0
+      ? insights.map(i => `<p style="margin:8px 0; padding:10px; background:#fffbe6; border-left:4px solid #f59e0b; border-radius:4px;">${i}</p>`).join('')
+      : '<p>No insights yet. Add more data!</p>';
+  };
+
   const renderAll = () => {
     renderRecords();
     renderAverageScores();
     updateDashboardStats();
+    renderAIInsights();
   };
 
   window.downloadPDF = () => {
     if (!window.jspdf || !window.html2canvas) {
-      showAlert('PDF library not loaded. Check internet connection.');
+      showAlert('PDF library not loaded.');
       return;
     }
     const table = document.getElementById('averageScoresTable');
@@ -180,45 +221,54 @@
       showAlert('No data to export.');
       return;
     }
+
+    const teacherName = loadRecords()[0]?.teacher || 'All Teachers';
+
     html2canvas(table, { scale: 2 }).then(canvas => {
       const img = canvas.toDataURL('image/png');
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const width = 190;
+      const width = 180;
       const height = (canvas.height * width) / canvas.width;
-      pdf.addImage(img, 'PNG', 10, 10, width, height);
-      pdf.save('SmartScores_Averages_Insights.pdf');
+
+      // Header
+      pdf.setFontSize(16);
+      pdf.text(`SmartScores Report - ${teacherName}`, 20, 20);
+      pdf.setFontSize(10);
+      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 28);
+
+      pdf.addImage(img, 'PNG', 15, 35, width, height);
+      pdf.save(`SmartScores_Report_${teacherName.replace(/ /g, '_')}.pdf`);
     });
   };
 
   window.importData = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (!file.name.endsWith('.json')) {
-    showAlert('Please select a .json backup file.');
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      const data = JSON.parse(ev.target.result);
-      if (Array.isArray(data) && data.length > 0 && data[0].mean !== undefined) {
-        saveRecords(data);
-        showAlert('Data imported successfully!');
-        renderAll();
-      } else throw '';
-    } catch {
-      showAlert('Invalid backup file.');
+    const file = e.target.files[0];
+    if (!file || !file.name.endsWith('.json')) {
+      showAlert('Please select a .json backup file.');
+      return;
     }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (Array.isArray(data) && data.length > 0 && data[0].mean !== undefined) {
+          saveRecords(data);
+          showAlert('Data imported!');
+          renderAll();
+        } else throw '';
+      } catch {
+        showAlert('Invalid file.');
+      }
+    };
+    reader.readAsText(file);
   };
-  reader.readAsText(file);
-};
-  
+
   window.clearAllData = () => {
-    if (confirm('Delete ALL data? This cannot be undone.')) {
+    if (confirm('Delete ALL data?')) {
       localStorage.removeItem(STORAGE_KEY);
       renderAll();
-      showAlert('All data cleared.');
+      showAlert('Cleared!');
     }
   };
 
