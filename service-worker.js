@@ -1,47 +1,31 @@
-// service-worker.js — SmartScores v2.0
-
-const CACHE_NAME = 'smartscores-v2.0-cache';
+const CACHE_NAME = 'smartscores-v2-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/about.html',
-  '/styles.css',
+  '/data-entry.html',
+  '/recorded-scores.html',
+  '/averages-insights.html',
   '/app.js',
+  '/manifest.json',
   '/favicon.png',
-  '/logo.png',
-  // add any other assets that you want to cache
+  '/icon-192x192.png',
+  '/icon-512x512.png',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        return cache.addAll(urlsToCache);
-      })
-  );
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache)));
 });
 
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((cachedResponse) => {
-        // Return cached response if available
-        return cachedResponse || fetch(event.request);
-      })
-  );
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });
 
-self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (!cacheWhitelist.includes(cacheName)) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(names =>
+      Promise.all(names.filter(n => n !== CACHE_NAME).map(n => caches.delete(n)))
+    )
   );
 });
