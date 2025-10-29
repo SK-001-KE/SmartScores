@@ -106,53 +106,54 @@ window.saveRecord = () => {
   renderAll();
 };
 
-  // Update Dashboard Stats
-  const updateDashboardStats = () => {
-    const records = loadRecords();
-    
-    // Total Teachers
-    if (el.totalRecords()) el.totalRecords().textContent = records.length;
+const updateDashboardStats = () => {
+  const records = loadRecords();
 
-    // Calculate the overall average
-    const overallAvg = records.length > 0
-      ? (records.reduce((a, r) => a + r.mean, 0) / records.length).toFixed(1)
-      : 0;
-    if (el.avgScore()) el.avgScore().textContent = overallAvg + '%';
+  // Calculate the overall average score of all records
+  const overallAvg = records.length > 0
+    ? (records.reduce((a, r) => a + r.mean, 0) / records.length).toFixed(1) // Average of all the mean scores
+    : 0;
 
-    // Top and Worst Subjects
-    let topSubject = '-', worstSubject = '-', lastEntry = 'Never';
-    let topSubjectAvg = 0, worstSubjectAvg = Infinity;
-    
-    const subjectStats = {};
-    records.forEach(r => {
-      if (!subjectStats[r.subject]) subjectStats[r.subject] = { sum: 0, count: 0 };
-      subjectStats[r.subject].sum += r.mean;
-      subjectStats[r.subject].count++;
-    });
+  // Update the "Average of All Data Entered" stat
+  if (el.avgScore()) {
+    el.avgScore().textContent = overallAvg + '%';  // Display as percentage
+  }
 
-    for (const [subject, stats] of Object.entries(subjectStats)) {
-      const avg = stats.sum / stats.count;
-      if (avg > topSubjectAvg) {
-        topSubject = subject;
-        topSubjectAvg = avg;
-      }
-      if (avg < worstSubjectAvg) {
-        worstSubject = subject;
-        worstSubjectAvg = avg;
-      }
+  // Top and Worst Subjects
+  let topSubject = '-', worstSubject = '-', lastEntry = 'Never';
+  let topSubjectAvg = 0, worstSubjectAvg = Infinity;
+  
+  const subjectStats = {};
+  records.forEach(r => {
+    if (!subjectStats[r.subject]) subjectStats[r.subject] = { sum: 0, count: 0 };
+    subjectStats[r.subject].sum += r.mean;
+    subjectStats[r.subject].count++;
+  });
+
+  for (const [subject, stats] of Object.entries(subjectStats)) {
+    const avg = stats.sum / stats.count;
+    if (avg > topSubjectAvg) {
+      topSubject = subject;
+      topSubjectAvg = avg;
     }
-
-    if (el.topSubject()) el.topSubject().textContent = topSubject;
-    if (el.worstSubject()) el.worstSubject().textContent = worstSubject;
-
-    // Last entry (most recent)
-    if (records.length > 0) {
-      const lastRecord = records[records.length - 1];
-      lastEntry = `${lastRecord.subject} (${lastRecord.term} - ${lastRecord.year})`;
+    if (avg < worstSubjectAvg) {
+      worstSubject = subject;
+      worstSubjectAvg = avg;
     }
+  }
 
-    if (el.lastEntry()) el.lastEntry().textContent = lastEntry;
-  };
+  if (el.topSubject()) el.topSubject().textContent = topSubject;
+  if (el.worstSubject()) el.worstSubject().textContent = worstSubject;
+
+  // Last entry (most recent)
+  if (records.length > 0) {
+    const lastRecord = records[records.length - 1];
+    lastEntry = `${lastRecord.subject} (${lastRecord.term} - ${lastRecord.year})`;
+  }
+
+  if (el.lastEntry()) el.lastEntry().textContent = lastEntry;
+};
+
 
   // Render all records and averages
   const renderAll = () => {
