@@ -5,48 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartScores v2.0 - Dashboard</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <meta name="theme-color" content="#2563eb" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="favicon.png" />
+  <script src="app.js" defer></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9f9f9; margin: 0; padding: 0; }
+    header { background-color: #2563eb; padding: 15px; color: white; text-align: center; }
+    nav { text-align: center; padding: 10px; background: #333; }
+    nav a { color: white; text-decoration: none; margin: 0 20px; font-weight: bold; }
+    nav a:hover { text-decoration: underline; }
+    .content { text-align: center; margin: 20px; }
+    footer { text-align: center; background: #333; padding: 10px; color: white; }
+  </style>
 </head>
 <body>
+
   <header>
-    <img src="logo.png" alt="SmartScores Logo" />
     <h1>Welcome to SmartScores v2.0</h1>
+    <p>Your teacher mean score tracker</p>
   </header>
 
   <nav>
-    <a href="data-entry.html">📋 Data Entry</a>
+    <a href="index.html">🏠 Dashboard</a>
+    <a href="data-entry.html">📝 Data Entry</a>
     <a href="recorded-scores.html">📊 Recorded Scores</a>
-    <a href="averages-and-insights.html">📈 Averages and Insights</a>
+    <a href="averages-insights.html">📈 Averages & Insights</a>
   </nav>
 
-  <main>
-    <div class="card">
-      <h2 style="color: var(--blue);">📋 SmartScores Dashboard</h2>
-      <p>Welcome to the SmartScores v2.0 app! This application helps you manage and track the academic performance of your students.</p>
-      <p>To get started:</p>
-      <ul>
-        <li>Use the <b>Data Entry</b> page to input new student scores.</li>
-        <li>View recorded scores and their averages on the <b>Recorded Scores</b> page.</li>
-        <li>Get detailed subject averages and AI-powered insights on the <b>Averages and Insights</b> page.</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h2 style="color: var(--maroon);">📊 SmartScores Features:</h2>
-      <ul>
-        <li>Record scores for each student.</li>
-        <li>View subject-wise performance averages and insights.</li>
-        <li>Analyze termly averages and overall class performance.</li>
-      </ul>
-    </div>
-  </main>
+  <div class="content">
+    <h2>Welcome to SmartScores</h2>
+    <p>This app helps you manage and track the mean scores for students.</p>
+    <p>You can enter scores, view recorded data, generate reports, and analyze insights!</p>
+  </div>
 
   <footer>
     SmartScores v2.0 © Kariuki 2025
   </footer>
 
-  <script src="app.js"></script>
 </body>
 </html>
