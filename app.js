@@ -1,8 +1,8 @@
-// app.js — SmartScores v2.1 (AI + Auto Teacher + PDF Header)
+// app.js — SmartScores v2.0 (Production Ready)
 (() => {
   const STORAGE_KEY = 'smartScores';
-  const TEACHER_KEY = 'lastTeacherName';
   
+  // DOM Elements (lazy-loaded)
   const el = {
     teacher: () => document.getElementById('teacherName'),
     subject: () => document.getElementById('subject'),
@@ -17,23 +17,18 @@
     importFile: () => document.getElementById('importFile'),
     totalRecords: () => document.getElementById('totalRecords'),
     avgScore: () => document.getElementById('avgScore'),
-    topSubject: () => document.getElementById('topSubject'),
-    insights: () => document.getElementById('insights') // NEW
+    topSubject: () => document.getElementById('topSubject')
   };
 
   const showAlert = (msg) => alert(msg);
-
-  // Load last teacher name
-  const loadLastTeacher = () => {
-    const name = localStorage.getItem(TEACHER_KEY);
-    if (name && el.teacher()) el.teacher().value = name;
-  };
 
   const loadRecords = () => {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
       return data ? JSON.parse(data) : [];
-    } catch { return []; }
+    } catch {
+      return [];
+    }
   };
 
   const saveRecords = (records) => localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
@@ -43,44 +38,6 @@
     if (score >= 41) return { text: 'Meeting', code: 'ME', color: '#2563eb', emoji: 'Check' };
     if (score >= 21) return { text: 'Approaching', code: 'AE', color: '#f59e0b', emoji: 'Warning' };
     return { text: 'Below', code: 'BE', color: '#ef4444', emoji: 'Exclamation' };
-  };
-
-  // NEW: AI Insights Engine
-  const generateAIInsights = () => {
-    const records = loadRecords();
-    if (records.length === 0) return [];
-
-    const subjectStats = {};
-    records.forEach(r => {
-      const key = `${r.subject}|${r.grade}`;
-      if (!subjectStats[key]) subjectStats[key] = { sum: 0, count: 0, teacher:: [] };
-      subjectStats[key].sum += r.mean;
-      subjectStats[key].count++;
-      subjectStats[key].records.push(r);
-    });
-
-    const insights = [];
-    for (const [key, data] of Object.entries(subjectStats)) {
-      const avg = data.sum / data.count;
-      const [subject, grade] = key.split('|');
-      if (avg < 40) {
-        insights.push(`You need to check on **${subject}** in **Grade ${grade}** – average is only **${avg.toFixed(1)}%**.`);
-      } else if (avg < 60) {
-        insights.push(`**${subject}** in **Grade ${grade}** is approaching expectations (**${avg.toFixed(1)}%**). Consider revision sessions.`);
-      } else if (avg > 80) {
-        insights.push(`Great job! **${subject}** in **Grade ${grade}** is exceeding expectations (**${avg.toFixed(1)}%**).`);
-      }
-    }
-
-    // Top performer
-    const best = Object.entries(subjectStats)
-      .reduce((a, b) => (b[1].sum / b[1].count) > (a[1].sum / a[1].count) ? b : a, [null, { sum: 0, count: 1 }]);
-    if (best[0]) {
-      const [subject, grade] = best[0].split('|');
-      insights.unshift(`**Top performer:** **${subject}** in **Grade ${grade}** with **${(best[1].sum / best[1].count).toFixed(1)}%**.`);
-    }
-
-    return insights.slice(0, 5); // Top 5 insights
   };
 
   window.saveRecord = () => {
@@ -102,19 +59,23 @@
     }
 
     if (record.mean < 0 || record.mean > 100) {
-      showAlert('Mean score must be 0–100.');
+      showAlert('Mean score must be between 0 and 100.');
       return;
     }
     if (record.year < 2000 || record.year > 2100) {
-      showAlert('Year must be 2000–2100.');
+      showAlert('Year must be between 2000 and 2100.');
       return;
     }
 
     const records = loadRecords();
     const exists = records.some(r =>
-      r.teacher === record.teacher && r.subject === record.subject &&
-      r.grade === record.grade && r.stream === record.stream &&
-      r.term === record.term && r.examType === record.examType && r.year === record.year
+      r.teacher === record.teacher &&
+      r.subject === record.subject &&
+      r.grade === record.grade &&
+      r.stream === record.stream &&
+      r.term === record.term &&
+      r.examType === record.examType &&
+      r.year === record.year
     );
     if (exists) {
       showAlert('This record already exists!');
@@ -123,7 +84,6 @@
 
     records.push(record);
     saveRecords(records);
-    localStorage.setItem(TEACHER_KEY, record.teacher); // Save teacher name
     el.mean().value = '';
     showAlert('Record saved!');
     renderAll();
@@ -134,10 +94,11 @@
     if (!tbody) return;
     const records = loadRecords();
     tbody.innerHTML = '';
-    records.forEach(r => {
+    records.forEach((r, i) => {
       const rub = rubric(r.mean);
       const row = document.createElement('tr');
       row.innerHTML = `
+        <td>${i + 1}</td>
         <td>${r.teacher}</td>
         <td>${r.subject}</td>
         <td>${r.grade}</td>
@@ -183,6 +144,7 @@
   const updateDashboardStats = () => {
     const records = loadRecords();
     if (el.totalRecords()) el.totalRecords().textContent = records.length;
+
     const overallAvg = records.length > 0
       ? (records.reduce((a, r) => a + r.mean, 0) / records.length).toFixed(1)
       : 0;
@@ -202,138 +164,15 @@
     if (el.topSubject()) el.topSubject().textContent = top.name;
   };
 
-  const renderAIInsights = () => {
-    const container = el.insights();
-    if (!container) return;
-    const insights = generateAIInsights();
-    container.innerHTML = insights.length > 0
-      ? insights.map(i => `<p style="margin:8px 0; padding:10px; background:#fffbe6; border-left:4px solid #f59e0b; border-radius:4px;">${i}</p>`).join('')
-      : '<p>No insights yet. Add more data!</p>';
-  };
-
   const renderAll = () => {
     renderRecords();
     renderAverageScores();
     updateDashboardStats();
-    renderAIInsights();
   };
 
-  // ── Render records with Edit/Delete
-const renderRecords = () => {
-  const tbody = el.recordsTbody(); if (!tbody) return;
-  const records = loadRecords();
-  tbody.innerHTML = '';
-  records.forEach((r, idx) => {
-    const rub = rubric(r.mean);
-    tbody.innerHTML += `
-      <tr data-index="${idx}">
-        <td>${r.teacher}</td>
-        <td>${r.subject}</td>
-        <td>${r.grade}</td>
-        <td>${r.stream}</td>
-        <td>${r.term}</td>
-        <td>${r.examType}</td>
-        <td>${r.year}</td>
-        <td>${r.mean.toFixed(1)}%</td>
-        <td><span style="background:${rub.color};color:#fff;padding:4px 8px;border-radius:6px;">
-          ${rub.emoji} ${rub.text}
-        </span></td>
-        <td style="white-space:nowrap;">
-          <button onclick="editRecord(${idx})" style="background:#f59e0b;margin:0 4px;padding:6px 10px;" title="Edit">Edit</button>
-          <button onclick="deleteRecord(${idx})" style="background:#ef4444;margin:0 4px;padding:6px 10px;" title="Delete">Delete</button>
-        </td>
-      </tr>`;
-  });
-};
-
-// ── Edit: Fill form + highlight row
-window.editRecord = (idx) => {
-  const records = loadRecords();
-  const r = records[idx];
-  if (!r) return;
-
-  // Fill form
-  el.teacher().value = r.teacher;
-  el.subject().value = r.subject;
-  el.grade().value = r.grade;
-  el.stream().value = r.stream;
-  el.term().value = r.term;
-  el.examType().value = r.examType;
-  el.year().value = r.year;
-  el.mean().value = r.mean;
-
-  // Highlight row + store index
-  document.querySelectorAll('#recordsTable tr').forEach(tr => tr.style.background = '');
-  document.querySelector(`#recordsTable tr[data-index="${idx}"]`).style.background = '#fffbe6';
-
-  // Change button to "Update"
-  const saveBtn = document.querySelector('button[onclick="saveRecord()"]');
-  if (saveBtn) {
-    saveBtn.textContent = 'Update Record';
-    saveBtn.onclick = () => updateRecord(idx);
-  }
-
-  // Scroll to form
-  document.querySelector('.form-group')?.scrollIntoView({ behavior: 'smooth' });
-};
-
-// ── Update after edit
-const updateRecord = (idx) => {
-  const updated = {
-    teacher: el.teacher().value.trim(),
-    subject: el.subject().value,
-    grade: el.grade().value,
-    stream: el.stream().value,
-    term: el.term().value,
-    examType: el.examType().value,
-    year: el.year().value,
-    mean: Number(el.mean().value)
-  };
-
-  // Validate same as save
-  if (!updated.teacher || Number.isNaN(updated.mean)) return showAlert('Fill all fields.');
-  if (updated.mean < 0 || updated.mean > 100) return showAlert('Mean 0–100.');
-
-  const records = loadRecords();
-  records[idx] = updated;
-  saveRecords(records);
-  localStorage.setItem(TEACHER_KEY, updated.teacher);
-  resetForm();
-  showAlert('Updated!');
-  renderAll();
-};
-
-// ── Delete with confirm
-window.deleteRecord = (idx) => {
-  if (!confirm('Delete this record? This cannot be undone.')) return;
-  const records = loadRecords();
-  records.splice(idx, 1);
-  saveRecords(records);
-  showAlert('Deleted.');
-  renderAll();
-};
-
-// ── Reset form after save/update
-const resetForm = () => {
-  el.mean().value = '';
-  const saveBtn = document.querySelector('button[onclick]');
-  if (saveBtn) {
-    saveBtn.textContent = 'Save Record';
-    saveBtn.onclick = saveRecord;
-  }
-  document.querySelectorAll('#recordsTable tr').forEach(tr => tr.style.background = '');
-};
-
-// Update saveRecord to reset on new save
-window.saveRecord = () => {
-  // ... existing save logic ...
-  resetForm();
-  renderAll();
-};
-  // NEW: PDF with Teacher Name
   window.downloadPDF = () => {
     if (!window.jspdf || !window.html2canvas) {
-      showAlert('PDF library not loaded.');
+      showAlert('PDF library not loaded. Check internet connection.');
       return;
     }
     const table = document.getElementById('averageScoresTable');
@@ -341,55 +180,41 @@ window.saveRecord = () => {
       showAlert('No data to export.');
       return;
     }
-
-    const teacherName = loadRecords()[0]?.teacher || 'All Teachers';
-
     html2canvas(table, { scale: 2 }).then(canvas => {
       const img = canvas.toDataURL('image/png');
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const width = 180;
+      const width = 190;
       const height = (canvas.height * width) / canvas.width;
-
-      // Header
-      pdf.setFontSize(16);
-      pdf.text(`SmartScores Report - ${teacherName}`, 20, 20);
-      pdf.setFontSize(10);
-      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 28);
-
-      pdf.addImage(img, 'PNG', 15, 35, width, height);
-      pdf.save(`SmartScores_Report_${teacherName.replace(/ /g, '_')}.pdf`);
+      pdf.addImage(img, 'PNG', 10, 10, width, height);
+      pdf.save('SmartScores_Averages_Insights.pdf');
     });
   };
 
   window.importData = (e) => {
     const file = e.target.files[0];
-    if (!file || !file.name.endsWith('.json')) {
-      showAlert('Please select a .json backup file.');
-      return;
-    }
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = ev => {
       try {
         const data = JSON.parse(ev.target.result);
-        if (Array.isArray(data) && data.length > 0 && data[0].mean !== undefined) {
+        if (Array.isArray(data) && data.every(r => r.mean !== undefined)) {
           saveRecords(data);
-          showAlert('Data imported!');
+          showAlert('Data imported successfully!');
           renderAll();
         } else throw '';
       } catch {
-        showAlert('Invalid file.');
+        showAlert('Invalid backup file.');
       }
     };
     reader.readAsText(file);
   };
 
   window.clearAllData = () => {
-    if (confirm('Delete ALL data?')) {
+    if (confirm('Delete ALL data? This cannot be undone.')) {
       localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(TEACHER_KEY);
       renderAll();
-      showAlert('Cleared!');
+      showAlert('All data cleared.');
     }
   };
 
@@ -404,11 +229,14 @@ window.saveRecord = () => {
     URL.revokeObjectURL(url);
   };
 
+  // Initialize
   document.addEventListener('DOMContentLoaded', () => {
-    loadLastTeacher();
     renderAll();
+
+    // Register Service Worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js');
+      navigator.serviceWorker.register('/service-worker.js')
+        .catch(err => console.error('SW registration failed:', err));
     }
   });
 })();
