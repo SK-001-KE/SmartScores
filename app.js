@@ -41,65 +41,70 @@
     return { text: 'Below', code: 'BE', color: '#ef4444', emoji: '❌' };
   };
 
-  // Save a new record
-  window.saveRecord = () => {
-    const record = {
-      teacher: el.teacher()?.value.trim(),
-      subject: el.subject()?.value,
-      grade: el.grade()?.value,
-      stream: el.stream()?.value,
-      term: el.term()?.value,
-      examType: el.examType()?.value,
-      year: el.year()?.value,
-      mean: Number(el.mean()?.value)
-    };
-
-    // Validate input
-    if (!record.teacher || !record.subject || !record.grade || !record.stream || 
-        !record.term || !record.examType || !record.year || Number.isNaN(record.mean)) {
-      showAlert('Please fill all fields.');
-      return;
-    }
-
-    // Validate the mean score and year
-    if (record.mean < 0 || record.mean > 100) {
-      showAlert('Mean score must be between 0 and 100.');
-      return;
-    }
-    if (record.year < 2000 || record.year > 2100) {
-      showAlert('Year must be between 2000 and 2100.');
-      return;
-    }
-
-    // Prevent duplicate records
-    const records = loadRecords();
-    const exists = records.some(r =>
-      r.teacher === record.teacher &&
-      r.subject === record.subject &&
-      r.grade === record.grade &&
-      r.stream === record.stream &&
-      r.term === record.term &&
-      r.examType === record.examType &&
-      r.year === record.year
-    );
-
-    if (exists) {
-      showAlert('This record already exists!');
-      return;
-    }
-
-    // Save the new record
-    records.push(record);
-    saveRecords(records);
-    el.mean().value = ''; // Clear the mean input field
-    showAlert('Record saved!');
-
-    // Update dashboard stats after saving the record
-    updateDashboardStats();
-
-    // Re-render the records and averages
-    renderAll();
+ // Save a new record
+window.saveRecord = () => {
+  const record = {
+    teacher: el.teacher()?.value.trim(),
+    subject: el.subject()?.value,
+    grade: el.grade()?.value,
+    stream: el.stream()?.value,
+    term: el.term()?.value,
+    examType: el.examType()?.value,
+    year: el.year()?.value,
+    mean: Number(el.mean()?.value)
   };
+
+  // Validate input
+  if (!record.teacher || !record.subject || !record.grade || !record.stream || 
+      !record.term || !record.examType || !record.year || Number.isNaN(record.mean)) {
+    showAlert('Please fill all fields.');
+    return;
+  }
+
+  // Validate the mean score and year
+  if (record.mean < 0 || record.mean > 100) {
+    showAlert('Mean score must be between 0 and 100.');
+    return;
+  }
+
+  if (record.year < 2000 || record.year > 2100) {
+    showAlert('Year must be between 2000 and 2100.');
+    return;
+  }
+
+  // Prevent duplicate records (if the same record already exists)
+  const records = loadRecords();
+  const exists = records.some(r =>
+    r.teacher === record.teacher &&
+    r.subject === record.subject &&
+    r.grade === record.grade &&
+    r.stream === record.stream &&
+    r.term === record.term &&
+    r.examType === record.examType &&
+    r.year === record.year
+  );
+
+  if (exists) {
+    showAlert('This record already exists!');
+    return;
+  }
+
+  // Save the new record
+  records.push(record);
+  saveRecords(records);
+
+  // Clear the mean input field after saving
+  el.mean().value = ''; 
+
+  // Show success alert
+  showAlert('Record saved!');
+
+  // Update dashboard stats after saving the record
+  updateDashboardStats();
+
+  // Re-render the records and averages
+  renderAll();
+};
 
   // Update Dashboard Stats
   const updateDashboardStats = () => {
@@ -209,6 +214,61 @@
       tbody.appendChild(row);
     });
   };
+// Update chart with new data
+const updateChart = () => {
+  const ctx = document.getElementById('avgChart').getContext('2d');
+  const data = loadRecords(); // Load records from localStorage
+
+  const subjects = data.map(record => record.subject);
+  const avgScores = data.map(record => record.mean);
+  
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: subjects,
+      datasets: [{
+        label: 'Average Scores',
+        data: avgScores,
+        backgroundColor: '#2563eb',
+        borderColor: '#2563eb',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+};
+// Toggle chart visibility
+const toggleChart = () => {
+  const chartContainer = document.getElementById('chartContainer');
+  const chartToggleButton = document.getElementById('chartToggle');
+  if (chartContainer.style.display === 'none') {
+    chartContainer.style.display = 'block';
+    chartToggleButton.textContent = 'Hide Chart';
+    updateChart();  // Update chart with new data
+  } else {
+    chartContainer.style.display = 'none';
+    chartToggleButton.textContent = 'Show Chart';
+  }
+};
+// Download data as PDF
+const downloadPDF = () => {
+  const doc = new jsPDF();
+  doc.text('Average Scores Report', 14, 16);
+  
+  const table = document.getElementById('averageScoresTable');
+  doc.autoTable({ html: table });
+  doc.save('average_scores_report.pdf');
+};
+// Export data to Excel
+const exportToExcel = () => {
+  const table = document.getElementById('averageScoresTable');
+  const wb = XLSX.utils.table_to_book(table);
+  XLSX.writeFile(wb, 'average_scores.xlsx');
+};
 
   // Initialize app
   document.addEventListener('DOMContentLoaded', () => {
