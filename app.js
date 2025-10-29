@@ -1,9 +1,8 @@
 (function () {
   // Check if service workers are supported in the browser
   if ('serviceWorker' in navigator) {
-    // Register the service worker when the window is fully loaded
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')  // Specify the path to your service-worker.js
+      navigator.serviceWorker.register('/service-worker.js')
         .then((registration) => {
           console.log('Service Worker registered with scope:', registration.scope);
         })
@@ -25,7 +24,7 @@
   const examEl = document.getElementById('examType');
   const yearEl = document.getElementById('year');
   const meanEl = document.getElementById('meanScore');
-
+  
   const recordsTable = document.getElementById('recordsTable');
   const recordsTbody = recordsTable.querySelector('tbody');
   const summaryTable = document.getElementById('summaryTable');
@@ -33,8 +32,10 @@
   const insightBox = document.getElementById('insightBox');
   const averageScoresTable = document.getElementById('averageScoresTable');
   const averageScoresTbody = averageScoresTable.querySelector('tbody');
-
+  
   const importFileInput = document.getElementById('importFile');
+  const exportButton = document.getElementById('exportButton');
+  const clearButton = document.getElementById('clearButton');
 
   // small toast notification
   function showSmartAlert(message) {
@@ -62,7 +63,7 @@
     setTimeout(() => { box.style.opacity = '0'; }, 2600);
   }
 
-  // load records
+  // Load and save records
   function loadRecords() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -71,11 +72,12 @@
       return [];
     }
   }
+  
   function saveRecords(records) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
   }
 
-  // rubric with exact spellings
+  // Rubric logic
   function rubric(score) {
     if (score >= 75) return { text: 'Exceeding Expectations', code: 'EE', color: '#16a34a', emoji: '🏆' };
     if (score >= 41) return { text: 'Meeting Expectations', code: 'ME', color: '#2563eb', emoji: '✅' };
@@ -87,7 +89,7 @@
   function safeNum(v) { const n = Number(v); return isNaN(n) ? 0 : n; }
   function average(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
 
-  // render records table
+  // Render Records
   function renderRecords() {
     const records = loadRecords();
     records.sort((a,b)=>{
@@ -119,7 +121,7 @@
     });
   }
 
-  // render average scores table for Averages & Insights page
+  // Render Average Scores Table
   function renderAverageScores() {
     const records = loadRecords();
     const groups = {}; // key -> {grade,stream,subject,term,arr}
@@ -153,7 +155,7 @@
     });
   }
 
-  // save record triggered from Save button in data-entry.html
+  // Save Record
   window.saveRecord = function saveRecord() {
     const teacher = teacherEl.value.trim();
     const subject = subjectEl.value;
@@ -194,7 +196,19 @@
     renderAverageScores();
   };
 
-  // import backup JSON
+  // Export Data
+  window.exportData = function exportData() {
+    const records = loadRecords();
+    if (!records.length) { alert('No data to export.'); return; }
+    const blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `SmartScores_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    showSmartAlert('💾 Data exported successfully!');
+  };
+
+  // Import Data
   window.importData = function importData(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
@@ -205,16 +219,26 @@
         if (!Array.isArray(imported)) throw new Error('Invalid format');
         if (confirm('Import will replace current records. Continue?')) {
           saveRecords(imported);
-          showSmartAlert('📥 SmartScores says: Data imported successfully!');
+          showSmartAlert('📥 Data imported successfully!');
           renderRecords();
           renderAverageScores();
         }
       } catch (err) {
-        alert('Invalid file. Please import a JSON backup that was exported from SmartScores.');
+        alert('Invalid file. Please import a valid JSON backup.');
       }
     };
     reader.readAsText(file);
     event.target.value = ''; // reset input for re-selection
+  };
+
+  // Clear All Data
+  window.clearAllData = function clearAllData() {
+    if (confirm('⚠️ SmartScores says: This will delete ALL records. Continue?')) {
+      localStorage.removeItem(STORAGE_KEY);
+      showSmartAlert('🧹 All data cleared!');
+      renderRecords();
+      renderAverageScores();
+    }
   };
 
   // PDF download on Averages & Insights page
@@ -232,7 +256,6 @@
     </div>`;
 
     const averageClone = averageScoresTable.cloneNode(true);
-
     report.innerHTML = logoHtml + '<h3 style="color:#800000;margin-bottom:6px;">Averages Summary</h3>';
     report.appendChild(averageClone);
 
@@ -248,10 +271,10 @@
 
     pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
     pdf.save('SmartScores_Averages_Insights.pdf');
-    showSmartAlert('📄 SmartScores says: PDF downloaded successfully!');
+    showSmartAlert('📄 PDF downloaded successfully!');
   };
 
-  // initial render at startup
+  // Initialize
   function init() {
     renderRecords();
     renderAverageScores();
