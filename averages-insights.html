@@ -3,38 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Summary & Insights - SmartScores v2.0</title>
+  <title>SmartScores v2.0 - Averages and Insights</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" href="favicon.png" />
   <meta name="theme-color" content="#2563eb" />
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header>
     <img src="logo.png" alt="SmartScores Logo" />
-    <h1>SmartScores v2.0</h1>
+    <h1>SmartScores v2.0 - Averages and Insights</h1>
   </header>
 
   <nav>
+    <a href="index.html">🏠 Dashboard</a>
     <a href="data-entry.html">📋 Data Entry</a>
     <a href="recorded-scores.html">📊 Recorded Scores</a>
-    <a href="summary-insights.html">📈 Summary & Insights</a>
   </nav>
 
   <main>
     <div class="card">
-      <h2 style="color: var(--blue);">📈 Average Score Summary</h2>
-      <table id="summaryTable">
+      <h2 style="color: var(--blue);">📊 Averages of Recorded Scores</h2>
+      <table id="averagesTable">
         <thead>
           <tr>
-            <th>Grade</th>
             <th>Subject</th>
+            <th>Grade</th>
             <th>Stream</th>
+            <th>Term</th>
+            <th>Year</th>
             <th>Average</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
+    </div>
+
+    <div class="card">
+      <h2 style="color: var(--maroon);">🧠 AI Insights</h2>
       <div id="insightBox" class="insight-box"></div>
     </div>
   </main>
