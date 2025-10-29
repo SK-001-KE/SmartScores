@@ -18,6 +18,25 @@
   </style>
 </head>
 <body>
+  <div style="position:fixed;top:10px;right:10px;z-index:1000;">
+    <button onclick="toggleDarkMode()" style="background:var(--blue);color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;">Dark Mode</button>
+  </div>
+
+  <header>
+    <h1>
+      <img src="icon-192x192.png" alt="SmartScores" style="height:40px;vertical-align:middle;margin-right:10px;border-radius:8px;">
+      SmartScores
+    </h1>
+    <p>Set targets. Track performance. Improve. Easy.</p>
+  </header>
+
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="data-entry.html">Data Entry</a>
+    <a href="recorded-scores.html">Recorded Scores</a>
+    <a href="averages-insights.html" class="active">Averages and Insights</a>
+    <a href="set-targets.html">Set Targets</a>
+  </nav>
   <!-- Header/nav -->
   <div class="content">
     <h2>Averages & Smart Insights</h2>
