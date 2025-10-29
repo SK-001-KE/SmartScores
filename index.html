@@ -1,45 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores v2.0 - Dashboard</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.png" />
-  <script src="app.js" defer></script>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f9f9f9; margin: 0; padding: 0; }
-    header { background-color: #2563eb; padding: 15px; color: white; text-align: center; }
-    nav { text-align: center; padding: 10px; background: #333; }
-    nav a { color: white; text-decoration: none; margin: 0 20px; font-weight: bold; }
-    nav a:hover { text-decoration: underline; }
-    .content { text-align: center; margin: 20px; }
-    footer { text-align: center; background: #333; padding: 10px; color: white; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartScores</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Navigation -->
+    <div class="nav">
+        <button id="dashboardBtn" onclick="window.location.href='dashboard.html'">Dashboard</button>
+        <button id="dataEntryBtn" onclick="window.location.href='data-entry.html'">Data Entry</button>
+        <button id="recordedScoresBtn" onclick="window.location.href='recorded-scores.html'">Recorded Scores</button>
+        <button id="averagesInsightsBtn" onclick="window.location.href='averages-insights.html'">Averages & Insights</button>
+    </div>
 
-  <header>
-    <h1>Welcome to SmartScores v2.0</h1>
-    <p>Your teacher mean score tracker</p>
-  </header>
+    <!-- Content -->
+    <div id="content">
+        <h1>Welcome to SmartScores</h1>
+        <p>Your platform for tracking student scores and insights.</p>
 
-  <nav>
-    <a href="index.html">🏠 Dashboard</a>
-    <a href="data-entry.html">📝 Data Entry</a>
-    <a href="recorded-scores.html">📊 Recorded Scores</a>
-    <a href="averages-insights.html">📈 Averages & Insights</a>
-  </nav>
+        <!-- Data Entry Form -->
+        <form id="data-entry-form">
+            <label for="teacherName">Teacher Name:</label><input type="text" id="teacherName">
+            <label for="subject">Subject:</label><input type="text" id="subject">
+            <label for="grade">Grade:</label><input type="text" id="grade">
+            <label for="stream">Stream:</label><input type="text" id="stream">
+            <label for="term">Term:</label><input type="text" id="term">
+            <label for="examType">Exam Type:</label><input type="text" id="examType">
+            <label for="year">Year:</label><input type="text" id="year">
+            <label for="meanScore">Mean Score:</label><input type="number" id="meanScore">
+            <button type="button" onclick="saveRecord()">Save Record</button>
+        </form>
+    </div>
 
-  <div class="content">
-    <h2>Welcome to SmartScores</h2>
-    <p>This app helps you manage and track the mean scores for students.</p>
-    <p>You can enter scores, view recorded data, generate reports, and analyze insights!</p>
-  </div>
+    <!-- File Import -->
+    <input type="file" id="importFile" onchange="importData(event)" />
+    
+    <!-- Averages and Insights page -->
+    <div id="averages-container">
+        <h2>Averages & Insights</h2>
+        <table id="averageScoresTable">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Grade</th>
+                    <th>Stream</th>
+                    <th>Term</th>
+                    <th>Year</th>
+                    <th>Average Score</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
 
-  <footer>
-    SmartScores v2.0 © Kariuki 2025
-  </footer>
+        <button onclick="downloadPDF()">Download PDF</button>
+    </div>
 
+    <script src="app.js"></script>
 </body>
 </html>
