@@ -1,72 +1,222 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.ico" />
-  <link rel="apple-touch-icon" href="icon-192x192.png" />
-  <script src="app.js" defer></script>
-  <style>
-    :root { --maroon: #800000; --blue: #2563eb; --white: #fff; --light: #f9f9f9; --dark: #333; --bg: var(--light); --text: var(--dark); }
-    [data-theme="dark"] { --bg: #1a1a1a; --text: #fff; --maroon: #a40000; --blue: #4f94ff; }
-    body { margin:0; font-family:Arial; background:var(--bg); color:var(--text); transition:.3s; }
-    header { background:var(--blue); color:white; padding:15px; text-align:center; }
-    nav { background:var(--maroon); padding:12px; text-align:center; }
-    nav a { color:white; margin:0 10px; padding:8px 16px; border-radius:6px; text-decoration:none; font-weight:bold; }
-    nav a:hover, nav a.active { background:var(--blue); }
-    .content { max-width:1000px; margin:30px auto; padding:0 15px; }
-    .card { background:var(--white); padding:20px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.1); margin:15px 0; }
-    .stats { display:flex; flex-wrap:wrap; gap:15px; justify-content:center; }
-    .stat-card { background:var(--blue); color:white; padding:15px; border-radius:10px; min-width:120px; text-align:center; flex:1; max-width:180px; }
-    .stat-card.warning { background:#dc2626; }
-    .stat-card.success { background:#16a34a; }
-    .stat-card h3 { margin:0; font-size:1.8em; }
-    .backup-reminder { background:#fef3c7; color:#92400e; padding:12px; border-radius:8px; margin:15px 0; font-weight:bold; display:none; }
-    footer { background:var(--dark); color:white; text-align:center; padding:12px; margin-top:50px; font-size:.9em; }
-    @media (max-width:768px) { .stats { flex-direction:column; } }
-  </style>
-</head>
-<body>
-  <div style="position:fixed;top:10px;right:10px;z-index:1000;">
-    <button onclick="toggleDarkMode()" style="background:var(--blue);color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;">Dark Mode</button>
-  </div>
+(() => {
+  const STORAGE_KEY = 'smartScores';
+  
+  // DOM Elements (lazy-loaded)
+  const el = {
+    teacher: () => document.getElementById('teacherName'),
+    subject: () => document.getElementById('subject'),
+    grade: () => document.getElementById('grade'),
+    stream: () => document.getElementById('stream'),
+    term: () => document.getElementById('term'),
+    examType: () => document.getElementById('examType'),
+    year: () => document.getElementById('year'),
+    mean: () => document.getElementById('meanScore'),
+    recordsTbody: () => document.querySelector('#recordsTable tbody'),
+    averageTbody: () => document.querySelector('#averageScoresTable tbody'),
+    totalRecords: () => document.getElementById('totalRecords'),
+    avgScore: () => document.getElementById('avgScore'),
+    topSubject: () => document.getElementById('topSubject'),
+    worstSubject: () => document.getElementById('worstSubject'),
+    lastEntry: () => document.getElementById('lastEntry')
+  };
 
-  <header>
-    <h1>
-      <img src="icon-192x192.png" alt="SmartScores" style="height:40px;vertical-align:middle;margin-right:10px;border-radius:8px;">
-      SmartScores
-    </h1>
-    <p>Set targets. Track performance. Improve. Easy.</p>
-  </header>
+  const showAlert = (msg) => alert(msg);
 
-  <nav>
-    <a href="index.html" class="active">Dashboard</a>
-    <a href="data-entry.html">Data Entry</a>
-    <a href="recorded-scores.html">Recorded Scores</a>
-    <a href="averages-insights.html">Averages & Insights</a>
-    <a href="set-targets.html">Set Targets</a>
-  </nav>
+  const loadRecords = () => {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  };
 
-  <div class="content">
-    <div class="card">
-      <h2>Welcome to SmartScores</h2>
-      <p>Track teacher performance with targets, insights, and exports.</p>
-    </div>
+  const saveRecords = (records) => localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
 
-    <div class="stats">
-      <div class="stat-card" id="topSubjectCard"><h3 id="topSubject">-</h3><p>Top Subject</p></div>
-      <div class="stat-card warning" id="worstSubjectCard"><h3 id="worstSubject">-</h3><p>Worst Subject</p></div>
-      <div class="stat-card" id="totalTeachersCard"><h3 id="totalTeachers">0</h3><p>Teachers</p></div>
-      <div class="stat-card success" id="lastEntryCard"><h3 id="lastEntry">Never</h3><p>Last Entry</p></div>
-    </div>
+  // Rubric for mean scores
+  const rubric = (score) => {
+    if (score >= 75) return { text: 'Exceeding', code: 'EE', color: '#16a34a', emoji: '🏆' };
+    if (score >= 41) return { text: 'Meeting', code: 'ME', color: '#2563eb', emoji: '✅' };
+    if (score >= 21) return { text: 'Approaching', code: 'AE', color: '#f59e0b', emoji: '⚠️' };
+    return { text: 'Below', code: 'BE', color: '#ef4444', emoji: '❌' };
+  };
 
-    <div id="backupReminder" class="backup-reminder">
-      Backup overdue! <a href="#" onclick="exportBackup();this.parentElement.style.display='none';return false;" style="color:#92400e;text-decoration:underline;">Backup now</a>
-    </div>
-  </div>
+  // Save a new record
+  window.saveRecord = () => {
+    const record = {
+      teacher: el.teacher()?.value.trim(),
+      subject: el.subject()?.value,
+      grade: el.grade()?.value,
+      stream: el.stream()?.value,
+      term: el.term()?.value,
+      examType: el.examType()?.value,
+      year: el.year()?.value,
+      mean: Number(el.mean()?.value)
+    };
 
-  <footer>SmartScores v2.9.5 © Kariuki 2025</footer>
-</body>
-</html>
+    // Validate input
+    if (!record.teacher || !record.subject || !record.grade || !record.stream || 
+        !record.term || !record.examType || !record.year || Number.isNaN(record.mean)) {
+      showAlert('Please fill all fields.');
+      return;
+    }
+
+    // Validate the mean score and year
+    if (record.mean < 0 || record.mean > 100) {
+      showAlert('Mean score must be between 0 and 100.');
+      return;
+    }
+    if (record.year < 2000 || record.year > 2100) {
+      showAlert('Year must be between 2000 and 2100.');
+      return;
+    }
+
+    // Prevent duplicate records
+    const records = loadRecords();
+    const exists = records.some(r =>
+      r.teacher === record.teacher &&
+      r.subject === record.subject &&
+      r.grade === record.grade &&
+      r.stream === record.stream &&
+      r.term === record.term &&
+      r.examType === record.examType &&
+      r.year === record.year
+    );
+
+    if (exists) {
+      showAlert('This record already exists!');
+      return;
+    }
+
+    // Save the new record
+    records.push(record);
+    saveRecords(records);
+    el.mean().value = ''; // Clear the mean input field
+    showAlert('Record saved!');
+
+    // Update dashboard stats after saving the record
+    updateDashboardStats();
+
+    // Re-render the records and averages
+    renderAll();
+  };
+
+  // Update Dashboard Stats
+  const updateDashboardStats = () => {
+    const records = loadRecords();
+    
+    // Total Teachers
+    if (el.totalRecords()) el.totalRecords().textContent = records.length;
+
+    // Calculate the overall average
+    const overallAvg = records.length > 0
+      ? (records.reduce((a, r) => a + r.mean, 0) / records.length).toFixed(1)
+      : 0;
+    if (el.avgScore()) el.avgScore().textContent = overallAvg + '%';
+
+    // Top and Worst Subjects
+    let topSubject = '-', worstSubject = '-', lastEntry = 'Never';
+    let topSubjectAvg = 0, worstSubjectAvg = Infinity;
+    
+    const subjectStats = {};
+    records.forEach(r => {
+      if (!subjectStats[r.subject]) subjectStats[r.subject] = { sum: 0, count: 0 };
+      subjectStats[r.subject].sum += r.mean;
+      subjectStats[r.subject].count++;
+    });
+
+    for (const [subject, stats] of Object.entries(subjectStats)) {
+      const avg = stats.sum / stats.count;
+      if (avg > topSubjectAvg) {
+        topSubject = subject;
+        topSubjectAvg = avg;
+      }
+      if (avg < worstSubjectAvg) {
+        worstSubject = subject;
+        worstSubjectAvg = avg;
+      }
+    }
+
+    if (el.topSubject()) el.topSubject().textContent = topSubject;
+    if (el.worstSubject()) el.worstSubject().textContent = worstSubject;
+
+    // Last entry (most recent)
+    if (records.length > 0) {
+      const lastRecord = records[records.length - 1];
+      lastEntry = `${lastRecord.subject} (${lastRecord.term} - ${lastRecord.year})`;
+    }
+
+    if (el.lastEntry()) el.lastEntry().textContent = lastEntry;
+  };
+
+  // Render all records and averages
+  const renderAll = () => {
+    renderRecords();
+    renderAverageScores();
+    updateDashboardStats(); // Ensure dashboard is updated on load or after changes
+  };
+
+  // Render Records Table
+  const renderRecords = () => {
+    const tbody = el.recordsTbody();
+    if (!tbody) return;
+    const records = loadRecords();
+    tbody.innerHTML = '';
+    records.forEach((r, i) => {
+      const rub = rubric(r.mean);
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${r.teacher}</td>
+        <td>${r.subject}</td>
+        <td>${r.grade}</td>
+        <td>${r.stream}</td>
+        <td>${r.term}</td>
+        <td>${r.examType}</td>
+        <td>${r.year}</td>
+        <td>${r.mean.toFixed(1)}%</td>
+        <td><span style="background:${rub.color};color:#fff;padding:4px 8px;border-radius:6px;">
+          ${rub.emoji} ${rub.text}
+        </span></td>
+      `;
+      tbody.appendChild(row);
+    });
+  };
+
+  // Render Average Scores Table
+  const renderAverageScores = () => {
+    const tbody = el.averageTbody();
+    if (!tbody) return;
+    const records = loadRecords();
+    const groups = {};
+    records.forEach(r => {
+      const key = `${r.subject}||${r.grade}||${r.stream}||${r.term}||${r.year}`;
+      if (!groups[key]) groups[key] = { ...r, scores: [] };
+      groups[key].scores.push(r.mean);
+    });
+    tbody.innerHTML = '';
+    Object.values(groups).forEach(g => {
+      const avg = g.scores.reduce((a, s) => a + s, 0) / g.scores.length;
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${g.subject}</td>
+        <td>${g.grade}</td>
+        <td>${g.stream}</td>
+        <td>${g.term}</td>
+        <td>${g.year}</td>
+        <td>${avg.toFixed(1)}%</td>
+      `;
+      tbody.appendChild(row);
+    });
+  };
+
+  // Initialize app
+  document.addEventListener('DOMContentLoaded', () => {
+    renderAll(); // Render records and stats on page load
+
+    // Register service worker for offline capabilities
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js').catch(err => console.error('Service Worker registration failed:', err));
+    }
+  });
+})();
