@@ -1,30 +1,43 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores - Set Targets</title>
+  <title>SmartScores v2.8 - Set Targets</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.ico" />
+  <link rel="icon" href="favicon.png" />
   <script src="app.js" defer></script>
   <style>
-    :root { --maroon: #800000; --blue: #2563eb; --white: #fff; --light: #f9f9f9; --dark: #333; --bg: var(--light); --text: var(--dark); }
-    [data-theme="dark"] { --bg: #1a1a1a; --text: #fff; --maroon: #a40000; --blue: #4f94ff; }
-    body { margin:0; font-family:Arial; background:var(--bg); color:var(--text); transition:.3s; }
-    header { background:var(--blue); color:white; padding:15px; text-align:center; }
-    nav { background:var(--maroon); padding:12px; text-align:center; }
-    nav a { color:white; margin:0 10px; padding:8px 16px; border-radius:6px; text-decoration:none; font-weight:bold; }
-    nav a:hover, nav a.active { background:var(--blue); }
-    .content { max-width:1000px; margin:30px auto; padding:0 15px; }
-    .card { background:var(--white); padding:20px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.1); margin:15px 0; }
-    .stats { display:flex; flex-wrap:wrap; gap:15px; justify-content:center; }
-    .stat-card { background:var(--blue); color:white; padding:15px; border-radius:10px; min-width:120px; text-align:center; flex:1; max-width:180px; }
-    .stat-card.warning { background:#dc2626; }
-    .stat-card.success { background:#16a34a; }
-    .stat-card h3 { margin:0; font-size:1.8em; }
-    .backup-reminder { background:#fef3c7; color:#92400e; padding:12px; border-radius:8px; margin:15px 0; font-weight:bold; display:none; }
-    footer { background:var(--dark); color:white; text-align:center; padding:12px; margin-top:50px; font-size:.9em; }
-    @media (max-width:768px) { .stats { flex-direction:column; } }
+    :root {
+      --maroon: #800000; --blue: #2563eb; --white: #ffffff;
+      --light-gray: #f9f9f9; --dark-gray: #333;
+      --bg-primary: var(--light-gray); --bg-secondary: var(--white);
+      --text-primary: var(--dark-gray);
+    }
+    [data-theme="dark"] {
+      --bg-primary: #1a1a1a; --bg-secondary: #2a2a2a;
+      --text-primary: #ffffff; --maroon: #a40000; --blue: #4f94ff;
+    }
+    body { font-family: Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); margin: 0; padding: 0; transition: 0.3s; }
+    header { background: var(--blue); color: white; padding: 15px; text-align: center; }
+    nav { background: var(--maroon); padding: 12px 0; text-align: center; }
+    nav a { color: white; text-decoration: none; font-weight: bold; margin: 0 15px; padding: 8px 16px; border-radius: 6px; }
+    nav a:hover, nav a.active { background: var(--blue); }
+    .content { max-width: 800px; margin: 30px auto; padding: 0 15px; }
+    .form-group { margin: 15px 0; text-align: left; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    select, input { width: 100%; padding: 10px; border: 2px solid #ccc; border-radius: 6px; font-size: 16px; }
+    select:focus, input:focus { border-color: var(--blue); outline: none; }
+    .btn { background: var(--blue); color: white; border: none; padding: 12px 20px; margin: 10px 5px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .btn:hover { background: #1d4ed8; }
+    .btn-danger { background: #dc2626; }
+    .btn-danger:hover { background: #b91c1c; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; background: var(--bg-secondary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
+    th { background: var(--maroon); color: white; padding: 12px; }
+    td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+    tr:hover { background: #f1f5f9; }
+    footer { background: var(--dark-gray); color: white; text-align: center; padding: 12px; margin-top: 50px; font-size: 0.9em; }
+    @media (max-width: 768px) { .btn { width: 100%; margin: 8px 0; } }
   </style>
 </head>
 <body>
@@ -33,11 +46,8 @@
   </div>
 
   <header>
-    <h1>
-      <img src="icon-192x192.png" alt="SmartScores" style="height:40px;vertical-align:middle;margin-right:10px;border-radius:8px;">
-      SmartScores
-    </h1>
-    <p>Set targets. Track performance. Improve. Easy.</p>
+    <h1>SmartScores v2.8</h1>
+    <p>Set Exam Targets</p>
   </header>
 
   <nav>
@@ -45,38 +55,64 @@
     <a href="data-entry.html">Data Entry</a>
     <a href="recorded-scores.html">Recorded Scores</a>
     <a href="averages-insights.html">Averages & Insights</a>
-    <a href="set-targets.html" class="active">Dashboard</a>
+    <a href="set-targets.html" class="active">Set Targets</a>
   </nav>
-</head>
-<body>
-  <!-- Header/nav -->
+
   <div class="content">
     <h2>Set Target Mean Score</h2>
+
     <div class="form-group">
-      <label>Subject</label><select id="targetSubject"></select>
+      <label>Subject</label>
+      <select id="targetSubject"></select>
     </div>
     <div class="form-group">
-      <label>Grade</label><select id="targetGrade"></select>
+      <label>Grade</label>
+      <select id="targetGrade"></select>
     </div>
     <div class="form-group">
-      <label>Stream</label><select id="targetStream"></select>
+      <label>Stream</label>
+      <select id="targetStream"></select>
     </div>
     <div class="form-group">
-      <label>Term</label><select id="targetTerm"><option>Term 1</option><option>Term 2</option><option>Term 3</option></select>
+      <label>Term</label>
+      <select id="targetTerm">
+        <option>Term 1</option>
+        <option>Term 2</option>
+        <option>Term 3</option>
+      </select>
     </div>
     <div class="form-group">
-      <label>Exam Type</label><select id="targetExamType"><option>Mid-Term</option><option>End-Term</option><option>CAT</option></select>
+      <label>Exam Type</label>
+      <select id="targetExamType">
+        <option>Mid-Term</option>
+        <option>End-Term</option>
+        <option>CAT</option>
+      </select>
     </div>
     <div class="form-group">
-      <label>Target Mean Score (%)</label><input type="number" id="targetScore" min="0" max="100" />
+      <label>Target Mean Score (%)</label>
+      <input type="number" id="targetScore" min="0" max="100" placeholder="e.g. 75" />
     </div>
+
     <button onclick="saveTarget()" class="btn">Save Target</button>
 
     <h2 style="margin-top:40px;">Current Targets</h2>
     <table id="targetsTable">
-      <thead><tr><th>Subject</th><th>Grade</th><th>Stream</th><th>Term</th><th>Exam</th><th>Target</th><th>Action</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Grade</th>
+          <th>Stream</th>
+          <th>Term</th>
+          <th>Exam</th>
+          <th>Target</th>
+          <th>Action</th>
+        </tr>
+      </thead>
       <tbody></tbody>
     </table>
   </div>
+
+  <footer>SmartScores v2.8 © Kariuki 2025</footer>
 </body>
 </html>
