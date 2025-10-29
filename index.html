@@ -8,11 +8,18 @@
   <link rel="icon" type="image/png" href="favicon.png" />
   <meta name="theme-color" content="#2563eb" />
   <style>
+    :root {
+      --blue: #2563eb;
+      --maroon: #800000;
+      --white: #ffffff;
+      --bg-light: #f8fafc;
+    }
+
     body {
       font-family: "Segoe UI", Arial, sans-serif;
       margin: 0;
       padding: 0;
-      background: #f8fafc;
+      background: var(--bg-light);
       color: #222;
       display: flex;
       flex-direction: column;
@@ -20,7 +27,7 @@
     }
 
     header {
-      background: linear-gradient(90deg, #2563eb, #800000);
+      background: linear-gradient(90deg, var(--blue), var(--maroon));
       color: white;
       text-align: center;
       padding: 15px;
@@ -32,6 +39,12 @@
       margin-right: 10px;
     }
 
+    header h1 {
+      display: inline;
+      font-size: 1.6rem;
+      vertical-align: middle;
+    }
+
     nav {
       background: #e2e8f0;
       padding: 10px;
@@ -39,15 +52,14 @@
     }
 
     nav a {
-      margin: 0 15px;
+      margin: 0 10px;
       text-decoration: none;
-      color: #2563eb;
+      color: var(--blue);
       font-weight: 600;
     }
 
     nav a:hover {
-      background-color: #2563eb;
-      color: white;
+      color: var(--maroon);
     }
 
     main {
@@ -55,6 +67,56 @@
       padding: 15px;
       max-width: 900px;
       margin: 0 auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 18px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: var(--maroon);
+    }
+
+    .dashboard-controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .dashboard-controls button {
+      padding: 10px 18px;
+      font-weight: 600;
     }
 
     footer {
@@ -65,19 +127,14 @@
       color: #555;
     }
 
-    /* Mobile responsive */
+    /* Responsive Design */
     @media (max-width: 600px) {
       header h1 {
         font-size: 1.3rem;
       }
 
-      nav {
-        display: block;
-      }
-
-      nav a {
-        display: block;
-        margin-bottom: 10px;
+      .card {
+        padding: 10px;
       }
     }
   </style>
@@ -90,14 +147,96 @@
 
   <nav>
     <a href="index.html">🏠 Dashboard</a>
-    <a href="data-entry.html">📋 Record Scores</a>
-    <a href="recorded-scores.html">📊 Recorded Scores</a>
     <a href="about.html">ℹ️ About</a>
   </nav>
 
   <main>
-    <h2>Welcome to SmartScores v2.0</h2>
-    <p>Here you can manage teacher mean scores and track performance over time.</p>
+    <div class="card">
+      <h2>📋 Record Teacher Mean Scores</h2>
+
+      <!-- Form Fields -->
+      <label>Teacher's Name</label>
+      <input type="text" id="teacherName" placeholder="Enter teacher name" />
+
+      <label>Subject</label>
+      <select id="subject">
+        <option value="">--Select Subject--</option>
+        <option>Mathematics</option>
+        <option>English</option>
+        <option>Kiswahili</option>
+        <option>Science</option>
+        <option>Agriculture and Nutrition</option>
+        <option>Creative Arts</option>
+        <option>Social Studies</option>
+        <option>CRE</option>
+        <option>Pre-Technical Studies</option>
+      </select>
+
+      <label>Grade</label>
+      <select id="grade">
+        <option value="">--Select Grade--</option>
+        <option>4</option><option>5</option><option>6</option>
+        <option>7</option><option>8</option><option>9</option>
+      </select>
+
+      <label>Stream</label>
+      <select id="stream">
+        <option value="">--Select Stream--</option>
+        <option>Faith</option><option>Glory</option><option>Joy</option>
+        <option>Love</option><option>Peace</option><option>Unity</option>
+      </select>
+
+      <label>Term</label>
+      <select id="term">
+        <option value="">--Select Term--</option>
+        <option>Term 1</option>
+        <option>Term 2</option>
+        <option>Term 3</option>
+      </select>
+
+      <label>Exam Type</label>
+      <select id="examType">
+        <option value="">--Select Exam Type--</option>
+        <option>Opener Exam</option>
+        <option>Mid Term Exam</option>
+        <option>End Term Exam</option>
+      </select>
+
+      <label>Current Year</label>
+      <input type="number" id="year" placeholder="Enter Year e.g. 2025" />
+
+      <label>Mean Score</label>
+      <input type="number" id="meanScore" placeholder="Enter Mean Score (0-100)" />
+
+      <button onclick="saveRecord()">💾 Save Record</button>
+    </div>
+
+    <!-- Display Recorded Data -->
+    <div class="card">
+      <h2>📊 Recorded Scores</h2>
+      <table id="recordsTable">
+        <thead>
+          <tr>
+            <th>Teacher</th>
+            <th>Subject</th>
+            <th>Grade</th>
+            <th>Stream</th>
+            <th>Term</th>
+            <th>Exam Type</th>
+            <th>Year</th>
+            <th>Mean Score</th>
+          </tr>
+        </thead>
+        <tbody id="recordsTbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="dashboard-controls">
+      <button onclick="downloadPDF()">📄 Download PDF Report</button>
+      <button onclick="exportExcel()">💾 Export Backup (JSON)</button>
+      <button onclick="resetData()">🧹 Reset All Data</button>
+    </div>
   </main>
 
   <footer>
