@@ -69,17 +69,42 @@
       </div>
       <div class="form-group">
         <label>Subject</label>
-        <input type="text" id="subject" required />
+        <select id="subject">
+                <option value="">--Select Subject--</option>
+                <option>Mathematics</option>
+                <option>English</option>
+                <option>Kiswahili</option>
+                <option>Science</option>
+                <option>Agriculture and Nutrition</option>
+                <option>Creative Arts</option>
+                <option>Social Studies</option>
+                <option>CRE</option>
+                <option>Pre-Technical Studies</option>
+              </select>
       </div>
       <div class="form-group">
         <label>Grade</label>
-        <select id="grade" required>
-          <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
-        </select>
+        <select id="grade">
+                <option value="">--Select Grade--</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+                <option>8</option>
+                <option>9</option>
+              </select>
       </div>
       <div class="form-group">
         <label>Stream</label>
-        <input type="text" id="stream" required />
+         <select id="stream">
+                <option value="">--Select Stream--</option>
+                <option>Faith</option>
+                <option>Glory</option>
+                <option>Joy</option>
+                <option>Love</option>
+                <option>Peace</option>
+                <option>Unity</option>
+              </select>
       </div>
       <div class="form-group">
         <label>Term</label>
@@ -89,17 +114,21 @@
       </div>
       <div class="form-group">
         <label>Exam Type</label>
-        <select id="examType" required>
-          <option>Mid-Term</option><option>End-Term</option><option>CAT</option>
+        <select id="examType">
+                <option value="">--Select Exam Type--</option>
+                <option>Opener Exam</option>
+                <option>Mid Term Exam</option>
+                <option>End Term Exam</option>
         </select>
       </div>
       <div class="form-group">
         <label>Year</label>
-        <input type="number" id="year" min="2000" max="2100" required />
+       <input type="number" id="year" placeholder="Enter Year e.g. 2025" />
       </div>
       <div class="form-group">
         <label>Mean Score (%)</label>
-        <input type="number" id="mean" min="0" max="100" step="0.1" required />
+       
+        <input type="number" id="mean" placeholder="Enter Mean Score (0-100)" min="0" max="100" step="0.1" required />
       </div>
       <button type="submit" class="btn">Save Record</button>
     </form>
