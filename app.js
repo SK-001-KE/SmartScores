@@ -153,8 +153,88 @@ const updateDashboardStats = () => {
 
   if (el.lastEntry()) el.lastEntry().textContent = lastEntry;
 };
+// Function to generate insights
+const generateInsights = (records) => {
+  let insights = [];
+
+  if (records.length > 0) {
+    // Overall average score
+    const overallAvg = (records.reduce((a, r) => a + r.mean, 0) / records.length).toFixed(1);
+    insights.push(`The overall average score is ${overallAvg}%`);
+
+    // Top subject by average
+    let topSubject = '', topSubjectAvg = 0;
+    const subjectStats = {};
+    records.forEach(r => {
+      if (!subjectStats[r.subject]) subjectStats[r.subject] = { sum: 0, count: 0 };
+      subjectStats[r.subject].sum += r.mean;
+      subjectStats[r.subject].count++;
+    });
+
+    for (const [subject, stats] of Object.entries(subjectStats)) {
+      const avg = stats.sum / stats.count;
+      if (avg > topSubjectAvg) {
+        topSubject = subject;
+        topSubjectAvg = avg;
+      }
+    }
+
+    insights.push(`The top subject is ${topSubject} with an average score of ${topSubjectAvg.toFixed(1)}%`);
+
+    // Worst performing subject
+    let worstSubject = '', worstSubjectAvg = Infinity;
+    for (const [subject, stats] of Object.entries(subjectStats)) {
+      const avg = stats.sum / stats.count;
+      if (avg < worstSubjectAvg) {
+        worstSubject = subject;
+        worstSubjectAvg = avg;
+      }
+    }
+
+    insights.push(`The worst performing subject is ${worstSubject} with an average score of ${worstSubjectAvg.toFixed(1)}%`);
+
+    // Best performing stream
+    let bestStream = '', bestStreamAvg = 0;
+    const streamStats = {};
+    records.forEach(r => {
+      if (!streamStats[r.stream]) streamStats[r.stream] = { sum: 0, count: 0 };
+      streamStats[r.stream].sum += r.mean;
+      streamStats[r.stream].count++;
+    });
+
+    for (const [stream, stats] of Object.entries(streamStats)) {
+      const avg = stats.sum / stats.count;
+      if (avg > bestStreamAvg) {
+        bestStream = stream;
+        bestStreamAvg = avg;
+      }
+    }
+
+    insights.push(`The best performing stream is ${bestStream} with an average score of ${bestStreamAvg.toFixed(1)}%`);
+  } else {
+    insights.push('No data available to generate insights.');
+  }
+
+  return insights;
+};
+
+// Function to update the insights section
+const updateInsights = () => {
+  const records = loadRecords(); // Load data from localStorage
+  const insights = generateInsights(records); // Generate insights
+
+  // Insert insights into the #insights div
+  const insightsDiv = document.getElementById('insights');
+  insightsDiv.innerHTML = insights.map(insight => `<p>${insight}</p>`).join('');
+};
+
+// Call the function to update insights on page load
+document.addEventListener('DOMContentLoaded', () => {
+  updateInsights();
+});
 
 
+  
   // Render all records and averages
   const renderAll = () => {
     renderRecords();
