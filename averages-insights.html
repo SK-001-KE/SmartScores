@@ -3,48 +3,59 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores v2.0 - Averages and Insights</title>
+  <title>SmartScores v2.0 - Averages & Insights</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <meta name="theme-color" content="#2563eb" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="favicon.png" />
+  <script src="app.js" defer></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9f9f9; margin: 0; padding: 0; }
+    header { background-color: #2563eb; padding: 15px; color: white; text-align: center; }
+    nav { text-align: center; padding: 10px; background: #333; }
+    nav a { color: white; text-decoration: none; margin: 0 20px; font-weight: bold; }
+    nav a:hover { text-decoration: underline; }
+    .content { text-align: center; margin: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 8px 12px; text-align: left; border: 1px solid #ddd; }
+    th { background-color: #2563eb; color: white; }
+    footer { text-align: center; background: #333; padding: 10px; color: white; }
+  </style>
 </head>
 <body>
+
   <header>
-    <img src="logo.png" alt="SmartScores Logo" />
-    <h1>SmartScores v2.0 - Averages and Insights</h1>
+    <h1>SmartScores v2.0 - Averages & Insights</h1>
   </header>
 
   <nav>
-    <a href="data-entry.html">📋 Data Entry</a>
-    <a href="recorded-scores.html">📊 Recorded Scores</a>
     <a href="index.html">🏠 Dashboard</a>
+    <a href="data-entry.html">📝 Data Entry</a>
+    <a href="recorded-scores.html">📊 Recorded Scores</a>
+    <a href="averages-insights.html">📈 Averages & Insights</a>
   </nav>
 
-  <main>
-    <div class="card">
-      <h2 style="color: var(--blue);">📈 Averages and Insights</h2>
-      <table id="averageScoresTable">
-        <thead>
-          <tr>
-            <th>Subject</th>
-            <th>Grade</th>
-            <th>Stream</th>
-            <th>Term</th>
-            <th>Year</th>
-            <th>Average</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <button onclick="downloadPDF()">📄 Download PDF</button>
-    </div>
-  </main>
+  <div class="content">
+    <h2>Averages and Smart Insights</h2>
+
+    <table id="averageScoresTable">
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Grade</th>
+          <th>Stream</th>
+          <th>Term</th>
+          <th>Year</th>
+          <th>Average</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <button onclick="downloadPDF()">📄 Download PDF</button>
+  </div>
 
   <footer>
     SmartScores v2.0 © Kariuki 2025
   </footer>
 
-  <script src="app.js"></script>
 </body>
 </html>
