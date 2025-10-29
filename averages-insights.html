@@ -1,47 +1,86 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-   <link rel="stylesheet" href="style.css" />
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores - Averages & Insights</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.ico" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="app.js" defer></script>
-  <style>
-    /* Same base + chart */
-    #chartContainer { display:none; margin:20px 0; padding:15px; background:var(--white); border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.1); }
-    #avgChart { max-height:200px; width:100% !important; }
-  </style>
-</head>
-<body>
-  <!-- Header/nav -->
-  <div class="content">
-    <h2>Averages & Smart Insights</h2>
-    <div id="insights" style="text-align:left;margin:20px 0;"></div>
-    <button id="chartToggle" class="btn" onclick="toggleChart()" style="display:none;">Show Chart</button>
-    <div id="chartContainer"><canvas id="avgChart"></canvas></div>
+<div class="content">
+  <h2>Averages and Smart Insights</h2>
 
-    <table id="averageScoresTable">
-      <thead>
-        <tr>
-          <th>Subject</th><th>Grade</th><th>Stream</th><th>Term</th><th>Exam</th><th>Average</th><th>Deviation</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <!-- AI INSIGHTS -->
+  <div id="insights" style="text-align:left; margin:20px 0;"></div>
 
-    <div class="btn-group">
-      <button onclick="downloadPDF()" class="btn">Download PDF</button>
-      <button onclick="exportToExcel()" class="btn">Export Excel</button>
-      <button onclick="window.print()" class="btn">Print</button>
-    </div>
+  <table id="averageScoresTable">
+    <thead>
+      <tr>
+        <th>Subject</th>
+        <th>Grade</th>
+        <th>Stream</th>
+        <th>Term</th>
+        <th>Year</th>
+        <th>Average</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Download PDF Button -->
+  <div class="btn-group">
+    <button onclick="downloadPDF()" class="btn">Download PDF</button>
   </div>
+</div>
 
-  <footer>SmartScores v2.9.5 © Kariuki 2025</footer>
-</body>
-</html>
+<style>
+  .content {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+
+  h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  table th, table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  table th {
+    background-color: #f4f4f4;
+  }
+
+  .btn-group {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  .btn {
+    background-color: #2563eb; /* Blue button */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  .btn:hover {
+    background-color: #1d4ed8; /* Darker blue on hover */
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    table th, table td {
+      font-size: 14px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 18px;
+    }
+  }
+</style>
