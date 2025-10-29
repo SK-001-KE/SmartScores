@@ -1,72 +1,61 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores</title>
+  <title>SmartScores v2.0 - Dashboard</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.ico" />
-  <link rel="apple-touch-icon" href="icon-192x192.png" />
+  <link rel="icon" href="favicon.png" />
   <script src="app.js" defer></script>
   <style>
-    :root { --maroon: #800000; --blue: #2563eb; --white: #fff; --light: #f9f9f9; --dark: #333; --bg: var(--light); --text: var(--dark); }
-    [data-theme="dark"] { --bg: #1a1a1a; --text: #fff; --maroon: #a40000; --blue: #4f94ff; }
-    body { margin:0; font-family:Arial; background:var(--bg); color:var(--text); transition:.3s; }
-    header { background:var(--blue); color:white; padding:15px; text-align:center; }
-    nav { background:var(--maroon); padding:12px; text-align:center; }
-    nav a { color:white; margin:0 10px; padding:8px 16px; border-radius:6px; text-decoration:none; font-weight:bold; }
-    nav a:hover, nav a.active { background:var(--blue); }
-    .content { max-width:1000px; margin:30px auto; padding:0 15px; }
-    .card { background:var(--white); padding:20px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.1); margin:15px 0; }
-    .stats { display:flex; flex-wrap:wrap; gap:15px; justify-content:center; }
-    .stat-card { background:var(--blue); color:white; padding:15px; border-radius:10px; min-width:120px; text-align:center; flex:1; max-width:180px; }
-    .stat-card.warning { background:#dc2626; }
-    .stat-card.success { background:#16a34a; }
-    .stat-card h3 { margin:0; font-size:1.8em; }
-    .backup-reminder { background:#fef3c7; color:#92400e; padding:12px; border-radius:8px; margin:15px 0; font-weight:bold; display:none; }
-    footer { background:var(--dark); color:white; text-align:center; padding:12px; margin-top:50px; font-size:.9em; }
-    @media (max-width:768px) { .stats { flex-direction:column; } }
+    body { font-family: Arial, sans-serif; background: #f9f9f9; margin: 0; padding: 0; }
+    header { background-color: #2563eb; padding: 15px; color: white; text-align: center; }
+    nav { text-align: center; padding: 10px; background: #333; }
+    nav a { color: white; text-decoration: none; margin: 0 20px; font-weight: bold; }
+    nav a:hover { text-decoration: underline; }
+    .content { text-align: center; margin: 40px 20px; }
+    .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 15px auto; max-width: 600px; }
+    .stats { display: flex; justify-content: space-around; flex-wrap: wrap; margin-top: 20px; }
+    .stat { background: #2563eb; color: white; padding: 15px; border-radius: 8px; min-width: 120px; margin: 10px; text-align: center; }
+    .stat h3 { margin: 0; font-size: 1.8em; }
+    .stat p { margin: 5px 0 0; font-size: 0.9em; }
+    footer { text-align: center; background: #333; padding: 10px; color: white; margin-top: 40px; }
+    @media (max-width: 768px) { .stats { flex-direction: column; align-items: center; } }
   </style>
 </head>
 <body>
-  <div style="position:fixed;top:10px;right:10px;z-index:1000;">
-    <button onclick="toggleDarkMode()" style="background:var(--blue);color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;">Dark Mode</button>
-  </div>
-
   <header>
-    <h1>
-      <img src="icon-192x192.png" alt="SmartScores" style="height:40px;vertical-align:middle;margin-right:10px;border-radius:8px;">
-      SmartScores
-    </h1>
-    <p>Set targets. Track performance. Improve. Easy.</p>
+    <h1>SmartScores v2.0</h1>
+    <p>Track. Analyze. Improve.</p>
   </header>
-
   <nav>
-    <a href="index.html" class="active">Dashboard</a>
+    <a href="index.html">Dashboard</a>
     <a href="data-entry.html">Data Entry</a>
     <a href="recorded-scores.html">Recorded Scores</a>
     <a href="averages-insights.html">Averages & Insights</a>
-    <a href="set-targets.html">Set Targets</a>
   </nav>
-
   <div class="content">
     <div class="card">
       <h2>Welcome to SmartScores</h2>
-      <p>Track teacher performance with targets, insights, and exports.</p>
+      <p>Enter teacher mean scores, view trends, and generate professional PDF reports.</p>
     </div>
-
     <div class="stats">
-      <div class="stat-card" id="topSubjectCard"><h3 id="topSubject">-</h3><p>Top Subject</p></div>
-      <div class="stat-card warning" id="worstSubjectCard"><h3 id="worstSubject">-</h3><p>Worst Subject</p></div>
-      <div class="stat-card" id="totalTeachersCard"><h3 id="totalTeachers">0</h3><p>Teachers</p></div>
-      <div class="stat-card success" id="lastEntryCard"><h3 id="lastEntry">Never</h3><p>Last Entry</p></div>
-    </div>
-
-    <div id="backupReminder" class="backup-reminder">
-      Backup overdue! <a href="#" onclick="exportBackup();this.parentElement.style.display='none';return false;" style="color:#92400e;text-decoration:underline;">Backup now</a>
+      <div class="stat">
+        <h3 id="totalRecords">0</h3>
+        <p>Total Records</p>
+      </div>
+      <div class="stat">
+        <h3 id="avgScore">0%</h3>
+        <p>Overall Average</p>
+      </div>
+      <div class="stat">
+        <h3 id="topSubject">-</h3>
+        <p>Top Subject</p>
+      </div>
     </div>
   </div>
-
-  <footer>SmartScores v2.9.5 © Kariuki 2025</footer>
+  <footer>
+    SmartScores v2.0 © Kariuki 2025
+  </footer>
 </body>
 </html>
