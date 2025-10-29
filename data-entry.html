@@ -1,70 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartScores - Data Entry</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartScores v2.0 - Data Entry</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#2563eb" />
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f8fafc;
+      color: #222;
+    }
+    header {
+      background: linear-gradient(90deg, #2563eb, #800000);
+      color: white;
+      text-align: center;
+      padding: 15px;
+    }
+    nav {
+      background: #e2e8f0;
+      padding: 10px;
+      text-align: center;
+    }
+    nav a {
+      margin: 0 15px;
+      text-decoration: none;
+      color: #2563eb;
+      font-weight: 600;
+    }
+    nav a:hover {
+      color: #800000;
+    }
+    main {
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 18px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+    button:hover {
+      background: #800000;
+    }
+    footer {
+      text-align: center;
+      background: #e2e8f0;
+      padding: 10px;
+      font-size: 0.9rem;
+      color: #555;
+    }
+  </style>
 </head>
 <body>
   <header>
-    <h1>SmartScores Data Entry</h1>
-    <nav>
-      <a href="data-entry.html">Data Entry</a>
-      <a href="records.html">Recorded Scores</a>
-      <a href="summary.html">Summary & Insights</a>
-    </nav>
+    <h1>SmartScores v2.0</h1>
   </header>
 
-  <div class="container">
-    <form id="dataEntryForm">
-      <div class="form-group">
-        <label for="teacherName">Teacher Name:</label>
-        <input type="text" id="teacherName" required>
-      </div>
+  <nav>
+    <a href="index.html">🏠 Dashboard</a>
+    <a href="data-entry.html">📋 Data Entry</a>
+    <a href="recorded-scores.html">📊 Recorded Scores</a>
+  </nav>
 
-      <div class="form-group">
-        <label for="subject">Subject:</label>
-        <input type="text" id="subject" required>
-      </div>
+  <main>
+    <div class="card">
+      <h2>📋 Record Teacher Mean Scores</h2>
+      <!-- Form Fields for Data Entry -->
+      <label>Teacher's Name</label>
+      <input type="text" id="teacherName" placeholder="Enter teacher name" />
 
-      <div class="form-group">
-        <label for="grade">Grade:</label>
-        <input type="text" id="grade" required>
-      </div>
+      <label>Subject</label>
+      <select id="subject">
+        <option value="">--Select Subject--</option>
+        <option>Mathematics</option>
+        <option>English</option>
+        <option>Kiswahili</option>
+        <option>Science</option>
+        <option>Agriculture</option>
+        <option>Creative Arts</option>
+        <option>Social Studies</option>
+        <option>CRE</option>
+        <option>Pre-Technical Studies</option>
+      </select>
 
-      <div class="form-group">
-        <label for="stream">Stream:</label>
-        <input type="text" id="stream" required>
-      </div>
+      <label>Grade</label>
+      <select id="grade">
+        <option value="">--Select Grade--</option>
+        <option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option>
+      </select>
 
-      <div class="form-group">
-        <label for="term">Term:</label>
-        <input type="text" id="term" required>
-      </div>
+      <label>Stream</label>
+      <select id="stream">
+        <option value="">--Select Stream--</option>
+        <option>Faith</option><option>Glory</option><option>Joy</option><option>Love</option><option>Peace</option>
+      </select>
 
-      <div class="form-group">
-        <label for="examType">Exam Type:</label>
-        <input type="text" id="examType" required>
-      </div>
+      <label>Term</label>
+      <select id="term">
+        <option value="">--Select Term--</option>
+        <option>Term 1</option>
+        <option>Term 2</option>
+        <option>Term 3</option>
+      </select>
 
-      <div class="form-group">
-        <label for="year">Year:</label>
-        <input type="number" id="year" required>
-      </div>
+      <label>Exam Type</label>
+      <select id="examType">
+        <option value="">--Select Exam Type--</option>
+        <option>Opener Exam</option>
+        <option>Mid Term Exam</option>
+        <option>End Term Exam</option>
+      </select>
 
-      <div class="form-group">
-        <label for="meanScore">Mean Score:</label>
-        <input type="number" id="meanScore" required>
-      </div>
+      <label>Current Year</label>
+      <input type="number" id="year" placeholder="Enter Year e.g. 2025" />
 
-      <button type="button" onclick="saveRecord()">Save Record</button>
-    </form>
-  </div>
+      <label>Mean Score</label>
+      <input type="number" id="meanScore" placeholder="Enter Mean Score (0-100)" />
+
+      <button onclick="saveRecord()">💾 Save Record</button>
+    </div>
+  </main>
 
   <footer>
-    <p>&copy; 2025 SmartScores. All Rights Reserved.</p>
+    SmartScores v2.0 © Kariuki 2025
   </footer>
 
   <script src="app.js"></script>
