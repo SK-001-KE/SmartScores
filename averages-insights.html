@@ -1,202 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores v2.0 - Averages & Insights</title>
+  <title>SmartScores - Averages & Insights</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.png" />
+  <link rel="icon" href="favicon.ico" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="app.js" defer></script>
   <style>
-    /* === THEME COLORS === */
-:root {
-  --maroon: #800000;
-  --blue: #2563eb;
-  --white: #ffffff;
-  --light-gray: #f9f9f9;
-  --dark-gray: #333;
-}
-
-/* === BODY & LAYOUT === */
-body {
-  font-family: Arial, sans-serif;
-  background: var(--light-gray);
-  margin: 0;
-  padding: 0;
-}
-
-/* === HEADER === */
-header {
-  background: var(--blue);
-  color: var(--white);
-  padding: 15px;
-  text-align: center;
-}
-header h1 { margin: 0; font-size: 1.8em; }
-header p { margin: 5px 0 0; font-size: 1em; opacity: 0.9; }
-
-/* === NAVIGATION === */
-nav {
-  background: var(--maroon);
-  padding: 12px 0;
-  text-align: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-nav a {
-  color: var(--white);
-  text-decoration: none;
-  font-weight: bold;
-  margin: 0 15px;
-  padding: 8px 16px;
-  border-radius: 6px;
-  transition: 0.3s;
-  font-size: 0.95em;
-}
-nav a:hover {
-  background: var(--blue);
-  transform: translateY(-1px);
-}
-nav a.active {
-  background: var(--blue);
-  font-weight: bold;
-}
-
-/* === CONTENT === */
-.content {
-  max-width: 1000px;
-  margin: 30px auto;
-  padding: 0 15px;
-  text-align: center;
-}
-
-/* === BUTTONS === */
-button, .btn {
-  background: var(--blue);
-  color: var(--white);
-  border: none;
-  padding: 10px 16px;
-  margin: 8px 5px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 0.9em;
-  transition: 0.2s;
-}
-button:hover, .btn:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
-}
-.btn-danger {
-  background: #dc2626;
-}
-.btn-danger:hover {
-  background: #b91c1c;
-}
-.btn-group {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 20px 0;
-}
-
-/* === TABLES === */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 20px 0;
-  background: var(--white);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  border-radius: 8px;
-  overflow: hidden;
-}
-th {
-  background: var(--mar
-
-oon);
-  color: var(--white);
-  padding: 12px;
-  text-align: left;
-  font-weight: bold;
-}
-td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #eee;
-}
-tr:last-child td { border-bottom: none; }
-tr:hover { background: #f1f5f9; }
-
-/* === FOOTER === */
-footer {
-  background: var(--dark-gray);
-  color: var(--white);
-  text-align: center;
-  padding: 12px;
-  font-size: 0.9em;
-  margin-top: 50px;
-}
-
-/* === MOBILE === */
-@media (max-width: 768px) {
-  nav a { display: block; margin: 8px 15px; }
-  .btn-group { flex-direction: column; }
-  table { font-size: 0.9em; }
-  th, td { padding: 8px; }
-}
-    body { font-family: Arial, sans-serif; background: #f9f9f9; margin: 0; padding: 0; }
-    header { background-color: #2563eb; padding: 15px; color: white; text-align: center; }
-    nav { text-align: center; padding: 10px; background: #333; }
-    nav a { color: white; text-decoration: none; margin: 0 20px; font-weight: bold; }
-    nav a:hover { text-decoration: underline; }
-    .content { text-align: center; margin: 20px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 8px 12px; text-align: left; border: 1px solid #ddd; }
-    th { background-color: #2563eb; color: white; }
-    footer { text-align: center; background: #333; padding: 10px; color: white; }
-    /* Mobile responsiveness */
-    @media (max-width: 768px) {
-      table { width: 100%; }
-    }
+    /* Same base + chart */
+    #chartContainer { display:none; margin:20px 0; padding:15px; background:var(--white); border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.1); }
+    #avgChart { max-height:200px; width:100% !important; }
   </style>
 </head>
 <body>
-
-  <header>
-    <h1>SmartScores v2.0 - Averages & Insights</h1>
-  </header>
-
-  <nav>
-    <a href="index.html">🏠 Dashboard</a>
-    <a href="data-entry.html">📝 Data Entry</a>
-    <a href="recorded-scores.html">📊 Recorded Scores</a>
-    <a href="averages-insights.html">📈 Averages & Insights</a>
-  </nav>
-
+  <!-- Header/nav -->
   <div class="content">
-    <h2>Averages and Smart Insights</h2>
+    <h2>Averages & Smart Insights</h2>
+    <div id="insights" style="text-align:left;margin:20px 0;"></div>
+    <button id="chartToggle" class="btn" onclick="toggleChart()" style="display:none;">Show Chart</button>
+    <div id="chartContainer"><canvas id="avgChart"></canvas></div>
 
     <table id="averageScoresTable">
       <thead>
         <tr>
-          <th>Subject</th>
-          <th>Grade</th>
-          <th>Stream</th>
-          <th>Term</th>
-          <th>Year</th>
-          <th>Average</th>
+          <th>Subject</th><th>Grade</th><th>Stream</th><th>Term</th><th>Exam</th><th>Average</th><th>Deviation</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
 
-    <button onclick="downloadPDF()">📄 Download PDF</button>
+    <div class="btn-group">
+      <button onclick="downloadPDF()" class="btn">Download PDF</button>
+      <button onclick="exportToExcel()" class="btn">Export Excel</button>
+      <button onclick="window.print()" class="btn">Print</button>
+    </div>
   </div>
-
-  <footer>
-    SmartScores v2.0 © Kariuki 2025
-  </footer>
-
 </body>
 </html>
