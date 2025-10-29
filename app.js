@@ -1,160 +1,242 @@
-// SmartScores v2.9.5 - Concise Core
-const STORAGE = 'smartScores', TARGETS = 'smartScoresTargets', TEACHER = 'lastTeacherName';
-const el = id => document.getElementById(id);
-const load = (k, def = []) => JSON.parse(localStorage.getItem(k)) || def;
-const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
-const rubric = s => ({
-  text: s >= 75 ? 'Exceeding' : s >= 41 ? 'Meeting' : s >= 21 ? 'Approaching' : 'Below',
-  color: s >= 75 ? '#16a34a' : s >= 41 ? '#2563eb' : s >= 21 ? '#f59e0b' : '#ef4444',
-  emoji: s >= 75 ? 'Trophy' : s >= 41 ? 'Checkmark' : s >= 21 ? 'Warning' : 'Cross'
-});
-
-let chartInstance;
-
-// PWA & Theme
-const toggleDarkMode = () => document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-const loadTheme = () => { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; };
-const saveTheme = () => localStorage.setItem('theme', document.documentElement.dataset.theme);
-
-// Records
-const loadRecords = () => load(STORAGE);
-const saveRecords = r => save(STORAGE, r);
-const loadTargets = () => load(TARGETS);
-const saveTargets = t => save(TARGETS, t);
-
-// Save Record
-window.saveRecord = () => {
-  const r = {
-    teacher: el('teacherName').value.trim(),
-    subject: el('subject').value.trim(),
-    grade: el('grade').value,
-    stream: el('stream').value.trim(),
-    term: el('term').value,
-    examType: el('examType').value,
-    year: el('year').value,
-    mean: parseFloat(el('mean').value)
+// app.js — SmartScores v2.0 (Production Ready)
+(() => {
+  const STORAGE_KEY = 'smartScores';
+  
+  // DOM Elements (lazy-loaded)
+  const el = {
+    teacher: () => document.getElementById('teacherName'),
+    subject: () => document.getElementById('subject'),
+    grade: () => document.getElementById('grade'),
+    stream: () => document.getElementById('stream'),
+    term: () => document.getElementById('term'),
+    examType: () => document.getElementById('examType'),
+    year: () => document.getElementById('year'),
+    mean: () => document.getElementById('meanScore'),
+    recordsTbody: () => document.querySelector('#recordsTable tbody'),
+    averageTbody: () => document.querySelector('#averageScoresTable tbody'),
+    importFile: () => document.getElementById('importFile'),
+    totalRecords: () => document.getElementById('totalRecords'),
+    avgScore: () => document.getElementById('avgScore'),
+    topSubject: () => document.getElementById('topSubject')
   };
-  if (!r.teacher || !r.subject || isNaN(r.mean)) return alert('Fill all fields.');
-  localStorage.setItem(TEACHER, r.teacher);
-  const recs = loadRecords();
-  recs.push(r);
-  saveRecords(recs);
-  resetForm();
-  renderAll();
-  alert('Saved!');
-};
 
-// Reset form
-const resetForm = () => {
-  ['teacherName','subject','stream','year','mean'].forEach(id => el(id).value = '');
-  el('teacherName').value = localStorage.getItem(TEACHER) || '';
-};
+  const showAlert = (msg) => alert(msg);
 
-// Render records table
-const renderRecords = () => {
-  const tbody = el('recordsTable')?.querySelector('tbody');
-  if (!tbody) return;
-  const recs = loadRecords();
-  tbody.innerHTML = recs.map((r, i) => `
-    <tr data-index="${i}">
-      <td>${r.teacher}</td><td>${r.subject}</td><td>${r.grade}</td><td>${r.stream}</td>
-      <td>${r.term}</td><td>${r.examType}</td><td>${r.year}</td><td>${r.mean.toFixed(1)}%</td>
-      <td><span style="background:${rubric(r.mean).color};color:#fff;padding:4px 8px;border-radius:6px;">
-        ${rubric(r.mean).emoji} ${rubric(r.mean).text}
-      </span></td>
-      <td>
-        <button onclick="editRecord(${i})" class="icon">Edit</button>
-        <button onclick="deleteRecord(${i})" class="icon">Delete</button>
-      </td>
-    </tr>`).join('');
-  filterRecords();
-};
-
-// Edit/Delete
-window.editRecord = i => { const r = loadRecords()[i]; Object.keys(r).forEach(k => el(k) ? el(k).value = r[k] : null); deleteRecord(i); };
-window.deleteRecord = i => { if (confirm('Delete?')) { const recs = loadRecords(); recs.splice(i,1); saveRecords(recs); renderAll(); } };
-
-// Search & Sort
-let sortCol = -1, sortAsc = true;
-window.filterRecords = () => {
-  const term = el('searchInput')?.value.toLowerCase() || '';
-  const rows = document.querySelectorAll('#recordsTable tbody tr');
-  rows.forEach(row => {
-    const text = row.textContent.toLowerCase();
-    row.style.display = text.includes(term) ? '' : 'none';
-  });
-};
-window.sortTable = col => {
-  if (sortCol === col) sortAsc = !sortAsc;
-  else { sortCol = col; sortAsc = true; }
-  const tbody = el('recordsTable')?.querySelector('tbody');
-  const rows = Array.from(tbody.querySelectorAll('tr'));
-  rows.sort((a,b) => {
-    const av = a.children[col].textContent, bv = b.children[col].textContent;
-    const res = av.localeCompare(bv, undefined, {numeric: true});
-    return sortAsc ? res : -res;
-  });
-  rows.forEach(r => tbody.appendChild(r));
-};
-
-// Targets
-const populateTargetDropdowns = () => {
-  const recs = loadRecords();
-  const sets = { subject: new Set(), grade: new Set(), stream: new Set() };
-  recs.forEach(r => { sets.subject.add(r.subject); sets.grade.add(r.grade); sets.stream.add(r.stream); });
-  ['Subject','Grade','Stream'].forEach((t, i) => {
-    const sel = el(`target${t}`);
-    if (sel) sel.innerHTML = `<option value="">Select ${t}</option>` + Array.from(sets[t.toLowerCase()]).sort().map(v => `<option>${v}</option>`).join('');
-  });
-};
-window.saveTarget = () => {
-  const t = {
-    subject: el('targetSubject').value,
-    grade: el('targetGrade').value,
-    stream: el('targetStream').value,
-    term: el('targetTerm').value,
-    examType: el('targetExamType').value,
-    score: parseFloat(el('targetScore').value)
+  const loadRecords = () => {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
   };
-  if (Object.values(t).some(v => v === '' || isNaN(t.score))) return alert('Fill all.');
-  const targets = loadTargets();
-  if (targets.some(x => JSON.stringify(x) === JSON.stringify(t))) return alert('Exists.');
-  targets.push(t);
-  saveTargets(targets);
-  el('targetScore').value = '';
-  renderTargets();
-  alert('Target saved!');
-};
-const renderTargets = () => {
-  const tbody = el('targetsTable')?.querySelector('tbody');
-  if (!tbody) return;
-  tbody.innerHTML = loadTargets().map((t, i) => `
-    <tr>
-      <td>${t.subject}</td><td>${t.grade}</td><td>${t.stream}</td><td>${t.term}</td><td>${t.examType}</td><td>${t.score}%</td>
-      <td>
-        <button onclick="editTarget(${i})" style="background:#f59e0b;color:white;padding:4px 8px;border:none;border-radius:4px;margin-right:4px;">Edit</button>
-        <button onclick="deleteTarget(${i})" style="background:#dc2626;color:white;padding:4px 8px;border:none;border-radius:4px;">Delete</button>
-      </td>
-    </tr>`).join('');
-};
-window.editTarget = i => {
-  const t = loadTargets()[i];
-  ['subject','grade','stream','term','examType'].forEach(f => el(`target${f.capitalize()}`).value = t[f]);
-  el('targetScore').value = t.score;
-  const btn = document.querySelector('button[onclick="saveTarget()"]');
-  btn.textContent = 'Update'; btn.onclick = () => { updateTarget(i); };
-};
-const updateTarget = i => {
-  const updated = { /* same as saveTarget */ };
-  // ... (reuse saveTarget logic)
-};
-window.deleteTarget = i => { if (confirm('Delete?')) { const t = loadTargets(); t.splice(i,1); saveTargets(t); renderTargets(); } };
 
-// Init
-document.addEventListener('DOMContentLoaded', () => {
-  loadTheme();
-  if (location.pathname.includes('data-entry')) el('teacherName').value = localStorage.getItem(TEACHER) || '';
-  if (location.pathname.includes('set-targets')) { populateTargetDropdowns(); renderTargets(); }
-  renderAll();
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
-});
+  const saveRecords = (records) => localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+
+  const rubric = (score) => {
+    if (score >= 75) return { text: 'Exceeding', code: 'EE', color: '#16a34a', emoji: 'Trophy' };
+    if (score >= 41) return { text: 'Meeting', code: 'ME', color: '#2563eb', emoji: 'Check' };
+    if (score >= 21) return { text: 'Approaching', code: 'AE', color: '#f59e0b', emoji: 'Warning' };
+    return { text: 'Below', code: 'BE', color: '#ef4444', emoji: 'Exclamation' };
+  };
+
+  window.saveRecord = () => {
+    const record = {
+      teacher: el.teacher()?.value.trim(),
+      subject: el.subject()?.value,
+      grade: el.grade()?.value,
+      stream: el.stream()?.value,
+      term: el.term()?.value,
+      examType: el.examType()?.value,
+      year: el.year()?.value,
+      mean: Number(el.mean()?.value)
+    };
+
+    if (!record.teacher || !record.subject || !record.grade || !record.stream || 
+        !record.term || !record.examType || !record.year || Number.isNaN(record.mean)) {
+      showAlert('Please fill all fields.');
+      return;
+    }
+
+    if (record.mean < 0 || record.mean > 100) {
+      showAlert('Mean score must be between 0 and 100.');
+      return;
+    }
+    if (record.year < 2000 || record.year > 2100) {
+      showAlert('Year must be between 2000 and 2100.');
+      return;
+    }
+
+    const records = loadRecords();
+    const exists = records.some(r =>
+      r.teacher === record.teacher &&
+      r.subject === record.subject &&
+      r.grade === record.grade &&
+      r.stream === record.stream &&
+      r.term === record.term &&
+      r.examType === record.examType &&
+      r.year === record.year
+    );
+    if (exists) {
+      showAlert('This record already exists!');
+      return;
+    }
+
+    records.push(record);
+    saveRecords(records);
+    el.mean().value = '';
+    showAlert('Record saved!');
+    renderAll();
+  };
+
+  const renderRecords = () => {
+    const tbody = el.recordsTbody();
+    if (!tbody) return;
+    const records = loadRecords();
+    tbody.innerHTML = '';
+    records.forEach((r, i) => {
+      const rub = rubric(r.mean);
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${r.teacher}</td>
+        <td>${r.subject}</td>
+        <td>${r.grade}</td>
+        <td>${r.stream}</td>
+        <td>${r.term}</td>
+        <td>${r.examType}</td>
+        <td>${r.year}</td>
+        <td>${r.mean.toFixed(1)}%</td>
+        <td><span style="background:${rub.color};color:#fff;padding:4px 8px;border-radius:6px;">
+          ${rub.emoji} ${rub.text}
+        </span></td>
+      `;
+      tbody.appendChild(row);
+    });
+  };
+
+  const renderAverageScores = () => {
+    const tbody = el.averageTbody();
+    if (!tbody) return;
+    const records = loadRecords();
+    const groups = {};
+    records.forEach(r => {
+      const key = `${r.subject}||${r.grade}||${r.stream}||${r.term}||${r.year}`;
+      if (!groups[key]) groups[key] = { ...r, scores: [] };
+      groups[key].scores.push(r.mean);
+    });
+    tbody.innerHTML = '';
+    Object.values(groups).forEach(g => {
+      const avg = g.scores.reduce((a, s) => a + s, 0) / g.scores.length;
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${g.subject}</td>
+        <td>${g.grade}</td>
+        <td>${g.stream}</td>
+        <td>${g.term}</td>
+        <td>${g.year}</td>
+        <td>${avg.toFixed(1)}%</td>
+      `;
+      tbody.appendChild(row);
+    });
+  };
+
+  const updateDashboardStats = () => {
+    const records = loadRecords();
+    if (el.totalRecords()) el.totalRecords().textContent = records.length;
+
+    const overallAvg = records.length > 0
+      ? (records.reduce((a, r) => a + r.mean, 0) / records.length).toFixed(1)
+      : 0;
+    if (el.avgScore()) el.avgScore().textContent = overallAvg + '%';
+
+    const subjectAvgs = {};
+    records.forEach(r => {
+      if (!subjectAvgs[r.subject]) subjectAvgs[r.subject] = { sum: 0, count: 0 };
+      subjectAvgs[r.subject].sum += r.mean;
+      subjectAvgs[r.subject].count++;
+    });
+    let top = { name: '-', avg: 0 };
+    for (const [sub, data] of Object.entries(subjectAvgs)) {
+      const avg = data.sum / data.count;
+      if (avg > top.avg) top = { name: sub, avg };
+    }
+    if (el.topSubject()) el.topSubject().textContent = top.name;
+  };
+
+  const renderAll = () => {
+    renderRecords();
+    renderAverageScores();
+    updateDashboardStats();
+  };
+
+  window.downloadPDF = () => {
+    if (!window.jspdf || !window.html2canvas) {
+      showAlert('PDF library not loaded. Check internet connection.');
+      return;
+    }
+    const table = document.getElementById('averageScoresTable');
+    if (!table || table.querySelector('tbody').children.length === 0) {
+      showAlert('No data to export.');
+      return;
+    }
+    html2canvas(table, { scale: 2 }).then(canvas => {
+      const img = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const width = 190;
+      const height = (canvas.height * width) / canvas.width;
+      pdf.addImage(img, 'PNG', 10, 10, width, height);
+      pdf.save('SmartScores_Averages_Insights.pdf');
+    });
+  };
+
+  window.importData = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (Array.isArray(data) && data.every(r => r.mean !== undefined)) {
+          saveRecords(data);
+          showAlert('Data imported successfully!');
+          renderAll();
+        } else throw '';
+      } catch {
+        showAlert('Invalid backup file.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  window.clearAllData = () => {
+    if (confirm('Delete ALL data? This cannot be undone.')) {
+      localStorage.removeItem(STORAGE_KEY);
+      renderAll();
+      showAlert('All data cleared.');
+    }
+  };
+
+  window.exportBackup = () => {
+    const data = JSON.stringify(loadRecords(), null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `smartscores-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    renderAll();
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .catch(err => console.error('SW registration failed:', err));
+    }
+  });
+})();
