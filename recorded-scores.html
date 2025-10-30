@@ -1,91 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-  <link rel="stylesheet" href="style.css" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores v2.0 - Recorded Scores</title>
+  <title>SmartScores - Recorded Scores</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.png" />
+  <link rel="icon" href="favicon.ico" />
   <script src="app.js" defer></script>
   <style>
-   /* ===== Table Styling ===== */
-.table-container {
-  overflow-x: auto;
-  margin: 20px auto;
-  border-radius: 12px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: center;
-  min-width: 700px;
-}
-
-th {
-  background-color: maroon;
-  color: white;
-  padding: 12px;
-}
-
-td {
-  padding: 10px;
-  border-bottom: 1px solid #ccc;
-}
-
-tr:hover {
-  background-color: #f2f2f2;
-}
-
+    /* Same CSS as index.html + table styles */
+    table { width:100%; border-collapse:collapse; margin:20px 0; background:var(--white); box-shadow:0 2px 8px rgba(0,0,0,.1); border-radius:8px; overflow:hidden; }
+    th { background:var(--maroon); color:white; padding:12px; cursor:pointer; }
+    td { padding:10px; border-bottom:1px solid #eee; }
+    tr:hover { background:#f1f5f9; }
+    .btn-group { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:20px 0; }
+    .icon { background:none; border:none; font-size:1.2em; cursor:pointer; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>SmartScores v2.0</h1>
-    <p>Recorded Teacher Mean Scores</p>
-  </header>
-  <nav>
-    <a href="index.html">Dashboard</a>
-    <a href="data-entry.html">Data Entry</a>
-    <a href="recorded-scores.html" class="active">Recorded Scores</a>
-    <a href="averages-insights.html">Averages & Insights</a>
-     <a href="set-targets.html">Set Targets</a>
-  </nav>
-
+  <!-- Same header/nav -->
   <div class="content">
-   <table id="recordsTable">
-  <thead>
-    <tr>
-      <th>Teacher</th>
-      <th>Subject</th>
-      <th>Grade</th>
-      <th>Stream</th>
-      <th>Term</th>
-      <th>Exam Type</th>
-      <th>Year</th>
-      <th>Mean</th>
-      <th>Rubric</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+    <h2>Recorded Scores</h2>
+    <input type="text" id="searchInput" placeholder="Search..." onkeyup="filterRecords()" style="width:100%;padding:10px;margin:10px 0;border-radius:6px;border:1px solid #ccc;" />
+    
+    <div class="settings-container" style="margin:20px 0;text-align:center;">
+      <label>Auto Delete Old Data:</label>
+      <select id="autoDeleteSetting" style="margin:0 10px;padding:5px;">
+        <option value="none">Keep All</option>
+        <option value="1" selected>Keep 1 Year</option>
+        <option value="2">Keep 2 Years</option>
+      </select>
+      <button onclick="runAutoDelete()" class="btn">Run Auto Delete</button>
+    </div>
 
-    <!-- Organized Buttons -->
+    <table id="recordsTable">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">Teacher</th>
+          <th onclick="sortTable(1)">Subject</th>
+          <th onclick="sortTable(2)">Grade</th>
+          <th onclick="sortTable(3)">Stream</th>
+          <th onclick="sortTable(4)">Term</th>
+          <th onclick="sortTable(5)">Exam</th>
+          <th onclick="sortTable(6)">Year</th>
+          <th onclick="sortTable(7)">Mean</th>
+          <th>Rubric</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
     <div class="btn-group">
-      <button onclick="exportBackup()" class="btn">Backup Data</button>
-      <label class="btn" style="cursor:pointer; display:inline-flex; align-items:center;">
-        Import Data
-        <input type="file" id="importFile" onchange="importData(event)" style="display: none;" accept=".json" />
+      <button onclick="exportToExcel()" class="btn">Excel Export</button>
+      <button onclick="exportBackup()" class="btn">Backup</button>
+      <label class="btn" style="cursor:pointer;">
+        Import <input type="file" id="importFile" onchange="importData(event)" style="display:none;" accept=".json" />
       </label>
-      <button onclick="clearAllData()" class="btn btn-danger">Clear All</button>
+      <button onclick="clearAllData()" class="btn" style="background:#dc2626;">Clear All</button>
     </div>
   </div>
-
-  <footer>
-    SmartScores v2.0 © Kariuki 2025
-  </footer>
 </body>
 </html>
