@@ -53,46 +53,44 @@ const saveRecords = (records) => {
 
 // Function to save the data entry
 window.saveRecord = () => {
-    const teacherName = document.getElementById('teacherName').value;
-    const subject = document.getElementById('subject').value;
-    const grade = document.getElementById('grade').value;
-    const stream = document.getElementById('stream').value;
-    const term = document.getElementById('term').value;
-    const examType = document.getElementById('examType').value;
-    const year = document.getElementById('year').value;
-    const meanScore = parseFloat(document.getElementById('meanScore').value);
+  const r = {
+    teacher: el.teacher()?.value.trim(),
+    subject: el.subject()?.value,
+    grade: el.grade()?.value,
+    stream: el.stream()?.value,
+    term: el.term()?.value,
+    examType: el.examType()?.value,
+    year: el.year()?.value,
+    mean: Number(el.mean()?.value)
+  };
 
-    // Validate the input fields
-    if (!teacherName || !subject || !grade || !stream || !term || !examType || !year || isNaN(meanScore)) {
-        alert('Please fill in all fields correctly.');
-        return;
-    }
-  if (exists) {
-    showAlert('This record already exists!');
-    return;
-    
-    // Create a new record object
-    const newRecord = {
-        teacherName,
-        subject,
-        grade,
-        stream,
-        term,
-        examType,
-        year,
-        meanScore
-    };
+  // Validate
+  if (!r.teacher || !r.subject || Number.isNaN(r.mean)) return showAlert('Fill all fields.');
+  if (r.mean < 0 || r.mean > 100) return showAlert('Mean must be 0–100.');
+  if (r.year < 2000 || r.year > 2100) return showAlert('Year 2000–2100.');
 
-    // Load the existing records, add the new one, and save back to localStorage
-    const records = loadRecords();
-    records.push(newRecord);
-    saveRecords(records);
+  const records = loadRecords();
+  if (records.some(x => 
+    x.teacher === r.teacher && x.subject === r.subject && x.grade === r.grade &&
+    x.stream === r.stream && x.term === r.term && x.examType === r.examType && x.year === r.year
+  )) return showAlert('Record exists.');
 
-    // Clear form fields after saving the record
-    document.getElementById('data-entry-form').reset();
+  // Save the record
+  records.push(r);
+  saveRecords(records);
+  localStorage.setItem(TEACHER_KEY, r.teacher);
 
-    alert('Record saved successfully!');
+  // Clear mean input only
+  el.mean().value = '';
+  showAlert('Saved!');
+
+  // ✅ Update table immediately without page refresh
+  renderRecords();
+  renderAverageScores();
+  updateDashboardStats();
+  renderAIInsights();
 };
+
 
 
 
