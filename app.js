@@ -354,6 +354,10 @@ const updateDashboardStats = () => {
         handleSaveTarget();
       });
     }
+    if (location.pathname.includes('averages-insights')) {
+  renderAIInsights();
+  renderRecords();  // ADD THIS
+}
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js');
