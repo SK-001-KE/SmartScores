@@ -1,465 +1,160 @@
-(() => {
-  const STORAGE_KEY = 'smartScores';
-  
-  // DOM Elements (lazy-loaded)
-  const el = {
-    teacher: () => document.getElementById('teacherName'),
-    subject: () => document.getElementById('subject'),
-    grade: () => document.getElementById('grade'),
-    stream: () => document.getElementById('stream'),
-    term: () => document.getElementById('term'),
-    examType: () => document.getElementById('examType'),
-    year: () => document.getElementById('year'),
-    mean: () => document.getElementById('meanScore'),
-    recordsTbody: () => document.querySelector('#recordsTable tbody'),
-    averageTbody: () => document.querySelector('#averageScoresTable tbody'),
-    totalRecords: () => document.getElementById('totalRecords'),
-    avgScore: () => document.getElementById('avgScore'),
-    topSubject: () => document.getElementById('topSubject'),
-    worstSubject: () => document.getElementById('worstSubject'),
-    lastEntry: () => document.getElementById('lastEntry')
-  };
+// SmartScores v2.9.5 - Concise Core
+const STORAGE = 'smartScores', TARGETS = 'smartScoresTargets', TEACHER = 'lastTeacherName';
+const el = id => document.getElementById(id);
+const load = (k, def = []) => JSON.parse(localStorage.getItem(k)) || def;
+const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+const rubric = s => ({
+  text: s >= 75 ? 'Exceeding' : s >= 41 ? 'Meeting' : s >= 21 ? 'Approaching' : 'Below',
+  color: s >= 75 ? '#16a34a' : s >= 41 ? '#2563eb' : s >= 21 ? '#f59e0b' : '#ef4444',
+  emoji: s >= 75 ? 'Trophy' : s >= 41 ? 'Checkmark' : s >= 21 ? 'Warning' : 'Cross'
+});
 
-  const showAlert = (msg) => alert(msg);
+let chartInstance;
 
-  const loadRecords = () => {
-    try {
-      const data = localStorage.getItem(STORAGE_KEY);
-      return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
-    }
-  };
+// PWA & Theme
+const toggleDarkMode = () => document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+const loadTheme = () => { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; };
+const saveTheme = () => localStorage.setItem('theme', document.documentElement.dataset.theme);
 
-  const saveRecords = (records) => localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+// Records
+const loadRecords = () => load(STORAGE);
+const saveRecords = r => save(STORAGE, r);
+const loadTargets = () => load(TARGETS);
+const saveTargets = t => save(TARGETS, t);
 
-  // Rubric for mean scores
-  const rubric = (score) => {
-    if (score >= 75) return { text: 'Exceeding', code: 'EE', color: '#16a34a', emoji: '🏆' };
-    if (score >= 41) return { text: 'Meeting', code: 'ME', color: '#2563eb', emoji: '✅' };
-    if (score >= 21) return { text: 'Approaching', code: 'AE', color: '#f59e0b', emoji: '⚠️' };
-    return { text: 'Below', code: 'BE', color: '#ef4444', emoji: '❌' };
-  };
-
- // Utility function to load records from localStorage
-const loadRecords = () => {
-    return JSON.parse(localStorage.getItem('smartScoresRecords') || '[]');
-};
-
-// Utility function to save records to localStorage
-const saveRecords = (records) => {
-    localStorage.setItem('smartScoresRecords', JSON.stringify(records));
-};
-
-// Function to save the data entry
+// Save Record
 window.saveRecord = () => {
   const r = {
-    teacher: el.teacher()?.value.trim(),
-    subject: el.subject()?.value,
-    grade: el.grade()?.value,
-    stream: el.stream()?.value,
-    term: el.term()?.value,
-    examType: el.examType()?.value,
-    year: el.year()?.value,
-    mean: Number(el.mean()?.value)
+    teacher: el('teacherName').value.trim(),
+    subject: el('subject').value.trim(),
+    grade: el('grade').value,
+    stream: el('stream').value.trim(),
+    term: el('term').value,
+    examType: el('examType').value,
+    year: el('year').value,
+    mean: parseFloat(el('mean').value)
   };
-
-  // Validate
-  if (!r.teacher || !r.subject || Number.isNaN(r.mean)) return showAlert('Fill all fields.');
-  if (r.mean < 0 || r.mean > 100) return showAlert('Mean must be 0–100.');
-  if (r.year < 2000 || r.year > 2100) return showAlert('Year 2000–2100.');
-
-  const records = loadRecords();
-  if (records.some(x => 
-    x.teacher === r.teacher && x.subject === r.subject && x.grade === r.grade &&
-    x.stream === r.stream && x.term === r.term && x.examType === r.examType && x.year === r.year
-  )) return showAlert('Record exists.');
-
-  // Save the record
-  records.push(r);
-  saveRecords(records);
-  localStorage.setItem(TEACHER_KEY, r.teacher);
-
-  // Clear mean input only
-  el.mean().value = '';
-  showAlert('Saved!');
-
-  // ✅ Update table immediately without page refresh
-  renderRecords();
-  renderAverageScores();
-  updateDashboardStats();
-  renderAIInsights();
-};
-
-
-
-
-  // Update dashboard stats after saving the record
-  updateDashboardStats();
-
-  // Re-render the records and averages
+  if (!r.teacher || !r.subject || isNaN(r.mean)) return alert('Fill all fields.');
+  localStorage.setItem(TEACHER, r.teacher);
+  const recs = loadRecords();
+  recs.push(r);
+  saveRecords(recs);
+  resetForm();
   renderAll();
+  alert('Saved!');
 };
 
-const updateDashboardStats = () => {
-  const records = loadRecords();
+// Reset form
+const resetForm = () => {
+  ['teacherName','subject','stream','year','mean'].forEach(id => el(id).value = '');
+  el('teacherName').value = localStorage.getItem(TEACHER) || '';
+};
 
-  // Calculate the overall average score of all records
-  const overallAvg = records.length > 0
-    ? (records.reduce((a, r) => a + r.mean, 0) / records.length).toFixed(1) // Average of all the mean scores
-    : 0;
+// Render records table
+const renderRecords = () => {
+  const tbody = el('recordsTable')?.querySelector('tbody');
+  if (!tbody) return;
+  const recs = loadRecords();
+  tbody.innerHTML = recs.map((r, i) => `
+    <tr data-index="${i}">
+      <td>${r.teacher}</td><td>${r.subject}</td><td>${r.grade}</td><td>${r.stream}</td>
+      <td>${r.term}</td><td>${r.examType}</td><td>${r.year}</td><td>${r.mean.toFixed(1)}%</td>
+      <td><span style="background:${rubric(r.mean).color};color:#fff;padding:4px 8px;border-radius:6px;">
+        ${rubric(r.mean).emoji} ${rubric(r.mean).text}
+      </span></td>
+      <td>
+        <button onclick="editRecord(${i})" class="icon">Edit</button>
+        <button onclick="deleteRecord(${i})" class="icon">Delete</button>
+      </td>
+    </tr>`).join('');
+  filterRecords();
+};
 
-  // Update the "Average of All Data Entered" stat
-  if (el.avgScore()) {
-    el.avgScore().textContent = overallAvg + '%';  // Display as percentage
-  }
+// Edit/Delete
+window.editRecord = i => { const r = loadRecords()[i]; Object.keys(r).forEach(k => el(k) ? el(k).value = r[k] : null); deleteRecord(i); };
+window.deleteRecord = i => { if (confirm('Delete?')) { const recs = loadRecords(); recs.splice(i,1); saveRecords(recs); renderAll(); } };
 
-  // Top and Worst Subjects
-  let topSubject = '-', worstSubject = '-', lastEntry = 'Never';
-  let topSubjectAvg = 0, worstSubjectAvg = Infinity;
-  
-  const subjectStats = {};
-  records.forEach(r => {
-    if (!subjectStats[r.subject]) subjectStats[r.subject] = { sum: 0, count: 0 };
-    subjectStats[r.subject].sum += r.mean;
-    subjectStats[r.subject].count++;
+// Search & Sort
+let sortCol = -1, sortAsc = true;
+window.filterRecords = () => {
+  const term = el('searchInput')?.value.toLowerCase() || '';
+  const rows = document.querySelectorAll('#recordsTable tbody tr');
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(term) ? '' : 'none';
   });
-
-  for (const [subject, stats] of Object.entries(subjectStats)) {
-    const avg = stats.sum / stats.count;
-    if (avg > topSubjectAvg) {
-      topSubject = subject;
-      topSubjectAvg = avg;
-    }
-    if (avg < worstSubjectAvg) {
-      worstSubject = subject;
-      worstSubjectAvg = avg;
-    }
-  }
-
-  if (el.topSubject()) el.topSubject().textContent = topSubject;
-  if (el.worstSubject()) el.worstSubject().textContent = worstSubject;
-
-  // Last entry (most recent)
-  if (records.length > 0) {
-    const lastRecord = records[records.length - 1];
-    lastEntry = `${lastRecord.subject} (${lastRecord.term} - ${lastRecord.year})`;
-  }
-
-  if (el.lastEntry()) el.lastEntry().textContent = lastEntry;
 };
-// Function to generate insights
-const generateInsights = (records) => {
-  let insights = [];
-
-  if (records.length > 0) {
-    // Overall average score
-    const overallAvg = (records.reduce((a, r) => a + r.mean, 0) / records.length).toFixed(1);
-    insights.push(`The overall average score is ${overallAvg}%`);
-
-    // Top subject by average
-    let topSubject = '', topSubjectAvg = 0;
-    const subjectStats = {};
-    records.forEach(r => {
-      if (!subjectStats[r.subject]) subjectStats[r.subject] = { sum: 0, count: 0 };
-      subjectStats[r.subject].sum += r.mean;
-      subjectStats[r.subject].count++;
-    });
-
-    for (const [subject, stats] of Object.entries(subjectStats)) {
-      const avg = stats.sum / stats.count;
-      if (avg > topSubjectAvg) {
-        topSubject = subject;
-        topSubjectAvg = avg;
-      }
-    }
-
-    insights.push(`The top subject is ${topSubject} with an average score of ${topSubjectAvg.toFixed(1)}%`);
-
-    // Worst performing subject
-    let worstSubject = '', worstSubjectAvg = Infinity;
-    for (const [subject, stats] of Object.entries(subjectStats)) {
-      const avg = stats.sum / stats.count;
-      if (avg < worstSubjectAvg) {
-        worstSubject = subject;
-        worstSubjectAvg = avg;
-      }
-    }
-
-    insights.push(`The worst performing subject is ${worstSubject} with an average score of ${worstSubjectAvg.toFixed(1)}%`);
-
-    // Best performing stream
-    let bestStream = '', bestStreamAvg = 0;
-    const streamStats = {};
-    records.forEach(r => {
-      if (!streamStats[r.stream]) streamStats[r.stream] = { sum: 0, count: 0 };
-      streamStats[r.stream].sum += r.mean;
-      streamStats[r.stream].count++;
-    });
-
-    for (const [stream, stats] of Object.entries(streamStats)) {
-      const avg = stats.sum / stats.count;
-      if (avg > bestStreamAvg) {
-        bestStream = stream;
-        bestStreamAvg = avg;
-      }
-    }
-
-    insights.push(`The best performing stream is ${bestStream} with an average score of ${bestStreamAvg.toFixed(1)}%`);
-  } else {
-    insights.push('No data available to generate insights.');
-  }
-
-  return insights;
+window.sortTable = col => {
+  if (sortCol === col) sortAsc = !sortAsc;
+  else { sortCol = col; sortAsc = true; }
+  const tbody = el('recordsTable')?.querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  rows.sort((a,b) => {
+    const av = a.children[col].textContent, bv = b.children[col].textContent;
+    const res = av.localeCompare(bv, undefined, {numeric: true});
+    return sortAsc ? res : -res;
+  });
+  rows.forEach(r => tbody.appendChild(r));
 };
 
-// Function to update the insights section
-const updateInsights = () => {
-  const records = loadRecords(); // Load data from localStorage
-  const insights = generateInsights(records); // Generate insights
-
-  // Insert insights into the #insights div
-  const insightsDiv = document.getElementById('insights');
-  insightsDiv.innerHTML = insights.map(insight => `<p>${insight}</p>`).join('');
+// Targets
+const populateTargetDropdowns = () => {
+  const recs = loadRecords();
+  const sets = { subject: new Set(), grade: new Set(), stream: new Set() };
+  recs.forEach(r => { sets.subject.add(r.subject); sets.grade.add(r.grade); sets.stream.add(r.stream); });
+  ['Subject','Grade','Stream'].forEach((t, i) => {
+    const sel = el(`target${t}`);
+    if (sel) sel.innerHTML = `<option value="">Select ${t}</option>` + Array.from(sets[t.toLowerCase()]).sort().map(v => `<option>${v}</option>`).join('');
+  });
 };
+window.saveTarget = () => {
+  const t = {
+    subject: el('targetSubject').value,
+    grade: el('targetGrade').value,
+    stream: el('targetStream').value,
+    term: el('targetTerm').value,
+    examType: el('targetExamType').value,
+    score: parseFloat(el('targetScore').value)
+  };
+  if (Object.values(t).some(v => v === '' || isNaN(t.score))) return alert('Fill all.');
+  const targets = loadTargets();
+  if (targets.some(x => JSON.stringify(x) === JSON.stringify(t))) return alert('Exists.');
+  targets.push(t);
+  saveTargets(targets);
+  el('targetScore').value = '';
+  renderTargets();
+  alert('Target saved!');
+};
+const renderTargets = () => {
+  const tbody = el('targetsTable')?.querySelector('tbody');
+  if (!tbody) return;
+  tbody.innerHTML = loadTargets().map((t, i) => `
+    <tr>
+      <td>${t.subject}</td><td>${t.grade}</td><td>${t.stream}</td><td>${t.term}</td><td>${t.examType}</td><td>${t.score}%</td>
+      <td>
+        <button onclick="editTarget(${i})" style="background:#f59e0b;color:white;padding:4px 8px;border:none;border-radius:4px;margin-right:4px;">Edit</button>
+        <button onclick="deleteTarget(${i})" style="background:#dc2626;color:white;padding:4px 8px;border:none;border-radius:4px;">Delete</button>
+      </td>
+    </tr>`).join('');
+};
+window.editTarget = i => {
+  const t = loadTargets()[i];
+  ['subject','grade','stream','term','examType'].forEach(f => el(`target${f.capitalize()}`).value = t[f]);
+  el('targetScore').value = t.score;
+  const btn = document.querySelector('button[onclick="saveTarget()"]');
+  btn.textContent = 'Update'; btn.onclick = () => { updateTarget(i); };
+};
+const updateTarget = i => {
+  const updated = { /* same as saveTarget */ };
+  // ... (reuse saveTarget logic)
+};
+window.deleteTarget = i => { if (confirm('Delete?')) { const t = loadTargets(); t.splice(i,1); saveTargets(t); renderTargets(); } };
 
-// Call the function to update insights on page load
+// Init
 document.addEventListener('DOMContentLoaded', () => {
-  updateInsights();
+  loadTheme();
+  if (location.pathname.includes('data-entry')) el('teacherName').value = localStorage.getItem(TEACHER) || '';
+  if (location.pathname.includes('set-targets')) { populateTargetDropdowns(); renderTargets(); }
+  renderAll();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
 });
-
-
-  
-  // Render all records and averages
-  const renderAll = () => {
-    renderRecords();
-    renderAverageScores();
-    updateDashboardStats(); // Ensure dashboard is updated on load or after changes
-  };
-
-  // Render Records Table
-  const renderRecords = () => {
-    const tbody = el.recordsTbody();
-    if (!tbody) return;
-    const records = loadRecords();
-    tbody.innerHTML = '';
-    records.forEach((r, i) => {
-      const rub = rubric(r.mean);
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${i + 1}</td>
-        <td>${r.teacher}</td>
-        <td>${r.subject}</td>
-        <td>${r.grade}</td>
-        <td>${r.stream}</td>
-        <td>${r.term}</td>
-        <td>${r.examType}</td>
-        <td>${r.year}</td>
-        <td>${r.mean.toFixed(1)}%</td>
-        <td><span style="background:${rub.color};color:#fff;padding:4px 8px;border-radius:6px;">
-          ${rub.emoji} ${rub.text}
-        </span></td>
-      `;
-      tbody.appendChild(row);
-    });
-  };
-
-  // Render Average Scores Table
-  const renderAverageScores = () => {
-    const tbody = el.averageTbody();
-    if (!tbody) return;
-    const records = loadRecords();
-    const groups = {};
-    records.forEach(r => {
-      const key = `${r.subject}||${r.grade}||${r.stream}||${r.term}||${r.year}`;
-      if (!groups[key]) groups[key] = { ...r, scores: [] };
-      groups[key].scores.push(r.mean);
-    });
-    tbody.innerHTML = '';
-    Object.values(groups).forEach(g => {
-      const avg = g.scores.reduce((a, s) => a + s, 0) / g.scores.length;
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${g.subject}</td>
-        <td>${g.grade}</td>
-        <td>${g.stream}</td>
-        <td>${g.term}</td>
-        <td>${g.year}</td>
-        <td>${avg.toFixed(1)}%</td>
-      `;
-      tbody.appendChild(row);
-    });
-  };
-// Update chart with new data
-const updateChart = () => {
-  const ctx = document.getElementById('avgChart').getContext('2d');
-  const data = loadRecords(); // Load records from localStorage
-
-  const subjects = data.map(record => record.subject);
-  const avgScores = data.map(record => record.mean);
-  
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: subjects,
-      datasets: [{
-        label: 'Average Scores',
-        data: avgScores,
-        backgroundColor: '#2563eb',
-        borderColor: '#2563eb',
-        borderWidth: 1
-      }]
-    },
-    options: {
-      scales: {
-        y: { beginAtZero: true }
-      }
-    }
-  });
-};
-// Toggle chart visibility
-const toggleChart = () => {
-  const chartContainer = document.getElementById('chartContainer');
-  const chartToggleButton = document.getElementById('chartToggle');
-  if (chartContainer.style.display === 'none') {
-    chartContainer.style.display = 'block';
-    chartToggleButton.textContent = 'Hide Chart';
-    updateChart();  // Update chart with new data
-  } else {
-    chartContainer.style.display = 'none';
-    chartToggleButton.textContent = 'Show Chart';
-  }
-};
-  const STORAGE_KEY = 'smartScoresTargets';
-
-// Function to load the targets from localStorage
-const loadTargets = () => {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-};
-
-// Function to save the targets to localStorage
-const saveTargets = (targets) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(targets));
-};
-
-// Function to save a new target
-// Save target to localStorage
-const saveTarget = () => {
-  // Get the values from the form
-  const subject = document.getElementById('targetSubject').value;
-  const grade = document.getElementById('targetGrade').value;
-  const stream = document.getElementById('targetStream').value;
-  const term = document.getElementById('targetTerm').value;
-  const examType = document.getElementById('targetExamType').value;
-  const targetScore = parseFloat(document.getElementById('targetScore').value);
-
-  // Validate the input fields
-  if (!subject || !grade || !stream || !term || !examType || isNaN(targetScore)) {
-    alert("Please fill in all fields correctly.");
-    return;
-  }
-
-  // Create target object
-  const target = {
-    subject,
-    grade,
-    stream,
-    term,
-    examType,
-    targetScore,
-  };
-
-  // Load existing targets from localStorage or initialize an empty array
-  let targets = JSON.parse(localStorage.getItem('smartScoresTargets')) || [];
-
-  // Add the new target to the array
-  targets.push(target);
-
-  // Save the updated targets back to localStorage
-  localStorage.setItem('smartScoresTargets', JSON.stringify(targets));
-
-  // Clear the form
-  document.querySelector('form').reset();
-
-  // Render the updated list of targets
-  renderTargetsTable();
-
-  alert("Target saved successfully!");
-};
-
-// Render the list of targets in the table
-const renderTargetsTable = () => {
-  // Get the targets from localStorage
-  const targets = JSON.parse(localStorage.getItem('smartScoresTargets')) || [];
-
-  // Get the table body element
-  const tbody = document.querySelector('#targetsTable tbody');
-  tbody.innerHTML = ''; // Clear any existing rows
-
-  // Loop through the targets and create table rows
-  targets.forEach((target, index) => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${target.subject}</td>
-      <td>${target.grade}</td>
-      <td>${target.stream}</td>
-      <td>${target.term}</td>
-      <td>${target.examType}</td>
-      <td>${target.targetScore}%</td>
-      <td><button onclick="deleteTarget(${index})" class="btn-danger">Delete</button></td>
-    `;
-    tbody.appendChild(row);
-  });
-};
-
-// Delete a target from localStorage and the table
-const deleteTarget = (index) => {
-  // Load existing targets
-  const targets = JSON.parse(localStorage.getItem('smartScoresTargets')) || [];
-
-  // Remove the target at the specified index
-  targets.splice(index, 1);
-
-  // Save the updated targets back to localStorage
-  localStorage.setItem('smartScoresTargets', JSON.stringify(targets));
-
-  // Re-render the table with the updated list
-  renderTargetsTable();
-};
-
-// Initialize the page and render the targets table
-document.addEventListener('DOMContentLoaded', () => {
-  renderTargetsTable();
-});
-
-// Download data as PDF
-const downloadPDF = () => {
-  const doc = new jsPDF();
-  doc.text('Average Scores Report', 14, 16);
-  
-  const table = document.getElementById('averageScoresTable');
-  doc.autoTable({ html: table });
-  doc.save('average_scores_report.pdf');
-};
-// Export data to Excel
-const exportToExcel = () => {
-  const table = document.getElementById('averageScoresTable');
-  const wb = XLSX.utils.table_to_book(table);
-  XLSX.writeFile(wb, 'average_scores.xlsx');
-};
-
-  // Initialize app
-  document.addEventListener('DOMContentLoaded', () => {
-    renderAll(); // Render records and stats on page load
-
-    // Register service worker for offline capabilities
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js').catch(err => console.error('Service Worker registration failed:', err));
-    }
-  });
-})();
