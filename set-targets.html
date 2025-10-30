@@ -1,158 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-  <link rel="stylesheet" href="style.css" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Averages and Insights</title>
+  <title>SmartScores - Set Targets</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.png" />
+  <link rel="icon" href="favicon.ico" />
   <script src="app.js" defer></script>
-  <style>
-   /* ===== Table Styling ===== */
-.table-container {
-  overflow-x: auto;
-  margin: 20px auto;
-  border-radius: 12px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: center;
-  min-width: 700px;
-}
-
-th {
-  background-color: maroon;
-  color: white;
-  padding: 12px;
-}
-
-td {
-  padding: 10px;
-  border-bottom: 1px solid #ccc;
-}
-
-tr:hover {
-  background-color: #f2f2f2;
-}
-
-  </style>
-</head>
-<body>
-  <header>
-    <h1>SmartScores v2.0</h1>
-    <p>Recorded Teacher Mean Scores</p>
-  </header>
-  <nav>
-    <a href="index.html">Dashboard</a>
-    <a href="data-entry.html">Data Entry</a>
-    <a href="recorded-scores.html">Recorded Scores</a>
-    <a href="averages-insights.html">Averages and Insights</a>
-     <a href="set-targets.html" class="active">Set Targets</a>
-  </nav>
   <style>
     /* Same base */
     .form-group { margin:15px 0; }
     select, input { width:100%; padding:10px; border:2px solid #ccc; border-radius:6px; }
-    .btn { background: #2563eb; color: white; border: none; padding: 12px 20px; margin: 10px 5px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-    .btn:hover { background: #1d4ed8; }
-    .btn-danger { background: #dc2626; }
-    .btn-danger:hover { background: #b91c1c; }
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    th { background: #800000; color: white; padding: 12px; }
-    td { padding: 10px 12px; border-bottom: 1px solid #eee; }
-    tr:hover { background: #f1f5f9; }
   </style>
 </head>
 <body>
   <!-- Header/nav -->
   <div class="content">
     <h2>Set Target Mean Score</h2>
-    <!-- Subject Dropdown -->
     <div class="form-group">
-      <label>Subject</label>
-      <select id="targetSubject">
-        <option value="">--Select Subject--</option>
-        <option>Mathematics</option>
-        <option>English</option>
-        <option>Kiswahili</option>
-        <option>Science</option>
-        <option>Agriculture and Nutrition</option>
-        <option>Creative Arts</option>
-        <option>Social Studies</option>
-        <option>CRE</option>
-        <option>Pre-Technical Studies</option>
-      </select>
+      <label>Subject</label><select id="targetSubject"></select>
     </div>
-    <!-- Grade Dropdown -->
     <div class="form-group">
-      <label>Grade</label>
-      <select id="targetGrade">
-        <option value="">--Select Grade--</option>
-        <option>4</option>
-        <option>5</option>
-        <option>6</option>
-        <option>7</option>
-        <option>8</option>
-        <option>9</option>
-      </select>
+      <label>Grade</label><select id="targetGrade"></select>
     </div>
-    <!-- Stream Dropdown -->
     <div class="form-group">
-      <label>Stream</label>
-      <select id="targetStream">
-        <option value="">--Select Stream--</option>
-        <option>Faith</option>
-        <option>Glory</option>
-        <option>Joy</option>
-        <option>Love</option>
-        <option>Peace</option>
-        <option>Unity</option>
-      </select>
+      <label>Stream</label><select id="targetStream"></select>
     </div>
-    <!-- Term Dropdown -->
     <div class="form-group">
-      <label>Term</label>
-      <select id="targetTerm">
-        <option>Term 1</option>
-        <option>Term 2</option>
-        <option>Term 3</option>
-      </select>
+      <label>Term</label><select id="targetTerm"><option>Term 1</option><option>Term 2</option><option>Term 3</option></select>
     </div>
-    <!-- Exam Type Dropdown -->
     <div class="form-group">
-      <label>Exam Type</label>
-      <select id="targetExamType">
-        <option value="">--Select Exam Type--</option>
-        <option>Opener Exam</option>
-        <option>Mid Term Exam</option>
-        <option>End Term Exam</option>
-      </select>
+      <label>Exam Type</label><select id="targetExamType"><option>Mid-Term</option><option>End-Term</option><option>CAT</option></select>
     </div>
-    <!-- Target Mean Score Input -->
     <div class="form-group">
-      <label>Target Mean Score (%)</label>
-      <input type="number" id="targetScore" min="0" max="100" />
+      <label>Target Mean Score (%)</label><input type="number" id="targetScore" min="0" max="100" />
     </div>
     <button onclick="saveTarget()" class="btn">Save Target</button>
 
     <h2 style="margin-top:40px;">Current Targets</h2>
     <table id="targetsTable">
-      <thead>
-        <tr>
-          <th>Subject</th>
-          <th>Grade</th>
-          <th>Stream</th>
-          <th>Term</th>
-          <th>Exam</th>
-          <th>Target</th>
-          <th>Action</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Subject</th><th>Grade</th><th>Stream</th><th>Term</th><th>Exam</th><th>Target</th><th>Action</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
