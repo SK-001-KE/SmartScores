@@ -1,11 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartScores - Data Entry</title>
-    <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartScores v2.0 - Recorded Scores</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="favicon.png" />
+  <script src="app.js" defer></script>
+  <style>
+   /* ===== Table Styling ===== */
+.table-container {
+  overflow-x: auto;
+  margin: 20px auto;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  min-width: 700px;
+}
+
+th {
+  background-color: maroon;
+  color: white;
+  padding: 12px;
+}
+
+td {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+tr:hover {
+  background-color: #f2f2f2;
+}
+
+  </style>
 </head>
+<body>
+  <header>
+    <h1>SmartScores v2.0</h1>
+    <p>Recorded Teacher Mean Scores</p>
+  </header>
 <body>
     <!-- Navigation -->
     <div class="nav">
