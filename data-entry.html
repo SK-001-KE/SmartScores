@@ -1,19 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartScores - Data Entry</title>
-    <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Entry</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="favicon.png" />
+  <script src="app.js" defer></script>
+  <style>
+   /* ===== Table Styling ===== */
+.table-container {
+  overflow-x: auto;
+  margin: 20px auto;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  min-width: 700px;
+}
+
+th {
+  background-color: maroon;
+  color: white;
+  padding: 12px;
+}
+
+td {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+tr:hover {
+  background-color: #f2f2f2;
+}
+
+  </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <div class="nav">
-        <button onclick="window.location.href='dashboard.html'">Dashboard</button>
-        <button onclick="window.location.href='data-entry.html'" class="active">Data Entry</button>
-        <button onclick="window.location.href='recorded-scores.html'">Recorded Scores</button>
-        <button onclick="window.location.href='averages-insights.html'">Averages & Insights</button>
-    </div>
+  <header>
+    <h1>SmartScores v2.0</h1>
+    <p>Data Entry</p>
+  </header>
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="data-entry.html" class="active">Set Targets</a>
+    <a href="recorded-scores.html">Recorded Scores</a>
+    <a href="averages-insights.html">Averages and Insights</a>
+     <a href="set-targets.html">Set Targets</a>
+  </nav>
+  <style>
+    /* Same base */
+    .form-group { margin:15px 0; }
+    select, input { width:100%; padding:10px; border:2px solid #ccc; border-radius:6px; }
+    .btn { background: #2563eb; color: white; border: none; padding: 12px 20px; margin: 10px 5px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .btn:hover { background: #1d4ed8; }
+    .btn-danger { background: #dc2626; }
+    .btn-danger:hover { background: #b91c1c; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th { background: #800000; color: white; padding: 12px; }
+    td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+    tr:hover { background: #f1f5f9; }
+  </style>
+</head>
   
     <!-- Content -->
     <div id="content">
