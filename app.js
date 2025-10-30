@@ -354,6 +354,52 @@
   const renderAll = () => {
     renderRecords();
     renderTargets();
+    const renderProgressChart = () => {
+  const canvas = el('progressChart');
+  if (!canvas || !window.Chart) return;
+
+  const records = loadRecords();
+  if (!records.length) return;
+
+  // Group by Term + Year
+  const termData = {};
+  records.forEach(r => {
+    const key = `${r.term} ${r.year}`;
+    if (!termData[key]) termData[key] = { sum: 0, count: 0 };
+    termData[key].sum += r.mean;
+    termData[key].count++;
+  });
+
+  const labels = Object.keys(termData).sort();
+  const data = labels.map(k => (termData[k].sum / termData[k].count).toFixed(1));
+
+  if (window.progressChartInstance) window.progressChartInstance.destroy();
+
+  window.progressChartInstance = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Average Mean Score',
+        data,
+        borderColor: '#2563eb',
+        backgroundColor: 'rgba(37,99,235,0.1)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#2563eb',
+        pointRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Mean Score (%)' } },
+        x: { title: { display: true, text: 'Term & Year' } }
+      }
+    }
+  });
+};
     updateDashboardStats();
   };
 
