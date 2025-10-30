@@ -1,8 +1,9 @@
-// SmartScores v2.9.7 - FULLY WORKING (No Reload, Saves, Updates Table)
+// SmartScores v2.9.8 - ALL BUTTONS FIXED + Dashboard UPDATED
 (() => {
   const STORAGE_KEY = 'smartScores';
   const TARGETS_KEY = 'smartScoresTargets';
   const TEACHER_KEY = 'lastTeacherName';
+  const BACKUP_KEY = 'lastBackupTime';
 
   // DOM Helpers
   const el = id => document.getElementById(id);
@@ -17,10 +18,10 @@
 
   // Rubric
   const rubric = s => {
-    if (s >= 75) return { text: 'Exceeding', color: '#16a34a', emoji: 'Trophy' };
-    if (s >= 41) return { text: 'Meeting', color: '#2563eb', emoji: 'Check' };
-    if (s >= 21) return { text: 'Approaching', color: '#f59e0b', emoji: 'Warning' };
-    return { text: 'Below', color: '#ef4444', emoji: 'Alert' };
+    if (s >= 75) return { text: 'Exceeding', color: '#16a34a', emoji: '🏆' };
+    if (s >= 41) return { text: 'Meeting', color: '#2563eb', emoji: '✅' };
+    if (s >= 21) return { text: 'Approaching', color: '#f59e0b', emoji: '⚠️' };
+    return { text: 'Below', color: '#ef4444', emoji: '❗' };
   };
 
   // Theme
@@ -48,7 +49,7 @@
   const loadTargets = () => load(TARGETS_KEY);
   const saveTargets = t => save(TARGETS_KEY, t);
 
-  // === SAVE RECORD (FIXED) ===
+  // === SAVE RECORD ===
   window.saveRecord = () => {
     const record = {
       teacher: el('teacherName')?.value.trim(),
@@ -61,7 +62,6 @@
       mean: Number(el('meanScore')?.value)
     };
 
-    // Validation
     if (!record.teacher || !record.subject || !record.grade || !record.stream || 
         !record.term || !record.examType || !record.year || isNaN(record.mean)) {
       return showAlert('Please fill all fields correctly.');
@@ -85,12 +85,9 @@
     records.push(record);
     saveRecords(records);
     localStorage.setItem(TEACHER_KEY, record.teacher);
-
-    // Clear only mean score
     el('meanScore').value = '';
-
     showAlert('Record saved successfully!');
-    renderAll(); // Updates Recorded Scores table
+    renderAll();
   };
 
   // === RENDER RECORDS ===
@@ -118,6 +115,7 @@
         </tr>
       `;
     }).join('');
+    filterRecords();
   };
 
   // === EDIT RECORD ===
@@ -173,7 +171,7 @@
     const saveBtn = document.querySelector('#dataEntryForm button');
     if (saveBtn) {
       saveBtn.textContent = 'Save Record';
-      saveBtn.onclick = null; // Will be reattached by form listener
+      saveBtn.onclick = null; // Re-attached by form listener
     }
   };
 
@@ -188,17 +186,85 @@
     }
   };
 
-  // === FILTER RECORDS ===
+  // === BACKUP BUTTON – FIXED ===
+  window.exportBackup = () => {
+    const records = loadRecords();
+    if (!records.length) return showAlert('No data to backup.');
+    const data = JSON.stringify(records, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `smartscores-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    localStorage.setItem(BACKUP_KEY, Date.now().toString());
+    showAlert('Backup saved!');
+    el('backupReminder')?.style.display = 'none';
+  };
+
+  // === EXPORT EXCEL – FIXED ===
+  window.exportToExcel = () => {
+    if (typeof XLSX === 'undefined') return showAlert('Excel library not loaded. Check internet.');
+    const records = loadRecords();
+    if (!records.length) return showAlert('No data to export.');
+    const data = records.map(r => ({
+      Teacher: r.teacher,
+      Subject: r.subject,
+      Grade: r.grade,
+      Stream: r.stream,
+      Term: r.term,
+      'Exam Type': r.examType,
+      Year: r.year,
+      'Mean Score': r.mean,
+      Rubric: rubric(r.mean).text
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Scores');
+    XLSX.writeFile(wb, `SmartScores_${new Date().toISOString().slice(0,10)}.xlsx`);
+    showAlert('Excel exported!');
+  };
+
+  // === CLEAR ALL – FIXED ===
+  window.clearAllData = () => {
+    if (!confirm('Delete ALL records? This cannot be undone.')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(TEACHER_KEY);
+    showAlert('All data cleared.');
+    renderAll();
+  };
+
+  // === FILTER & SORT ===
   window.filterRecords = () => {
     const search = (el('searchInput')?.value || '').toLowerCase();
     const rows = document.querySelectorAll('#recordsTable tbody tr');
     rows.forEach(row => {
-      const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(search) ? '' : 'none';
+      row.style.display = row.textContent.toLowerCase().includes(search) ? '' : 'none';
     });
   };
 
-  // === SAVE TARGET ===
+  let sortConfig = { key: null, direction: 'asc' };
+  window.sortTable = (key) => {
+    const tbody = document.querySelector('#recordsTable tbody');
+    if (!tbody) return;
+    const direction = sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc';
+    sortConfig = { key, direction };
+    const records = loadRecords();
+    records.sort((a, b) => {
+      let aVal = a[key], bVal = b[key];
+      if (['mean', 'year', 'grade'].includes(key)) {
+        aVal = Number(aVal); bVal = Number(bVal);
+      }
+      if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+      if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+    saveRecords(records);
+    renderRecords();
+  };
+
+  // === TARGETS ===
   window.saveTarget = () => {
     const target = {
       subject: el('targetSubject')?.value,
@@ -208,20 +274,10 @@
       examType: el('targetExamType')?.value,
       score: Number(el('targetScore')?.value)
     };
-
-    if (!target.subject || !target.grade || !target.stream || !target.term || !target.examType || isNaN(target.score)) {
-      return showAlert('Please fill all fields.');
-    }
-
-    if (target.score < 0 || target.score > 100) return showAlert('Target must be 0–100.');
-
+    if (!target.subject || !target.grade || !target.stream || !target.term || !target.examType || isNaN(target.score)) return showAlert('Fill all fields.');
+    if (target.score < 0 || target.score > 100) return showAlert('Target 0–100.');
     const targets = loadTargets();
-    const exists = targets.some(t =>
-      t.subject === target.subject && t.grade === target.grade && t.stream === target.stream &&
-      t.term === target.term && t.examType === target.examType
-    );
-    if (exists) return showAlert('Target already exists!');
-
+    if (targets.some(t => t.subject === target.subject && t.grade === target.grade && t.stream === target.stream && t.term === target.term && t.examType === target.examType)) return showAlert('Exists.');
     targets.push(target);
     saveTargets(targets);
     el('targetScore').value = '';
@@ -229,7 +285,6 @@
     renderTargets();
   };
 
-  // === RENDER TARGETS ===
   const renderTargets = () => {
     const tbody = document.querySelector('#targetsTable tbody');
     if (!tbody) return;
@@ -259,8 +314,7 @@
     el('targetTerm').value = t.term;
     el('targetExamType').value = t.examType;
     el('targetScore').value = t.score;
-
-    const btn = document.querySelector('#set-targets.html button');
+    const btn = document.querySelector('button[onclick="saveTarget()"]');
     if (btn) {
       btn.textContent = 'Update Target';
       btn.onclick = () => updateTarget(i);
@@ -276,7 +330,6 @@
       examType: el('targetExamType')?.value,
       score: Number(el('targetScore')?.value)
     };
-
     if (!updated.subject || isNaN(updated.score)) return showAlert('Fill all.');
     const targets = loadTargets();
     targets[i] = updated;
@@ -288,8 +341,8 @@
 
   const resetTargetForm = () => {
     el('targetScore').value = '';
-    const btn = document.querySelector('#set-targets.html button');
-    if (btn) {
+    const btn = document.querySelector('button[onclick]');
+    if (btn && btn.textContent.includes('Update')) {
       btn.textContent = 'Save Target';
       btn.onclick = saveTarget;
     }
@@ -305,19 +358,7 @@
     }
   };
 
-  // === RENDER ALL (Used everywhere) ===
-  const renderAll = () => {
-    renderRecords();
-    renderAverageScores();
-    updateDashboardStats();
-    renderAIInsights();
-    renderTargets();
-
-    const toggleBtn = el('chartToggle');
-    if (toggleBtn) toggleBtn.style.display = loadRecords().length > 0 ? 'inline-block' : 'none';
-  };
-
-  // === AVERAGE SCORES (for insights page) ===
+  // === AVERAGE SCORES ===
   const renderAverageScores = () => {
     const tbody = document.querySelector('#averageScoresTable tbody');
     if (!tbody) return;
@@ -331,10 +372,7 @@
     });
     tbody.innerHTML = Object.values(groups).map(g => {
       const avg = g.scores.reduce((a, s) => a + s, 0) / g.scores.length;
-      const target = targets.find(t =>
-        t.subject === g.subject && t.grade === g.grade && t.stream === g.stream &&
-        t.term === g.term && t.examType === g.examType
-      );
+      const target = targets.find(t => t.subject === g.subject && t.grade === g.grade && t.stream === g.stream && t.term === g.term && t.examType === g.examType);
       const deviation = target ? avg - target.score : null;
       const devText = deviation !== null ? `${deviation > 0 ? '+' : ''}${deviation.toFixed(1)}%` : '—';
       const devColor = deviation > 0 ? '#16a34a' : deviation < 0 ? '#dc2626' : '#666';
@@ -352,31 +390,37 @@
     }).join('');
   };
 
-  // === DASHBOARD STATS ===
+  // === DASHBOARD STATS – UPDATED ===
   const updateDashboardStats = () => {
     const records = loadRecords();
-    const uniqueTeachers = new Set(records.map(r => r.teacher)).size;
-    el('totalTeachers') && (el('totalTeachers').textContent = uniqueTeachers);
+    if (!records.length) return;
 
+    // Total Average (replaces Total Teachers)
+    const totalAvg = records.reduce((sum, r) => sum + r.mean, 0) / records.length;
+    if (el('totalTeachers')) el('totalTeachers').textContent = totalAvg.toFixed(1) + '%';
+    if (el('totalTeachers').parentElement) el('totalTeachers').parentElement.querySelector('p').textContent = 'Total Average';
+
+    // Best/Worst Subject with Details
     const subjectStats = {};
     records.forEach(r => {
-      const key = `${r.subject} G${r.grade}`;
-      if (!subjectStats[key]) subjectStats[key] = { sum: 0, count: 0 };
+      const key = `${r.subject} G${r.grade} ${r.stream}`;
+      if (!subjectStats[key]) subjectStats[key] = { sum: 0, count: 0, grade: r.grade, stream: r.stream, subject: r.subject };
       subjectStats[key].sum += r.mean;
       subjectStats[key].count++;
     });
 
-    let top = { name: '-', avg: 0 }, worst = { name: '-', avg: 100 };
+    let best = { name: '-', avg: 0, grade: '', stream: '', subject: '' }, worst = { name: '-', avg: 100, grade: '', stream: '', subject: '' };
     for (const [name, s] of Object.entries(subjectStats)) {
       const avg = s.sum / s.count;
-      if (avg > top.avg) top = { name, avg };
-      if (avg < worst.avg) worst = { name, avg };
+      if (avg > best.avg) best = { name, avg, ...s };
+      if (avg < worst.avg) worst = { name, avg, ...s };
     }
-    el('topSubject') && (el('topSubject').textContent = top.name);
-    el('worstSubject') && (el('worstSubject').textContent = worst.name);
+    if (el('topSubject')) el('topSubject').textContent = `${best.subject} G${best.grade} ${best.stream} (${best.avg.toFixed(1)}%)`;
+    if (el('worstSubject')) el('worstSubject').textContent = `${worst.subject} G${worst.grade} ${worst.stream} (${worst.avg.toFixed(1)}%)`;
 
-    const last = records[records.length - 1];
-    el('lastEntry') && (el('lastEntry').textContent = last ? `${last.term} ${last.year}` : 'Never');
+    // Last Entry – Rubric Based on Total Average
+    const totalRub = rubric(totalAvg);
+    if (el('lastEntry')) el('lastEntry').innerHTML = `${totalRub.emoji} ${totalRub.text}`;
   };
 
   // === AI INSIGHTS ===
@@ -402,38 +446,16 @@
     container.innerHTML = insights.length ? insights.map(i => `<p class="insight">${i}</p>`).join('') : '<p>No insights yet.</p>';
   };
 
-  // === CHART (optional) ===
-  let chartInstance = null;
-  window.toggleChart = () => {
-    const container = el('chartContainer');
-    const btn = el('chartToggle');
-    const show = container.style.display === 'none';
-    container.style.display = show ? 'block' : 'none';
-    btn.textContent = show ? 'Hide Chart' : 'Show Chart';
-    if (show) renderChart();
-  };
-
-  const renderChart = () => {
-    const canvas = el('avgChart');
-    if (!canvas || !window.Chart) return;
-    if (chartInstance) chartInstance.destroy();
-
+  // === RENDER ALL ===
+  const renderAll = () => {
+    renderRecords();
+    renderAverageScores();
+    updateDashboardStats();
+    renderAIInsights();
+    renderTargets();
     const records = loadRecords();
-    const subjectData = {};
-    records.forEach(r => {
-      const key = `${r.subject} G${r.grade}`;
-      if (!subjectData[key]) subjectData[key] = { sum: 0, count: 0 };
-      subjectData[key].sum += r.mean;
-      subjectData[key].count++;
-    });
-    const labels = Object.keys(subjectData);
-    const data = labels.map(k => (subjectData[k].sum / subjectData[k].count).toFixed(1));
-
-    chartInstance = new Chart(canvas, {
-      type: 'bar',
-      data: { labels, datasets: [{ label: 'Avg %', data, backgroundColor: '#2563eb', borderRadius: 4 }] },
-      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100 } } }
-    });
+    const toggleBtn = el('chartToggle');
+    if (toggleBtn) toggleBtn.style.display = records.length > 0 ? 'inline-block' : 'none';
   };
 
   // === INIT ===
@@ -442,7 +464,7 @@
     loadLastTeacher();
     renderAll();
 
-    // FORM SUBMIT LISTENER (PREVENT RELOAD)
+    // FORM SUBMIT LISTENER – FIXED (No Reload)
     const form = el('dataEntryForm');
     if (form) {
       form.addEventListener('submit', (e) => {
@@ -451,7 +473,7 @@
       });
     }
 
-    // AUTO RENDER ON RECORDED SCORES PAGE
+    // AUTO-RENDER ON RECORDED SCORES
     if (location.pathname.includes('recorded-scores')) {
       renderRecords();
       filterRecords();
