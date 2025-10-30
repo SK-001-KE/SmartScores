@@ -147,7 +147,7 @@
           <td>${r.examType}</td>
           <td>${r.year}</td>
           <td>${r.mean.toFixed(1)}%</td>
-          <td><span style="background:${rub.color};color:#fff;padding:4px 8px;border-radius:6px;">${rub.emoji} ${rub.text}</span></td>
+         <td><span style="background:${rub.color};color:#fff;padding:4px 8px;border-radius:6px;">${rub.emoji} ${rub.text}</span></td>
           <td>
             <button onclick="deleteRecord(${i})" class="btn btn-danger" style="padding:6px 10px;font-size:0.9rem;">Delete</button>
           </td>
@@ -175,52 +175,87 @@
     `).join('');
   };
 
-  // === INSIGHTS – FIXED ===
-  const renderAIInsights = () => {
-    const container = el('insights');
-    if (!container) return;
-    const records = loadRecords();
-    if (!records.length) {
-      container.innerHTML = '<p>No data. Enter scores to see insights.</p>';
-      return;
-    }
+ // === RENDER AI INSIGHTS ===
+const renderAIInsights = () => {
+  const container = el('insights');
+  if (!container) return;
+  const records = loadRecords();
+  if (!records.length) {
+    container.innerHTML = '<p class="insight">No data. Enter scores to see insights.</p>';
+    return;
+  }
 
-    const groups = {};
-    records.forEach(r => {
-      const key = `${r.subject}|${r.grade}`;
-      if (!groups[key]) groups[key] = { sum: 0, count: 0 };
-      groups[key].sum += r.mean;
-      groups[key].count++;
-    });
+  const groups = {};
+  records.forEach(r => {
+    const key = `${r.subject}|${r.grade}`;
+    if (!groups[key]) groups[key] = { sum: 0, count: 0 };
+    groups[key].sum += r.mean;
+    groups[key].count++;
+  });
 
-    const insights = [];
-    for (const [key, data] of Object.entries(groups)) {
-      const avg = data.sum / data.count;
-      const [subject, grade] = key.split('|');
-      if (avg < 40) insights.push(`**${subject}** Grade ${grade}: **${avg.toFixed(1)}%** – Needs attention`);
-      else if (avg > 80) insights.push(`**${subject}** Grade ${grade}: **${avg.toFixed(1)}%** – Excellent!`);
-    }
+  const insights = [];
+  for (const [key, data] of Object.entries(groups)) {
+    const avg = data.sum / data.count;
+    const [subject, grade] = key.split('|');
+    if (avg < 40) insights.push(`${subject} Grade ${grade}: ${avg.toFixed(1)}% – Needs attention`);
+    else if (avg > 75) insights.push(`${subject} Grade ${grade}: ${avg.toFixed(1)}% – Excellent!`);
+  }
 
-    container.innerHTML = insights.length 
-      ? insights.map(i => `<p class="insight">${i}</p>`).join('')
-      : '<p>All subjects performing well!</p>';
-  };
+  container.innerHTML = insights.length 
+    ? insights.map(i => `<p class="insight">${i}</p>`).join('')
+    : '<p class="insight">All subjects performing well!</p>';
+};
 
-  // === DASHBOARD ===
-  const updateDashboardStats = () => {
-    const records = loadRecords();
-    if (!records.length) return;
+ // === DASHBOARD – BEST & WORST FIXED ===
+const updateDashboardStats = () => {
+  const records = loadRecords();
+  if (!records.length) return;
 
-    const totalAvg = records.reduce((sum, r) => sum + r.mean, 0) / records.length;
-    const totalRub = rubric(totalAvg);
+  const totalAvg = records.reduce((sum, r) => sum + r.mean, 0) / records.length;
+  const totalRub = rubric(totalAvg);
 
-    const avgCard = el('totalAvgCard');
-    if (avgCard) {
-      avgCard.innerHTML = `<h2 style="margin:0;font-size:3rem;color:#fff;">${totalAvg.toFixed(1)}%</h2>
-        <p style="margin:8px 0;font-size:1.3rem;color:#fff;">${totalRub.emoji} ${totalRub.text}</p>
-        <small style="color:#e0f2fe;">Overall</small>`;
-    }
-  };
+  const avgCard = el('totalAvgCard');
+  if (avgCard) {
+    avgCard.innerHTML = `
+      <h2 style="margin:0;font-size:3rem;color:#fff;font-weight:bold;">${totalAvg.toFixed(1)}%</h2>
+      <p style="margin:8px 0;font-size:1.3rem;color:#fff;">${totalRub.emoji} ${totalRub.text}</p>
+      <small style="color:#e0f2fe;">Overall Performance</small>
+    `;
+  }
+
+  const subjectStats = {};
+  records.forEach(r => {
+    const key = `${r.subject}|${r.grade}|${r.stream}`;
+    if (!subjectStats[key]) subjectStats[key] = { sum: 0, count: 0, subject: r.subject, grade: r.grade, stream: r.stream };
+    subjectStats[key].sum += r.mean;
+    subjectStats[key].count++;
+  });
+
+  let best = { avg: -1 }, worst = { avg: 101 };
+  for (const s of Object.values(subjectStats)) {
+    const avg = s.sum / s.count;
+    if (avg > best.avg) best = { ...s, avg };
+    if (avg < worst.avg) worst = { ...s, avg };
+  }
+
+  const bestCard = el('bestSubjectCard');
+  if (bestCard && best.avg >= 0) {
+    bestCard.innerHTML = `
+      <h2 style="margin:0;font-size:2.5rem;color:#fff;font-weight:bold;">${best.avg.toFixed(1)}%</h2>
+      <p style="margin:8px 0;font-size:1.2rem;color:#fff;">${best.subject}</p>
+      <small style="color:#d1fae5;">G${best.grade} • ${best.stream}</small>
+    `;
+  }
+
+  const worstCard = el('worstSubjectCard');
+  if (worstCard && worst.avg <= 100) {
+    worstCard.innerHTML = `
+      <h2 style="margin:0;font-size:2.5rem;color:#fff;font-weight:bold;">${worst.avg.toFixed(1)}%</h2>
+      <p style="margin:8px 0;font-size:1.2rem;color:#fff;">${worst.subject}</p>
+      <small style="color:#fecaca;">G${worst.grade} • ${worst.stream}</small>
+    `;
+  }
+};
 
   // === PDF DOWNLOAD – FIXED ===
   window.downloadPDF = () => {
