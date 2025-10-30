@@ -6,18 +6,25 @@
   <title>SmartScores - Data Entry</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="icon-192x192.png" />
   <script src="app.js" defer></script>
   <style>
     :root { --maroon: #800000; --blue: #2563eb; --white: #fff; --light: #f9f9f9; --dark: #333; --bg: var(--light); --text: var(--dark); }
     [data-theme="dark"] { --bg: #1a1a1a; --text: #fff; --maroon: #a40000; --blue: #4f94ff; }
-    body { margin:0; font-family:Arial; background:var(--bg); color:var(--text); }
-    header, nav, footer { /* same as index.html */ }
+    body { margin:0; font-family:Arial; background:var(--bg); color:var(--text); transition:.3s; }
+    header { background:var(--blue); color:white; padding:15px; text-align:center; }
+    nav { background:var(--maroon); padding:12px; text-align:center; }
+    nav a { color:white; margin:0 10px; padding:8px 16px; border-radius:6px; text-decoration:none; font-weight:bold; }
+    nav a:hover, nav a.active { background:var(--blue); }
     .content { max-width:800px; margin:30px auto; padding:0 15px; }
-    .form-group { margin:15px 0; }
+    .form-group { margin:15px 0; text-align:left; }
     label { display:block; margin-bottom:5px; font-weight:bold; }
     input, select { width:100%; padding:10px; border:2px solid #ccc; border-radius:6px; font-size:16px; }
+    input:focus, select:focus { border-color:var(--blue); outline:none; }
     .btn { background:var(--blue); color:white; border:none; padding:12px 20px; margin:10px 5px; border-radius:6px; cursor:pointer; font-weight:bold; }
     .btn:hover { background:#1d4ed8; }
+    footer { background:var(--dark); color:white; text-align:center; padding:12px; margin-top:50px; font-size:.9em; }
+    @media (max-width:768px) { .btn { width:100%; margin:8px 0; } }
   </style>
 </head>
 <body>
@@ -26,7 +33,10 @@
   </div>
 
   <header>
-    <h1><img src="icon-192x192.png" alt="" style="height:40px;vertical-align:middle;margin-right:10px;border-radius:8px;"> SmartScores</h1>
+    <h1>
+      <img src="icon-192x192.png" alt="SmartScores" style="height:40px;vertical-align:middle;margin-right:10px;border-radius:8px;">
+      SmartScores
+    </h1>
     <p>Data Entry</p>
   </header>
 
@@ -39,49 +49,79 @@
   </nav>
 
   <div class="content">
-    <form onsubmit="saveRecord(); return false;">
-      <div class="form-group">
-        <label>Teacher Name</label>
-        <input type="text" id="teacherName" required />
-      </div>
-      <div class="form-group">
-        <label>Subject</label>
-        <input type="text" id="subject" required />
-      </div>
-      <div class="form-group">
-        <label>Grade</label>
-        <select id="grade" required>
-          <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Stream</label>
-        <input type="text" id="stream" required />
-      </div>
-      <div class="form-group">
-        <label>Term</label>
-        <select id="term" required>
-          <option>Term 1</option><option>Term 2</option><option>Term 3</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Exam Type</label>
-        <select id="examType" required>
-          <option>Mid-Term</option><option>End-Term</option><option>CAT</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Year</label>
-        <input type="number" id="year" min="2000" max="2100" required />
-      </div>
-      <div class="form-group">
-        <label>Mean Score (%)</label>
-        <input type="number" id="mean" min="0" max="100" step="0.1" required />
-      </div>
-      <button type="submit" class="btn">Save Record</button>
-    </form>
+    <h2>Enter Teacher Mean Scores</h2>
+    <div class="form-group">
+      <label for="teacherName">Teacher's Name</label>
+      <input type="text" id="teacherName" placeholder="Enter Teacher's Name" required />
+    </div>
+    <div class="form-group">
+      <label for="subject">Subject</label>
+      <select id="subject" required>
+        <option value="">--Select Subject--</option>
+        <option value="Mathematics">Mathematics</option>
+        <option value="English">English</option>
+        <option value="Kiswahili">Kiswahili</option>
+        <option value="Science">Science</option>
+        <option value="Agriculture and Nutrition">Agriculture and Nutrition</option>
+        <option value="Creative Arts">Creative Arts</option>
+        <option value="Social Studies">Social Studies</option>
+        <option value="CRE">CRE</option>
+        <option value="Pre-Technical Studies">Pre-Technical Studies</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="grade">Grade</label>
+      <select id="grade" required>
+        <option value="">--Select Grade--</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="stream">Stream</label>
+      <select id="stream" required>
+        <option value="">--Select Stream--</option>
+        <option value="Faith">Faith</option>
+        <option value="Glory">Glory</option>
+        <option value="Joy">Joy</option>
+        <option value="Love">Love</option>
+        <option value="Peace">Peace</option>
+        <option value="Unity">Unity</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="term">Term</label>
+      <select id="term" required>
+        <option value="">--Select Term--</option>
+        <option value="Term 1">Term 1</option>
+        <option value="Term 2">Term 2</option>
+        <option value="Term 3">Term 3</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="examType">Exam Type</label>
+      <select id="examType" required>
+        <option value="">--Select Exam Type--</option>
+        <option value="Opener Exam">Opener Exam</option>
+        <option value="Mid Term Exam">Mid Term Exam</option>
+        <option value="End Term Exam">End Term Exam</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="year">Year</label>
+      <input type="number" id="year" placeholder="Enter Year" min="2000" max="2100" required />
+    </div>
+    <div class="form-group">
+      <label for="meanScore">Mean Score</label>
+      <input type="number" id="meanScore" placeholder="Enter Mean Score" min="0" max="100" step="0.1" required />
+    </div>
+    <button onclick="saveRecord()" class="btn">💾 Save Record</button>
   </div>
 
-  <footer>SmartScores v2.9.5 © Kariuki 2025</footer>
+  <footer>SmartScores v2.9.6 © Kariuki 2025</footer>
 </body>
 </html>
