@@ -61,14 +61,11 @@
       <tbody></tbody>
     </table>
 
-    <div class="btn-group">
-      <button onclick="exportToExcel()" class="btn">Excel Export</button>
-      <button onclick="exportBackup()" class="btn">Backup</button>
-      <label class="btn" style="cursor:pointer;">
-        Import <input type="file" id="importFile" onchange="importData(event)" style="display:none;" accept=".json" />
-      </label>
-      <button onclick="clearAllData()" class="btn" style="background:#dc2626;">Clear All</button>
-    </div>
+    <div style="text-align:center;margin:20px;">
+  <button onclick="exportToExcel()" class="btn">Export Excel</button>
+  <button onclick="exportBackup()" class="btn">Backup JSON</button>
+  <button onclick="clearAllData()" class="btn btn-danger">Clear All</button>
+</div>
   </div>
 </body>
 </html>
