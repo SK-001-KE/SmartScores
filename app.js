@@ -1,4 +1,4 @@
-// SmartScores v2.9.15 - SAVE FIXED + CHARTS + PDF + EDIT
+// SmartScores v2.9.16 - SAVE FIXED FOREVER
 (() => {
   const STORAGE_KEY = 'smartScores';
   const TARGETS_KEY = 'smartScoresTargets';
@@ -45,7 +45,7 @@
   const loadTargets = () => load(TARGETS_KEY);
   const saveTargets = t => save(TARGETS_KEY, t);
 
-  // === UNIFIED SAVE RECORD ===
+  // === SAVE RECORD (UNIFIED) ===
   const handleSaveRecord = () => {
     const record = {
       teacher: el('teacherName')?.value.trim(),
@@ -69,6 +69,7 @@
     const records = loadRecords();
 
     if (editingRecordIndex !== null) {
+      // UPDATE
       records[editingRecordIndex] = record;
       saveRecords(records);
       localStorage.setItem(TEACHER_KEY, record.teacher);
@@ -76,6 +77,7 @@
       editingRecordIndex = null;
       resetRecordButton();
     } else {
+      // NEW
       const exists = records.some(r =>
         r.teacher === record.teacher && r.subject === record.subject &&
         r.grade === record.grade && r.stream === record.stream &&
@@ -91,7 +93,7 @@
     renderAll();
   };
 
-  // === UNIFIED SAVE TARGET ===
+  // === SAVE TARGET (UNIFIED) ===
   const handleSaveTarget = () => {
     const target = {
       subject: el('targetSubject')?.value,
@@ -130,7 +132,7 @@
     renderTargets();
   };
 
-  // === EDIT RECORD ===
+  // === EDIT RECORD – NO onclick! ===
   window.editRecord = (i) => {
     const records = loadRecords();
     const r = records[i];
@@ -150,7 +152,7 @@
     if (saveBtn) saveBtn.textContent = 'Update Record';
   };
 
-  // === EDIT TARGET ===
+  // === EDIT TARGET – NO onclick! ===
   window.editTarget = (i) => {
     const targets = loadTargets();
     const t = targets[i];
@@ -204,16 +206,6 @@
     }
   };
 
-  // === DOWNLOAD PDF ===
-  window.downloadPDF = () => {
-    const printBtn = el('printBtn');
-    if (printBtn) printBtn.style.display = 'none';
-    window.print();
-    setTimeout(() => {
-      if (printBtn) printBtn.style.display = 'block';
-    }, 1000);
-  };
-
   // === RENDER TABLES ===
   const renderRecords = () => {
     const tbody = document.querySelector('#recordsTable tbody');
@@ -261,7 +253,7 @@
     `).join('');
   };
 
-  // === DASHBOARD STATS ===
+  // === DASHBOARD & CHART (SIMPLE) ===
   const updateDashboardStats = () => {
     const records = loadRecords();
     if (!records.length) return;
@@ -312,11 +304,9 @@
     }
   };
 
-  // === PROGRESS CHART ===
   const renderProgressChart = () => {
     const canvas = el('progressChart');
     if (!canvas || !window.Chart) return;
-
     const records = loadRecords();
     if (!records.length) return;
 
@@ -335,27 +325,8 @@
 
     window.progressChartInstance = new Chart(canvas, {
       type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Average Mean Score',
-          data,
-          borderColor: '#2563eb',
-          backgroundColor: 'rgba(37,99,235,0.1)',
-          fill: true,
-          tension: 0.4,
-          pointBackgroundColor: '#2563eb',
-          pointRadius: 6
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, max: 100, title: { display: true, text: 'Mean Score (%)' } },
-          x: { title: { display: true, text: 'Term & Year' } }
-        }
-      }
+      data: { labels, datasets: [{ label: 'Avg', data, borderColor: '#2563eb', fill: true, tension: 0.4 }] },
+      options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
     });
   };
 
@@ -367,13 +338,12 @@
     renderProgressChart();
   };
 
-  // === INIT ===
+  // === INIT – FORM LISTENERS ONLY ===
   document.addEventListener('DOMContentLoaded', () => {
     loadTheme();
     loadLastTeacher();
     renderAll();
 
-    // FORM LISTENERS – NEVER BREAK
     const dataForm = el('dataEntryForm');
     if (dataForm) {
       dataForm.addEventListener('submit', e => {
