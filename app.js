@@ -131,30 +131,44 @@
   };
 
   // === RENDER TABLES ===
-  const renderRecords = () => {
-    const tbody = document.querySelector('#recordsTable tbody');
-    if (!tbody) return;
-    const records = loadRecords();
-    tbody.innerHTML = records.map((r, i) => {
-      const rub = rubric(r.mean);
-      return `
-        <tr>
-          <td>${r.teacher}</td>
-          <td>${r.subject}</td>
-          <td>${r.grade}</td>
-          <td>${r.stream}</td>
-          <td>${r.term}</td>
-          <td>${r.examType}</td>
-          <td>${r.year}</td>
-          <td>${r.mean.toFixed(1)}%</td>
-         <td><span style="background:${rub.color};color:#fff;padding:4px 8px;border-radius:6px;">${rub.emoji} ${rub.text}</span></td>
-          <td>
-            <button onclick="deleteRecord(${i})" class="btn btn-danger" style="padding:6px 10px;font-size:0.9rem;">Delete</button>
-          </td>
-        </tr>
-      `;
-    }).join('');
-  };
+ const renderRecords = () => {
+  const tbody = document.querySelector('#recordsTable tbody');
+  if (!tbody) return;
+  const records = loadRecords();
+  const targets = loadTargets();
+
+  // Create target lookup: subject|grade|stream|term|examType → score
+  const targetMap = {};
+  targets.forEach(t => {
+    const key = `${t.subject}|${t.grade}|${t.stream}|${t.term}|${t.examType}`;
+    targetMap[key] = t.score;
+  });
+
+  tbody.innerHTML = records.map(r => {
+    const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}|${r.examType}`;
+    const target = targetMap[key] || 0;
+    const deviation = (r.mean - target).toFixed(1);
+    const rub = rubric(r.mean);
+
+    return `
+      <tr>
+        <td>${r.teacher}</td>
+        <td>${r.subject}</td>
+        <td>${r.grade}</td>
+        <td>${r.stream}</td>
+        <td>${r.term}</td>
+        <td>${r.examType}</td>
+        <td>${r.year}</td>
+        <td>${r.mean.toFixed(1)}%</td>
+        <td>${target}%</td>
+        <td style="font-weight:bold;color:${deviation >= 0 ? '#16a34a' : '#dc2626'}">
+          ${deviation >= 0 ? '+' : ''}${deviation}%
+        </td>
+        <td><span style="background:${rub.color};color:#fff;padding:4px 8px;border-radius:6px;">${rub.emoji} ${rub.text}</span></td>
+      </tr>
+    `;
+  }).join('');
+};
 
   const renderTargets = () => {
     const tbody = document.querySelector('#targetsTable tbody');
@@ -180,32 +194,37 @@ const renderAIInsights = () => {
   const container = el('insights');
   if (!container) return;
   const records = loadRecords();
+  const targets = loadTargets();
+
   if (!records.length) {
     container.innerHTML = '<p class="insight">No data. Enter scores to see insights.</p>';
     return;
   }
 
-  const groups = {};
-  records.forEach(r => {
-    const key = `${r.subject}|${r.grade}`;
-    if (!groups[key]) groups[key] = { sum: 0, count: 0 };
-    groups[key].sum += r.mean;
-    groups[key].count++;
+  // Target map
+  const targetMap = {};
+  targets.forEach(t => {
+    const key = `${t.subject}|${t.grade}|${t.stream}|${t.term}|${t.examType}`;
+    targetMap[key] = t.score;
   });
 
   const insights = [];
-  for (const [key, data] of Object.entries(groups)) {
-    const avg = data.sum / data.count;
-    const [subject, grade] = key.split('|');
-    if (avg < 40) insights.push(`${subject} Grade ${grade}: ${avg.toFixed(1)}% – Needs attention`);
-    else if (avg > 75) insights.push(`${subject} Grade ${grade}: ${avg.toFixed(1)}% – Excellent!`);
-  }
+  records.forEach(r => {
+    const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}|${r.examType}`;
+    const target = targetMap[key] || 0;
+    const deviation = r.mean - target;
+
+    if (deviation < -10) {
+      insights.push(`${r.subject} (G${r.grade} ${r.stream}) – ${r.mean.toFixed(1)}% vs ${target}% target: **${deviation.toFixed(1)}% below** – Needs urgent attention`);
+    } else if (deviation > 10) {
+      insights.push(`${r.subject} (G${r.grade} ${r.stream}) – ${r.mean.toFixed(1)}% vs ${target}% target: **+${deviation.toFixed(1)}% above** – Outstanding!`);
+    }
+  });
 
   container.innerHTML = insights.length 
     ? insights.map(i => `<p class="insight">${i}</p>`).join('')
-    : '<p class="insight">All subjects performing well!</p>';
+    : '<p class="insight">All subjects on track with targets!</p>';
 };
-
  // === DASHBOARD – BEST & WORST FIXED ===
 const updateDashboardStats = () => {
   const records = loadRecords();
