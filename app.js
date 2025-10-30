@@ -351,9 +351,14 @@
   };
 
   // === RENDER ALL ===
-  const renderAll = () => {
-    renderRecords();
-    renderTargets();
+ const renderAll = () => {
+  renderRecords();
+  renderTargets();
+  updateDashboardStats();
+  renderProgressChart();  // NEW
+  renderAIInsights();
+  renderAverageScores();
+};
     const renderProgressChart = () => {
   const canvas = el('progressChart');
   if (!canvas || !window.Chart) return;
