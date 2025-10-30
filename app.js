@@ -1,4 +1,4 @@
-// SmartScores v2.9.12 - PDF + EDIT FIXED + DASHBOARD CLEAN
+// SmartScores v2.9.15 - SAVE FIXED + CHARTS + PDF + EDIT
 (() => {
   const STORAGE_KEY = 'smartScores';
   const TARGETS_KEY = 'smartScoresTargets';
@@ -20,11 +20,16 @@
     return { text: 'Below', color: '#ef4444', emoji: 'Alert' };
   };
 
+  // === EDIT STATE ===
+  let editingRecordIndex = null;
+  let editingTargetIndex = null;
+
   window.toggleDarkMode = () => {
     const isDark = document.documentElement.dataset.theme === 'dark';
     document.documentElement.dataset.theme = isDark ? 'light' : 'dark';
     localStorage.setItem('theme', isDark ? 'light' : 'dark');
   };
+
   const loadTheme = () => {
     const theme = localStorage.getItem('theme') || 'light';
     document.documentElement.dataset.theme = theme;
@@ -40,8 +45,8 @@
   const loadTargets = () => load(TARGETS_KEY);
   const saveTargets = t => save(TARGETS_KEY, t);
 
-  // === SAVE RECORD ===
-  window.saveRecord = () => {
+  // === UNIFIED SAVE RECORD ===
+  const handleSaveRecord = () => {
     const record = {
       teacher: el('teacherName')?.value.trim(),
       subject: el('subject')?.value,
@@ -62,27 +67,32 @@
     if (record.year < 2000 || record.year > 2100) return showAlert('Year must be 2000–2100.');
 
     const records = loadRecords();
-    const exists = records.some(r =>
-      r.teacher === record.teacher &&
-      r.subject === record.subject &&
-      r.grade === record.grade &&
-      r.stream === record.stream &&
-      r.term === record.term &&
-      r.examType === record.examType &&
-      r.year === record.year
-    );
-    if (exists) return showAlert('This record already exists!');
 
-    records.push(record);
-    saveRecords(records);
-    localStorage.setItem(TEACHER_KEY, record.teacher);
-    el('meanScore').value = '';
-    showAlert('Record saved successfully!');
+    if (editingRecordIndex !== null) {
+      records[editingRecordIndex] = record;
+      saveRecords(records);
+      localStorage.setItem(TEACHER_KEY, record.teacher);
+      showAlert('Record updated!');
+      editingRecordIndex = null;
+      resetRecordButton();
+    } else {
+      const exists = records.some(r =>
+        r.teacher === record.teacher && r.subject === record.subject &&
+        r.grade === record.grade && r.stream === record.stream &&
+        r.term === record.term && r.examType === record.examType && r.year === record.year
+      );
+      if (exists) return showAlert('This record already exists!');
+      records.push(record);
+      saveRecords(records);
+      localStorage.setItem(TEACHER_KEY, record.teacher);
+      el('meanScore').value = '';
+      showAlert('Record saved successfully!');
+    }
     renderAll();
   };
 
-  // === SAVE TARGET ===
-  window.saveTarget = () => {
+  // === UNIFIED SAVE TARGET ===
+  const handleSaveTarget = () => {
     const target = {
       subject: el('targetSubject')?.value,
       grade: el('targetGrade')?.value,
@@ -99,23 +109,28 @@
     if (target.score < 0 || target.score > 100) return showAlert('Target must be 0–100.');
 
     const targets = loadTargets();
-    const exists = targets.some(t =>
-      t.subject === target.subject &&
-      t.grade === target.grade &&
-      t.stream === target.stream &&
-      t.term === target.term &&
-      t.examType === target.examType
-    );
-    if (exists) return showAlert('This target already exists!');
 
-    targets.push(target);
-    saveTargets(targets);
-    el('targetScore').value = '';
-    showAlert('Target saved successfully!');
+    if (editingTargetIndex !== null) {
+      targets[editingTargetIndex] = target;
+      saveTargets(targets);
+      showAlert('Target updated!');
+      editingTargetIndex = null;
+      resetTargetButton();
+    } else {
+      const exists = targets.some(t =>
+        t.subject === target.subject && t.grade === target.grade &&
+        t.stream === target.stream && t.term === target.term && t.examType === target.examType
+      );
+      if (exists) return showAlert('This target already exists!');
+      targets.push(target);
+      saveTargets(targets);
+      el('targetScore').value = '';
+      showAlert('Target saved successfully!');
+    }
     renderTargets();
   };
 
-  // === EDIT RECORD – FIXED ===
+  // === EDIT RECORD ===
   window.editRecord = (i) => {
     const records = loadRecords();
     const r = records[i];
@@ -130,47 +145,12 @@
     el('year').value = r.year;
     el('meanScore').value = r.mean;
 
+    editingRecordIndex = i;
     const saveBtn = document.querySelector('#dataEntryForm button[type="submit"]');
-    if (saveBtn) {
-      saveBtn.textContent = 'Update Record';
-      saveBtn.onclick = () => updateRecord(i);
-    }
+    if (saveBtn) saveBtn.textContent = 'Update Record';
   };
 
-  const updateRecord = (i) => {
-    const updated = {
-      teacher: el('teacherName')?.value.trim(),
-      subject: el('subject')?.value,
-      grade: el('grade')?.value,
-      stream: el('stream')?.value,
-      term: el('term')?.value,
-      examType: el('examType')?.value,
-      year: el('year')?.value,
-      mean: Number(el('meanScore')?.value)
-    };
-
-    if (!updated.teacher || !updated.subject || isNaN(updated.mean)) return showAlert('Fill all fields.');
-    if (updated.mean < 0 || updated.mean > 100) return showAlert('Mean 0–100.');
-
-    const records = loadRecords();
-    records[i] = updated;
-    saveRecords(records);
-    localStorage.setItem(TEACHER_KEY, updated.teacher);
-    resetForm();
-    showAlert('Record updated!');
-    renderAll();
-  };
-
-  const resetForm = () => {
-    el('meanScore').value = '';
-    const saveBtn = document.querySelector('#dataEntryForm button[type="submit"]');
-    if (saveBtn) {
-      saveBtn.textContent = 'Save Record';
-      saveBtn.onclick = null;
-    }
-  };
-
-  // === EDIT TARGET – FIXED ===
+  // === EDIT TARGET ===
   window.editTarget = (i) => {
     const targets = loadTargets();
     const t = targets[i];
@@ -183,41 +163,24 @@
     el('targetExamType').value = t.examType;
     el('targetScore').value = t.score;
 
+    editingTargetIndex = i;
     const saveBtn = document.querySelector('#setTargetsForm button[type="submit"]');
-    if (saveBtn) {
-      saveBtn.textContent = 'Update Target';
-      saveBtn.onclick = () => updateTarget(i);
-    }
+    if (saveBtn) saveBtn.textContent = 'Update Target';
   };
 
-  const updateTarget = (i) => {
-    const updated = {
-      subject: el('targetSubject')?.value,
-      grade: el('targetGrade')?.value,
-      stream: el('targetStream')?.value,
-      term: el('targetTerm')?.value,
-      examType: el('targetExamType')?.value,
-      score: Number(el('targetScore')?.value)
-    };
-
-    if (!updated.subject || isNaN(updated.score)) return showAlert('Fill all fields.');
-    if (updated.score < 0 || updated.score > 100) return showAlert('Target 0–100.');
-
-    const targets = loadTargets();
-    targets[i] = updated;
-    saveTargets(targets);
-    resetTargetForm();
-    showAlert('Target updated!');
-    renderTargets();
+  // === RESET BUTTONS ===
+  const resetRecordButton = () => {
+    const saveBtn = document.querySelector('#dataEntryForm button[type="submit"]');
+    if (saveBtn) saveBtn.textContent = 'Save Record';
+    editingRecordIndex = null;
+    el('meanScore').value = '';
   };
 
-  const resetTargetForm = () => {
+  const resetTargetButton = () => {
+    const saveBtn = document.querySelector('#setTargetsForm button[type="submit"]');
+    if (saveBtn) saveBtn.textContent = 'Save Target';
+    editingTargetIndex = null;
     el('targetScore').value = '';
-    const saveBtn = document.querySelector('#setTargetsForm button[type="submit"]');
-    if (saveBtn) {
-      saveBtn.textContent = 'Save Target';
-      saveBtn.onclick = null;
-    }
   };
 
   // === DELETE ===
@@ -241,9 +204,8 @@
     }
   };
 
-  // === DOWNLOAD PDF – FIXED ===
+  // === DOWNLOAD PDF ===
   window.downloadPDF = () => {
-    if (typeof window.print !== 'function') return showAlert('Print not supported.');
     const printBtn = el('printBtn');
     if (printBtn) printBtn.style.display = 'none';
     window.print();
@@ -299,7 +261,7 @@
     `).join('');
   };
 
-  // === DASHBOARD – 3 CARDS ONLY ===
+  // === DASHBOARD STATS ===
   const updateDashboardStats = () => {
     const records = loadRecords();
     if (!records.length) return;
@@ -350,62 +312,59 @@
     }
   };
 
-  // === RENDER ALL ===
- const renderAll = () => {
-  renderRecords();
-  renderTargets();
-  updateDashboardStats();
-  renderProgressChart();  // NEW
-  renderAIInsights();
-  renderAverageScores();
-};
-    const renderProgressChart = () => {
-  const canvas = el('progressChart');
-  if (!canvas || !window.Chart) return;
+  // === PROGRESS CHART ===
+  const renderProgressChart = () => {
+    const canvas = el('progressChart');
+    if (!canvas || !window.Chart) return;
 
-  const records = loadRecords();
-  if (!records.length) return;
+    const records = loadRecords();
+    if (!records.length) return;
 
-  // Group by Term + Year
-  const termData = {};
-  records.forEach(r => {
-    const key = `${r.term} ${r.year}`;
-    if (!termData[key]) termData[key] = { sum: 0, count: 0 };
-    termData[key].sum += r.mean;
-    termData[key].count++;
-  });
+    const termData = {};
+    records.forEach(r => {
+      const key = `${r.term} ${r.year}`;
+      if (!termData[key]) termData[key] = { sum: 0, count: 0 };
+      termData[key].sum += r.mean;
+      termData[key].count++;
+    });
 
-  const labels = Object.keys(termData).sort();
-  const data = labels.map(k => (termData[k].sum / termData[k].count).toFixed(1));
+    const labels = Object.keys(termData).sort();
+    const data = labels.map(k => (termData[k].sum / termData[k].count).toFixed(1));
 
-  if (window.progressChartInstance) window.progressChartInstance.destroy();
+    if (window.progressChartInstance) window.progressChartInstance.destroy();
 
-  window.progressChartInstance = new Chart(canvas, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Average Mean Score',
-        data,
-        borderColor: '#2563eb',
-        backgroundColor: 'rgba(37,99,235,0.1)',
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: '#2563eb',
-        pointRadius: 6
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Mean Score (%)' } },
-        x: { title: { display: true, text: 'Term & Year' } }
+    window.progressChartInstance = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Average Mean Score',
+          data,
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37,99,235,0.1)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#2563eb',
+          pointRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, max: 100, title: { display: true, text: 'Mean Score (%)' } },
+          x: { title: { display: true, text: 'Term & Year' } }
+        }
       }
-    }
-  });
-};
+    });
+  };
+
+  // === RENDER ALL ===
+  const renderAll = () => {
+    renderRecords();
+    renderTargets();
     updateDashboardStats();
+    renderProgressChart();
   };
 
   // === INIT ===
@@ -414,11 +373,12 @@
     loadLastTeacher();
     renderAll();
 
+    // FORM LISTENERS – NEVER BREAK
     const dataForm = el('dataEntryForm');
     if (dataForm) {
       dataForm.addEventListener('submit', e => {
         e.preventDefault();
-        saveRecord();
+        handleSaveRecord();
       });
     }
 
@@ -426,7 +386,7 @@
     if (targetForm) {
       targetForm.addEventListener('submit', e => {
         e.preventDefault();
-        saveTarget();
+        handleSaveTarget();
       });
     }
 
