@@ -6,42 +6,136 @@
   <title>SmartScores - Set Targets</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="icon-192x192.png" />
   <script src="app.js" defer></script>
   <style>
-    /* Same base */
-    .form-group { margin:15px 0; }
-    select, input { width:100%; padding:10px; border:2px solid #ccc; border-radius:6px; }
+    :root { --maroon: #800000; --blue: #2563eb; --white: #fff; --light: #f9f9f9; --dark: #333; --bg: var(--light); --text: var(--dark); }
+    [data-theme="dark"] { --bg: #1a1a1a; --text: #fff; --maroon: #a40000; --blue: #4f94ff; }
+    body { margin:0; font-family:Arial; background:var(--bg); color:var(--text); transition:.3s; }
+    header { background:var(--blue); color:white; padding:15px; text-align:center; }
+    nav { background:var(--maroon); padding:12px; text-align:center; }
+    nav a { color:white; margin:0 10px; padding:8px 16px; border-radius:6px; text-decoration:none; font-weight:bold; }
+    nav a:hover, nav a.active { background:var(--blue); }
+    .content { max-width:800px; margin:30px auto; padding:0 15px; }
+    .form-group { margin:15px 0; text-align:left; }
+    label { display:block; margin-bottom:5px; font-weight:bold; }
+    input, select { width:100%; padding:10px; border:2px solid #ccc; border-radius:6px; font-size:16px; }
+    input:focus, select:focus { border-color:var(--blue); outline:none; }
+    .btn { background:var(--blue); color:white; border:none; padding:12px 20px; margin:10px 5px; border-radius:6px; cursor:pointer; font-weight:bold; }
+    .btn:hover { background:#1d4ed8; }
+    .btn-danger { background:#dc2626; }
+    .btn-danger:hover { background:#b91c1c; }
+    table { width:100%; border-collapse:collapse; margin:20px 0; background:var(--white); box-shadow:0 2px 8px rgba(0,0,0,.1); border-radius:8px; overflow:hidden; }
+    th { background:var(--maroon); color:white; padding:12px; }
+    td { padding:10px 12px; border-bottom:1px solid #eee; }
+    tr:hover { background:#f1f5f9; }
+    footer { background:var(--dark); color:white; text-align:center; padding:12px; margin-top:50px; font-size:.9em; }
+    @media (max-width:768px) { .btn { width:100%; margin:8px 0; } }
   </style>
 </head>
 <body>
-  <!-- Header/nav -->
+  <div style="position:fixed;top:10px;right:10px;z-index:1000;">
+    <button onclick="toggleDarkMode()" style="background:var(--blue);color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;">Dark Mode</button>
+  </div>
+
+  <header>
+    <h1>
+      <img src="icon-192x192.png" alt="SmartScores" style="height:40px;vertical-align:middle;margin-right:10px;border-radius:8px;">
+      SmartScores
+    </h1>
+    <p>Set Exam Targets</p>
+  </header>
+
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="data-entry.html">Data Entry</a>
+    <a href="recorded-scores.html">Recorded Scores</a>
+    <a href="averages-insights.html">Averages & Insights</a>
+    <a href="set-targets.html" class="active">Set Targets</a>
+  </nav>
+
   <div class="content">
     <h2>Set Target Mean Score</h2>
     <div class="form-group">
-      <label>Subject</label><select id="targetSubject"></select>
+      <label for="targetSubject">Subject</label>
+      <select id="targetSubject" required>
+        <option value="">--Select Subject--</option>
+        <option value="Mathematics">Mathematics</option>
+        <option value="English">English</option>
+        <option value="Kiswahili">Kiswahili</option>
+        <option value="Science">Science</option>
+        <option value="Agriculture and Nutrition">Agriculture and Nutrition</option>
+        <option value="Creative Arts">Creative Arts</option>
+        <option value="Social Studies">Social Studies</option>
+        <option value="CRE">CRE</option>
+        <option value="Pre-Technical Studies">Pre-Technical Studies</option>
+      </select>
     </div>
     <div class="form-group">
-      <label>Grade</label><select id="targetGrade"></select>
+      <label for="targetGrade">Grade</label>
+      <select id="targetGrade" required>
+        <option value="">--Select Grade--</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+      </select>
     </div>
     <div class="form-group">
-      <label>Stream</label><select id="targetStream"></select>
+      <label for="targetStream">Stream</label>
+      <select id="targetStream" required>
+        <option value="">--Select Stream--</option>
+        <option value="Faith">Faith</option>
+        <option value="Glory">Glory</option>
+        <option value="Joy">Joy</option>
+        <option value="Love">Love</option>
+        <option value="Peace">Peace</option>
+        <option value="Unity">Unity</option>
+      </select>
     </div>
     <div class="form-group">
-      <label>Term</label><select id="targetTerm"><option>Term 1</option><option>Term 2</option><option>Term 3</option></select>
+      <label for="targetTerm">Term</label>
+      <select id="targetTerm" required>
+        <option value="">--Select Term--</option>
+        <option value="Term 1">Term 1</option>
+        <option value="Term 2">Term 2</option>
+        <option value="Term 3">Term 3</option>
+      </select>
     </div>
     <div class="form-group">
-      <label>Exam Type</label><select id="targetExamType"><option>Mid-Term</option><option>End-Term</option><option>CAT</option></select>
+      <label for="targetExamType">Exam Type</label>
+      <select id="targetExamType" required>
+        <option value="">--Select Exam Type--</option>
+        <option value="Opener Exam">Opener Exam</option>
+        <option value="Mid Term Exam">Mid Term Exam</option>
+        <option value="End Term Exam">End Term Exam</option>
+      </select>
     </div>
     <div class="form-group">
-      <label>Target Mean Score (%)</label><input type="number" id="targetScore" min="0" max="100" />
+      <label for="targetScore">Target Mean Score (%)</label>
+      <input type="number" id="targetScore" min="0" max="100" step="0.1" placeholder="e.g. 75" required />
     </div>
-    <button onclick="saveTarget()" class="btn">Save Target</button>
+    <button onclick="saveTarget()" class="btn">💾 Save Target</button>
 
     <h2 style="margin-top:40px;">Current Targets</h2>
     <table id="targetsTable">
-      <thead><tr><th>Subject</th><th>Grade</th><th>Stream</th><th>Term</th><th>Exam</th><th>Target</th><th>Action</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Grade</th>
+          <th>Stream</th>
+          <th>Term</th>
+          <th>Exam Type</th>
+          <th>Target</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
       <tbody></tbody>
     </table>
   </div>
+
+  <footer>SmartScores v2.9.6 © Kariuki 2025</footer>
 </body>
 </html>
