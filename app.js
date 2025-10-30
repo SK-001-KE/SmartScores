@@ -1,9 +1,8 @@
-// SmartScores v2.9.11 - SAVE BUTTONS FIXED + DASHBOARD CLEAN
+// SmartScores v2.9.12 - PDF + EDIT FIXED + DASHBOARD CLEAN
 (() => {
   const STORAGE_KEY = 'smartScores';
   const TARGETS_KEY = 'smartScoresTargets';
   const TEACHER_KEY = 'lastTeacherName';
-  const BACKUP_KEY = 'lastBackupTime';
 
   const el = id => document.getElementById(id);
   const showAlert = msg => alert(msg);
@@ -15,10 +14,10 @@
   const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
   const rubric = s => {
-    if (s >= 75) return { text: 'Exceeding', color: '#16a34a', emoji: '🏆' };
-    if (s >= 41) return { text: 'Meeting', color: '#2563eb', emoji: '✅' };
-    if (s >= 21) return { text: 'Approaching', color: '#f59e0b', emoji: '⚠️' };
-    return { text: 'Below', color: '#ef4444', emoji: '❗' };
+    if (s >= 75) return { text: 'Exceeding', color: '#16a34a', emoji: 'Trophy' };
+    if (s >= 41) return { text: 'Meeting', color: '#2563eb', emoji: 'Check' };
+    if (s >= 21) return { text: 'Approaching', color: '#f59e0b', emoji: 'Warning' };
+    return { text: 'Below', color: '#ef4444', emoji: 'Alert' };
   };
 
   window.toggleDarkMode = () => {
@@ -41,7 +40,7 @@
   const loadTargets = () => load(TARGETS_KEY);
   const saveTargets = t => save(TARGETS_KEY, t);
 
-  // === SAVE RECORD – FIXED ===
+  // === SAVE RECORD ===
   window.saveRecord = () => {
     const record = {
       teacher: el('teacherName')?.value.trim(),
@@ -82,7 +81,7 @@
     renderAll();
   };
 
-  // === SAVE TARGET – FIXED ===
+  // === SAVE TARGET ===
   window.saveTarget = () => {
     const target = {
       subject: el('targetSubject')?.value,
@@ -116,59 +115,12 @@
     renderTargets();
   };
 
-  // === RENDER RECORDS ===
-  const renderRecords = () => {
-    const tbody = document.querySelector('#recordsTable tbody');
-    if (!tbody) return;
-    const records = loadRecords();
-    tbody.innerHTML = records.map((r, i) => {
-      const rub = rubric(r.mean);
-      return `
-        <tr data-index="${i}">
-          <td>${r.teacher}</td>
-          <td>${r.subject}</td>
-          <td>${r.grade}</td>
-          <td>${r.stream}</td>
-          <td>${r.term}</td>
-          <td>${r.examType}</td>
-          <td>${r.year}</td>
-          <td>${r.mean.toFixed(1)}%</td>
-          <td><span style="background:${rub.color};color:#fff;padding:4px 8px;border-radius:6px;">${rub.emoji} ${rub.text}</span></td>
-          <td>
-            <button onclick="editRecord(${i})" style="background:#f59e0b;color:white;border:none;padding:4px 8px;margin-right:4px;border-radius:4px;cursor:pointer;">Edit</button>
-            <button onclick="deleteRecord(${i})" style="background:#dc2626;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">Delete</button>
-          </td>
-        </tr>
-      `;
-    }).join('');
-    filterRecords();
-  };
-
-  // === RENDER TARGETS ===
-  const renderTargets = () => {
-    const tbody = document.querySelector('#targetsTable tbody');
-    if (!tbody) return;
-    const targets = loadTargets();
-    tbody.innerHTML = targets.map((t, i) => `
-      <tr>
-        <td>${t.subject}</td>
-        <td>${t.grade}</td>
-        <td>${t.stream}</td>
-        <td>${t.term}</td>
-        <td>${t.examType}</td>
-        <td>${t.score}%</td>
-        <td>
-          <button onclick="editTarget(${i})" style="background:#f59e0b;color:white;border:none;padding:4px 8px;margin-right:4px;border-radius:4px;cursor:pointer;">Edit</button>
-          <button onclick="deleteTarget(${i})" style="background:#dc2626;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">Delete</button>
-        </td>
-      </tr>
-    `).join('');
-  };
-
-  // === EDIT/UPDATE ===
+  // === EDIT RECORD – FIXED ===
   window.editRecord = (i) => {
     const records = loadRecords();
     const r = records[i];
+    if (!r) return;
+
     el('teacherName').value = r.teacher;
     el('subject').value = r.subject;
     el('grade').value = r.grade;
@@ -209,9 +161,21 @@
     renderAll();
   };
 
+  const resetForm = () => {
+    el('meanScore').value = '';
+    const saveBtn = document.querySelector('#dataEntryForm button[type="submit"]');
+    if (saveBtn) {
+      saveBtn.textContent = 'Save Record';
+      saveBtn.onclick = null;
+    }
+  };
+
+  // === EDIT TARGET – FIXED ===
   window.editTarget = (i) => {
     const targets = loadTargets();
     const t = targets[i];
+    if (!t) return;
+
     el('targetSubject').value = t.subject;
     el('targetGrade').value = t.grade;
     el('targetStream').value = t.stream;
@@ -247,15 +211,6 @@
     renderTargets();
   };
 
-  const resetForm = () => {
-    el('meanScore').value = '';
-    const saveBtn = document.querySelector('#dataEntryForm button[type="submit"]');
-    if (saveBtn) {
-      saveBtn.textContent = 'Save Record';
-      saveBtn.onclick = null;
-    }
-  };
-
   const resetTargetForm = () => {
     el('targetScore').value = '';
     const saveBtn = document.querySelector('#setTargetsForm button[type="submit"]');
@@ -265,6 +220,7 @@
     }
   };
 
+  // === DELETE ===
   window.deleteRecord = (i) => {
     if (confirm('Delete record?')) {
       const records = loadRecords();
@@ -285,128 +241,65 @@
     }
   };
 
-  // === BACKUP – FIXED ===
-  window.exportBackup = () => {
-    const records = loadRecords();
-    if (!records.length) return showAlert('No data.');
-    const data = JSON.stringify(records, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `smartscores-backup-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    localStorage.setItem(BACKUP_KEY, Date.now().toString());
-    showAlert('Backup saved!');
+  // === DOWNLOAD PDF – FIXED ===
+  window.downloadPDF = () => {
+    if (typeof window.print !== 'function') return showAlert('Print not supported.');
+    const printBtn = el('printBtn');
+    if (printBtn) printBtn.style.display = 'none';
+    window.print();
+    setTimeout(() => {
+      if (printBtn) printBtn.style.display = 'block';
+    }, 1000);
   };
 
-  // === EXPORT EXCEL – FIXED ===
-  window.exportToExcel = () => {
-    if (typeof XLSX === 'undefined') return showAlert('Load Excel library.');
-    const records = loadRecords();
-    if (!records.length) return showAlert('No data.');
-    const data = records.map(r => ({
-      Teacher: r.teacher,
-      Subject: r.subject,
-      Grade: r.grade,
-      Stream: r.stream,
-      Term: r.term,
-      Exam: r.examType,
-      Year: r.year,
-      Mean: r.mean,
-      Rubric: rubric(r.mean).text
-    }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Scores');
-    XLSX.writeFile(wb, `SmartScores_${new Date().toISOString().slice(0,10)}.xlsx`);
-    showAlert('Excel exported!');
-  };
-
-  // === CLEAR ALL – FIXED ===
-  window.clearAllData = () => {
-    if (!confirm('Delete ALL records?')) return;
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(TEACHER_KEY);
-    showAlert('All data cleared.');
-    renderAll();
-  };
-
-  // === FILTER ===
-  window.filterRecords = () => {
-    const search = (el('searchInput')?.value || '').toLowerCase();
-    const rows = document.querySelectorAll('#recordsTable tbody tr');
-    rows.forEach(row => {
-      row.style.display = row.textContent.toLowerCase().includes(search) ? '' : 'none';
-    });
-  };
-
-  // === RENDER AVERAGES ===
-  const renderAverageScores = () => {
-    const tbody = document.querySelector('#averageScoresTable tbody');
+  // === RENDER TABLES ===
+  const renderRecords = () => {
+    const tbody = document.querySelector('#recordsTable tbody');
     if (!tbody) return;
     const records = loadRecords();
-    const targets = loadTargets();
-    const groups = {};
-    records.forEach(r => {
-      const key = `${r.subject}||${r.grade}||${r.stream}||${r.term}||${r.examType}`;
-      if (!groups[key]) groups[key] = { ...r, scores: [] };
-      groups[key].scores.push(r.mean);
-    });
-    tbody.innerHTML = Object.values(groups).map(g => {
-      const avg = g.scores.reduce((a, s) => a + s, 0) / g.scores.length;
-      const target = targets.find(t => t.subject === g.subject && t.grade === g.grade && t.stream === g.stream && t.term === g.term && t.examType === g.examType);
-      const deviation = target ? avg - target.score : null;
-      const devText = deviation !== null ? `${deviation > 0 ? '+' : ''}${deviation.toFixed(1)}%` : '—';
-      const devColor = deviation > 0 ? '#16a34a' : deviation < 0 ? '#dc2626' : '#666';
+    tbody.innerHTML = records.map((r, i) => {
+      const rub = rubric(r.mean);
       return `
         <tr>
-          <td>${g.subject}</td>
-          <td>${g.grade}</td>
-          <td>${g.stream}</td>
-          <td>${g.term}</td>
-          <td>${g.examType}</td>
-          <td>${avg.toFixed(1)}%</td>
-          <td style="font-weight:bold;color:${devColor};">${devText}</td>
+          <td>${r.teacher}</td>
+          <td>${r.subject}</td>
+          <td>${r.grade}</td>
+          <td>${r.stream}</td>
+          <td>${r.term}</td>
+          <td>${r.examType}</td>
+          <td>${r.year}</td>
+          <td>${r.mean.toFixed(1)}%</td>
+          <td><span style="background:${rub.color};color:#fff;padding:4px 8px;border-radius:6px;">${rub.emoji} ${rub.text}</span></td>
+          <td>
+            <button onclick="editRecord(${i})" class="btn" style="background:#f59e0b;padding:6px 10px;font-size:0.9rem;">Edit</button>
+            <button onclick="deleteRecord(${i})" class="btn btn-danger" style="padding:6px 10px;font-size:0.9rem;">Delete</button>
+          </td>
         </tr>
       `;
     }).join('');
   };
 
-  // === AI INSIGHTS – FIXED ===
-  const renderAIInsights = () => {
-    const container = el('insights');
-    if (!container) return;
-    const records = loadRecords();
-    if (!records.length) {
-      container.innerHTML = '<p>No data yet. Enter scores to see insights.</p>';
-      return;
-    }
-
-    const groups = {};
-    records.forEach(r => {
-      const key = `${r.subject}|${r.grade}`;
-      if (!groups[key]) groups[key] = { sum: 0, count: 0 };
-      groups[key].sum += r.mean;
-      groups[key].count++;
-    });
-
-    const insights = [];
-    for (const [key, data] of Object.entries(groups)) {
-      const avg = data.sum / data.count;
-      const [subject, grade] = key.split('|');
-      if (avg < 40) insights.push(`Check **${subject}** in **Grade ${grade}** – only **${avg.toFixed(1)}%**.`);
-      else if (avg < 60) insights.push(`**${subject}** in **Grade ${grade}** needs review (**${avg.toFixed(1)}%**).`);
-      else if (avg > 80) insights.push(`**${subject}** in **Grade ${grade}** is excelling (**${avg.toFixed(1)}%**).`);
-    }
-
-    container.innerHTML = insights.length 
-      ? insights.map(i => `<p style="margin:10px 0;padding:12px;background:#f0f9ff;border-left:4px solid #2563eb;border-radius:4px;">${i}</p>`).join('')
-      : '<p style="color:#666;">All subjects are performing well!</p>';
+  const renderTargets = () => {
+    const tbody = document.querySelector('#targetsTable tbody');
+    if (!tbody) return;
+    const targets = loadTargets();
+    tbody.innerHTML = targets.map((t, i) => `
+      <tr>
+        <td>${t.subject}</td>
+        <td>${t.grade}</td>
+        <td>${t.stream}</td>
+        <td>${t.term}</td>
+        <td>${t.examType}</td>
+        <td>${t.score}%</td>
+        <td>
+          <button onclick="editTarget(${i})" class="btn" style="background:#f59e0b;padding:6px 10px;font-size:0.9rem;">Edit</button>
+          <button onclick="deleteTarget(${i})" class="btn btn-danger" style="padding:6px 10px;font-size:0.9rem;">Delete</button>
+        </td>
+      </tr>
+    `).join('');
   };
 
-  // === DASHBOARD STATS – BIG FONTS + WHITE TEXT ===
+  // === DASHBOARD – 3 CARDS ONLY ===
   const updateDashboardStats = () => {
     const records = loadRecords();
     if (!records.length) return;
@@ -414,17 +307,15 @@
     const totalAvg = records.reduce((sum, r) => sum + r.mean, 0) / records.length;
     const totalRub = rubric(totalAvg);
 
-    // Total Average Card
     const avgCard = el('totalAvgCard');
     if (avgCard) {
       avgCard.innerHTML = `
         <h2 style="margin:0;font-size:3rem;color:#fff;font-weight:bold;">${totalAvg.toFixed(1)}%</h2>
         <p style="margin:8px 0;font-size:1.3rem;color:#fff;">${totalRub.emoji} ${totalRub.text}</p>
-        <small style="color:#e0f2fe;font-size:1rem;">Overall Performance</small>
+        <small style="color:#e0f2fe;">Overall Performance</small>
       `;
     }
 
-    // Best Subject Card
     const subjectStats = {};
     records.forEach(r => {
       const key = `${r.subject}|${r.grade}|${r.stream}`;
@@ -441,19 +332,19 @@
     }
 
     const bestCard = el('bestSubjectCard');
-    if (bestCard) {
+    if (bestCard && best.avg > 0) {
       bestCard.innerHTML = `
         <h2 style="margin:0;font-size:2.5rem;color:#fff;font-weight:bold;">${best.avg.toFixed(1)}%</h2>
-        <p style="margin:8px 0;font-size:1.2rem;color:#fff;font-weight:bold;">${best.subject}</p>
+        <p style="margin:8px 0;font-size:1.2rem;color:#fff;">${best.subject}</p>
         <small style="color:#d1fae5;">G${best.grade} • ${best.stream}</small>
       `;
     }
 
     const worstCard = el('worstSubjectCard');
-    if (worstCard) {
+    if (worstCard && worst.avg < 100) {
       worstCard.innerHTML = `
         <h2 style="margin:0;font-size:2.5rem;color:#fff;font-weight:bold;">${worst.avg.toFixed(1)}%</h2>
-        <p style="margin:8px 0;font-size:1.2rem;color:#fff;font-weight:bold;">${worst.subject}</p>
+        <p style="margin:8px 0;font-size:1.2rem;color:#fff;">${worst.subject}</p>
         <small style="color:#fecaca;">G${worst.grade} • ${worst.stream}</small>
       `;
     }
@@ -464,8 +355,6 @@
     renderRecords();
     renderTargets();
     updateDashboardStats();
-    renderAIInsights();
-    renderAverageScores();
   };
 
   // === INIT ===
@@ -474,7 +363,6 @@
     loadLastTeacher();
     renderAll();
 
-    // FIXED FORM LISTENERS
     const dataForm = el('dataEntryForm');
     if (dataForm) {
       dataForm.addEventListener('submit', e => {
@@ -493,7 +381,6 @@
 
     if (location.pathname.includes('recorded-scores')) {
       renderRecords();
-      filterRecords();
     }
 
     if ('serviceWorker' in navigator) {
