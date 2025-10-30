@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-   <link rel="stylesheet" href="style.css" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartScores</title>
@@ -50,24 +49,18 @@
     <a href="set-targets.html">Set Targets</a>
   </nav>
 
- <div class="stats">
-    <div class="stat-card" id="topSubjectCard">
-      <h3 id="topSubject">-</h3>
-      <p>Top Subject</p>
+  <div class="content">
+    <div class="card">
+      <h2>Welcome to SmartScores</h2>
+      <p>Track teacher performance with targets, insights, and exports.</p>
     </div>
-    <div class="stat-card warning" id="worstSubjectCard">
-      <h3 id="worstSubject">-</h3>
-      <p>Worst Subject</p>
+
+    <div class="stats">
+      <div class="stat-card" id="topSubjectCard"><h3 id="topSubject">-</h3><p>Top Subject</p></div>
+      <div class="stat-card warning" id="worstSubjectCard"><h3 id="worstSubject">-</h3><p>Worst Subject</p></div>
+      <div class="stat-card" id="totalTeachersCard"><h3 id="totalTeachers">0</h3><p>Teachers</p></div>
+      <div class="stat-card success" id="lastEntryCard"><h3 id="lastEntry">Never</h3><p>Last Entry</p></div>
     </div>
-    <div class="stat-card" id="averageScoreCard"> <!-- Updated card id -->
-      <h3 id="avgScore">0%</h3> <!-- Displays the average score -->
-      <p>Average of All Data Entered</p>
-    </div>
-    <div class="stat-card success" id="lastEntryCard">
-      <h3 id="lastEntry">Never</h3>
-      <p>Last Entry</p>
-    </div>
-  </div>
 
     <div id="backupReminder" class="backup-reminder">
       Backup overdue! <a href="#" onclick="exportBackup();this.parentElement.style.display='none';return false;" style="color:#92400e;text-decoration:underline;">Backup now</a>
