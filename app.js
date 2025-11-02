@@ -554,29 +554,39 @@ const autoFillYear = () => {
   };
 
   // === RENDER ALL ===
-  const renderAll = () => {
-    renderRecords();
-    renderTargets();
-    updateDashboardStats();
-    renderProgressChart();
-    renderAIInsights();
-    renderCumulativeAverages();
-  };
+  // === RENDER DASHBOARD & DATA ENTRY ===
+const renderDashboard = () => {
+  renderRecords();
+  renderTargets();
+  updateDashboardStats();
+  renderProgressChart();
+};
+
+// === RENDER INSIGHTS PAGE ONLY ===
+const renderInsights = () => {
+  renderAIInsights();
+  renderRecords();
+  renderCumulativeAverages();
+  renderTrendAnalysis();
+};
 
   // === INIT – INSIDE IIFE ===
-  document.addEventListener('DOMContentLoaded', () => {
-    loadTheme();
-    loadTeacherName();
-    autoFillYear();
-    renderAll();
+ document.addEventListener('DOMContentLoaded', () => {
+  loadTheme();
+  loadTeacherName();
+  autoFillYear();
 
-    const dataForm = el('dataEntryForm');
-    if (dataForm) {
-      dataForm.addEventListener('submit', e => {
-        e.preventDefault();
-        handleSaveRecord();
-      });
-    }
+  // RENDER CORRECT PAGE
+  renderAll();
+
+    // FORM SUBMISSIONS
+  const dataForm = el('dataEntryForm');
+  if (dataForm) {
+    dataForm.addEventListener('submit', e => {
+      e.preventDefault();
+      handleSaveRecord();
+    });
+  }
 
     const searchInput = el('searchInput');
   if (searchInput) {
@@ -584,18 +594,34 @@ const autoFillYear = () => {
   }
 
     const targetForm = el('setTargetsForm');
-    if (targetForm) {
-      targetForm.addEventListener('submit', e => {
-        e.preventDefault();
-        handleSaveTarget();
-      });
-    }
+  if (targetForm) {
+    targetForm.addEventListener('submit', e => {
+      e.preventDefault();
+      handleSaveTarget();
+    });
+  }
+   const renderCumulativeAverages = () => {
+  const tbody = document.querySelector('#cumulativeTable tbody');
+  if (!tbody) return;  // ← PREVENT ERROR
+  // ... rest
+};
 
-    if (location.pathname.includes('averages-insights')) {
-  renderAIInsights();
-  renderRecords();
-  renderCumulativeAverages();  // ADD THIS
-}
+const renderTrendAnalysis = () => {
+  const tbody = document.querySelector('#trendTable tbody');
+  if (!tbody) return;  // ← PREVENT ERROR
+  // ... rest
+};
+
+const renderAIInsights = () => {
+  const container = el('insights');
+  if (!container) return;  // ← PREVENT ERROR
+  // ... rest
+};
+
+    // INSIGHTS PAGE ONLY
+  if (location.pathname.includes('averages-insights')) {
+    renderInsights();  // ← Safe to call again
+  }
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js');
