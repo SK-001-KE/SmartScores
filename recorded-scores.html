@@ -1,3 +1,5 @@
+is this correct for sorting
+ 
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -23,9 +25,9 @@
 </nav>
   <div class="content">
     <h2>Recorded Scores</h2>
-  <input type="text" id="searchInput" placeholder="🔍 Search records (teacher, subject, grade...)" 
+  <input type="text" id="searchInput" placeholder="🔍 Search records (teacher, subject, grade...)"
          onkeyup="filterRecords()" style="width:100%; padding:12px; margin:15px 0; border:2px solid #ddd; border-radius:6px; font-size:16px;" />
-    
+   
     <div class="settings-container" style="margin:20px 0;text-align:center;">
       <label>Auto Delete Old Data:</label>
       <select id="autoDeleteSetting" style="margin:0 10px;padding:5px;">
@@ -35,25 +37,23 @@
       </select>
       <button onclick="runAutoDelete()" class="btn">Run Auto Delete</button>
     </div>
-<table id="recordsTable">
-  <thead>
-    <tr>
-      <th onclick="sortRecords(0)">Teacher</th>
-      <th onclick="sortRecords(1)">Subject</th>
-      <th onclick="sortRecords(2)">Grade</th>
-      <th onclick="sortRecords(3)">Stream</th>
-      <th onclick="sortRecords(4)">Term</th>
-      <th onclick="sortRecords(5)">Exam</th>
-      <th onclick="sortRecords(6)">Year</th>
-      <th onclick="sortRecords(7)">Mean</th>
-      <th onclick="sortRecords(8)">Target</th>
-      <th onclick="sortRecords(9)">Deviation</th>
-      <th onclick="sortRecords(10)">Rubric</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+    <table id="recordsTable">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">Teacher</th>
+          <th onclick="sortTable(1)">Subject</th>
+          <th onclick="sortTable(2)">Grade</th>
+          <th onclick="sortTable(3)">Stream</th>
+          <th onclick="sortTable(4)">Term</th>
+          <th onclick="sortTable(5)">Exam</th>
+          <th onclick="sortTable(6)">Year</th>
+          <th onclick="sortTable(7)">Mean</th>
+          <th>Rubric</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
     <div style="text-align:center;margin:20px;">
   <button onclick="exportToExcel()" class="btn">Export Excel</button>
   <button onclick="exportBackup()" class="btn">Backup JSON</button>
