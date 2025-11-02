@@ -457,6 +457,161 @@
     }
   };
 
+  // === PDF DOWNLOAD ===
+window.downloadPDF = () => {
+  const { jsPDF } = window.jspdf;
+  if (!jsPDF) return showAlert('jsPDF not loaded.');
+
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const teacherName = localStorage.getItem('teacherFullName') || 'Unknown Teacher';
+
+  // Title
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(37, 99, 235);
+  doc.text(`Teacher: ${teacherName}`, 14, 15);
+
+  doc.setFontSize(18);
+  doc.setTextColor(0, 0, 0);
+  doc.text('SmartScores Performance Report', pageWidth / 2, 25, { align: 'center' });
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, 32, { align: 'center' });
+
+  const records = loadRecords();
+  if (!records.length) {
+    doc.setFontSize(12);
+    doc.text('No records found.', 14, 50);
+    const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
+    doc.save(`SmartScores_${safeName}_Report.pdf`);
+    return;
+  }
+
+  let y = 45;
+  const rowHeight = 8;
+  const colWidths = [30, 18, 18, 25, 30, 20, 25];
+  const headers = ['Subject', 'Grade', 'Stream', 'Term', 'Exam', 'Mean', 'Rubric'];
+
+  // Header
+  doc.setFillColor(37, 99, 235);
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  let x = 14;
+  headers.forEach((h, i) => {
+    doc.rect(x, y - 6, colWidths[i], 8, 'F');
+    doc.text(h, x + 2, y - 1);
+    x += colWidths[i];
+  });
+  y += rowHeight;
+
+  doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+
+  records.forEach(r => {
+    if (y > pageHeight - 20) {
+      doc.addPage();
+      y = 20;
+      x = 14;
+      doc.setFillColor(37, 99, 235);
+      doc.setTextColor(255, 255, 255);
+      headers.forEach((h, i) => {
+        doc.rect(x, y - 6, colWidths[i], 8, 'F');
+        doc.text(h, x + 2, y - 1);
+        x += colWidths[i];
+      });
+      y += rowHeight;
+      doc.setTextColor(0, 0, 0);
+    }
+
+    const rub = rubric(r.mean);
+    const cells = [
+      r.subject,
+      `G${r.grade}`,
+      r.stream,
+      r.term,
+      r.examType,
+      `${r.mean.toFixed(1)}%`,
+      `${rub.emoji} ${rub.text}`
+    ];
+
+    x = 14;
+    cells.forEach((cell, i) => {
+      if (i === 6) {
+        const color = rub.color.replace('#', '');
+        const rColor = parseInt(color.substr(0,2), 16);
+        const gColor = parseInt(color.substr(2,2), 16);
+        const bColor = parseInt(color.substr(4,2), 16);
+        doc.setFillColor(rColor, gColor, bColor);
+        doc.rect(x, y - 6, colWidths[i], 7, 'F');
+        doc.setTextColor(255, 255, 255);
+      } else {
+        doc.setTextColor(0, 0, 0);
+      }
+      doc.text(cell, x + 2, y - 1);
+      x += colWidths[i];
+    });
+    y += rowHeight;
+  });
+
+  const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
+  doc.save(`SmartScores_${safeName}_Report_${new Date().toISOString().slice(0,10)}.pdf`);
+};
+
+// === EXCEL EXPORT ===
+window.exportToExcel = () => {
+  if (typeof XLSX === 'undefined') return showAlert('XLSX not loaded.');
+  const records = loadRecords();
+  if (!records.length) return showAlert('No data.');
+
+  const data = records.map(r => ({
+    Teacher: r.teacher,
+    Subject: r.subject,
+    Grade: r.grade,
+    Stream: r.stream,
+    Term: r.term,
+    Exam: r.examType,
+    Year: r.year,
+    Mean: r.mean
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Scores');
+  XLSX.writeFile(wb, `SmartScores_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showAlert('Excel exported!');
+};
+
+// === BACKUP ===
+window.exportBackup = () => {
+  const records = loadRecords();
+  if (!records.length) return showAlert('No data.');
+
+  const data = JSON.stringify(records, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showAlert('Backup saved!');
+};
+
+// === CLEAR ALL ===
+window.clearAllData = () => {
+  if (confirm('Delete ALL data? This cannot be undone.')) {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(TARGETS_KEY);
+    showAlert('All data cleared.');
+    renderAll();
+  }
+};
+
   // === RENDER ALL ===
   const renderDashboard = () => {
     renderRecords();
