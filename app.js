@@ -143,11 +143,13 @@ const handleSaveRecord = () => {
     }
   };
   
+// === LOGOUT FUNCTION ===
 window.logout = () => {
-  if (confirm('Logout?')) {
+  if (confirm('Logout and clear your name?')) {
     localStorage.removeItem('teacherFullName');
     window.location.href = 'login.html';
   }
+};
 };
   // === RENDER TABLES ===
  const renderRecords = () => {
