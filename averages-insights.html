@@ -58,36 +58,7 @@
 </thead>
       <tbody></tbody>
     </table>
-    
-   <div style="text-align:center;margin:30px 0;">
-  <button id="printBtn" onclick="downloadPDF()" class="btn">Download PDF</button>
-</div>
-  </div>
-  <div class="content">
-  <h2>AI Insights</h2>
-  <div id="insights"></div>
-
-  <h2 style="margin-top:40px;">All Records</h2>
-  <table id="recordsTable">
-    <thead>
-      <tr>
-        <th>Teacher</th>
-        <th>Subject</th>
-        <th>Grade</th>
-        <th>Stream</th>
-        <th>Term</th>
-        <th>Exam</th>
-        <th>Year</th>
-        <th>Mean</th>
-        <th>Target</th>
-        <th>Deviation</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <!-- NEW: Cumulative Averages Table -->
+    <!-- NEW: Cumulative Averages Table -->
   <h2 style="margin-top:40px;">Cumulative Averages by Subject/Grade/Stream/Term</h2>
   <table id="cumulativeTable">
     <thead>
@@ -102,8 +73,16 @@
     </thead>
     <tbody></tbody>
   </table>
+    
+   <div style="text-align:center;margin:30px 0;">
+  <button id="printBtn" onclick="downloadPDF()" class="btn">Download PDF</button>
+</div>
+  </div>
+  <div class="content">
+  <h2>AI Insights</h2>
+  <div id="insights"></div>
 
-  <div style="text-align:center;margin:30px 0;">
+   <div style="text-align:center;margin:30px 0;">
     <button id="printBtn" onclick="downloadPDF()" class="btn">Download PDF</button>
   </div>
 </div>
