@@ -31,10 +31,13 @@
     document.documentElement.dataset.theme = theme;
   };
 
-  const loadLastTeacher = () => {
-    const name = localStorage.getItem(TEACHER_KEY);
-    if (name && el('teacherName')) el('teacherName').value = name;
-  };
+ const loadTeacherName = () => {
+  const name = localStorage.getItem('teacherFullName');
+  if (name && el('teacherName')) {
+    el('teacherName').value = name;
+    el('teacherName').setAttribute('readonly', true); // Prevent edit
+  }
+};
 
   const loadRecords = () => load(STORAGE_KEY);
   const saveRecords = r => save(STORAGE_KEY, r);
@@ -44,8 +47,15 @@
   // === SAVE RECORD ===
   // ADD THIS IF MISSING
 const handleSaveRecord = () => {
+  const loggedName = localStorage.getItem('teacherFullName');
+  if (!loggedName) {
+    showAlert('Please login first.');
+    window.location.href = 'login.html';
+    return;
+  }
+
   const record = {
-    teacher: el('teacherName')?.value.trim(),
+    teacher: loggedName,  // FORCE LOGIN NAME
     subject: el('subject')?.value,
     grade: el('grade')?.value,
     stream: el('stream')?.value,
@@ -54,6 +64,8 @@ const handleSaveRecord = () => {
     year: el('year')?.value,
     mean: Number(el('meanScore')?.value)
   };
+
+  // ... rest of validation ...
 
   if (!record.teacher || !record.subject || !record.grade || !record.stream || 
       !record.term || !record.examType || !record.year || isNaN(record.mean)) {
@@ -130,7 +142,13 @@ const handleSaveRecord = () => {
       renderTargets();
     }
   };
-
+  
+window.logout = () => {
+  if (confirm('Logout?')) {
+    localStorage.removeItem('teacherFullName');
+    window.location.href = 'login.html';
+  }
+};
   // === RENDER TABLES ===
  const renderRecords = () => {
   const tbody = document.querySelector('#recordsTable tbody');
@@ -477,10 +495,12 @@ window.downloadPDF = () => {
 };
 
   // === INIT ===
-  document.addEventListener('DOMContentLoaded', () => {
-    loadTheme();
-    loadLastTeacher();
-    renderAll();
+ document.addEventListener('DOMContentLoaded', () => {
+  loadTheme();
+  loadTeacherName();  // AUTO-FILL NAME
+  renderAll();
+  // ... rest
+});
 
     const dataForm = el('dataEntryForm');
     if (dataForm) {
