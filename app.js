@@ -116,6 +116,13 @@
     showAlert('Record saved successfully!');
     renderAll();
   };
+  const autoFillYear = () => {
+  const yearInput = el('year');
+  if (yearInput && !yearInput.value) {
+    const currentYear = new Date().getFullYear();
+    yearInput.value = currentYear;
+  }
+};
 
   // === SAVE TARGET ===
   const handleSaveTarget = () => {
@@ -473,6 +480,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     loadTheme();
     loadTeacherName();
+    autoFillYear();
     renderAll();
 
     const dataForm = el('dataEntryForm');
