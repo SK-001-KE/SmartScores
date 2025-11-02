@@ -344,39 +344,47 @@ const updateDashboardStats = () => {
   }
 };
 
-// === DOWNLOAD PDF – PROFESSIONAL TABLE ===
+// === DOWNLOAD PDF – WITH TEACHER NAME AT TOP ===
 window.downloadPDF = () => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('p', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
 
-  // Title
-  doc.setFontSize(18);
+  const teacherName = localStorage.getItem('teacherFullName') || 'Unknown Teacher';
+
+  // === HEADER: Teacher + Title ===
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text('SmartScores Performance Report', pageWidth / 2, 20, { align: 'center' });
+  doc.setTextColor(37, 99, 235); // Blue
+  doc.text(`Teacher: ${teacherName}`, 14, 15);
+
+  doc.setFontSize(18);
+  doc.setTextColor(0, 0, 0);
+  doc.text('SmartScores Performance Report', pageWidth / 2, 25, { align: 'center' });
 
   // Date
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, 28, { align: 'center' });
+  doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, 32, { align: 'center' });
 
   const records = loadRecords();
   if (!records.length) {
-    doc.text('No records found.', 20, 40);
-    doc.save(`SmartScores_Report_${new Date().toISOString().slice(0,10)}.pdf`);
+    doc.setFontSize(12);
+    doc.text('No records found.', 14, 50);
+    doc.save(`SmartScores_${teacherName.replace(' ', '_')}_Report.pdf`);
     return;
   }
 
-  // Table setup
-  const startY = 40;
+  // === TABLE SETUP ===
+  const startY = 45;
   let y = startY;
   const rowHeight = 8;
-  const colWidths = [30, 18, 18, 25, 30, 20, 25]; // Subject, Grade, Stream, Term, Exam, Mean, Rubric
+  const colWidths = [30, 18, 18, 25, 30, 20, 25];
   const headers = ['Subject', 'Grade', 'Stream', 'Term', 'Exam', 'Mean', 'Rubric'];
 
-  // Header
-  doc.setFillColor(37, 99, 235); // Blue
+  // Header Row
+  doc.setFillColor(37, 99, 235);
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
@@ -389,7 +397,7 @@ window.downloadPDF = () => {
   });
   y += rowHeight;
 
-  // Body
+  // Body Rows
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
@@ -398,6 +406,17 @@ window.downloadPDF = () => {
     if (y > pageHeight - 20) {
       doc.addPage();
       y = 20;
+      // Re-draw header on new page
+      x = 14;
+      doc.setFillColor(37, 99, 235);
+      doc.setTextColor(255, 255, 255);
+      headers.forEach((h, i) => {
+        doc.rect(x, y - 6, colWidths[i], 8, 'F');
+        doc.text(h, x + 2, y - 1);
+        x += colWidths[i];
+      });
+      y += rowHeight;
+      doc.setTextColor(0, 0, 0);
     }
 
     const rub = rubric(r.mean);
@@ -414,7 +433,6 @@ window.downloadPDF = () => {
     x = 14;
     cells.forEach((cell, i) => {
       if (i === 6) {
-        // Rubric cell with background
         const color = rub.color.replace('#', '');
         const rColor = parseInt(color.substr(0,2), 16);
         const gColor = parseInt(color.substr(2,2), 16);
@@ -432,8 +450,9 @@ window.downloadPDF = () => {
     y += rowHeight;
   });
 
-  // Save
-  doc.save(`SmartScores_Report_${new Date().toISOString().slice(0,10)}.pdf`);
+  // === SAVE WITH TEACHER NAME ===
+  const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
+  doc.save(`SmartScores_${safeName}_Report_${new Date().toISOString().slice(0,10)}.pdf`);
 };
 
   // === EXCEL EXPORT ===
