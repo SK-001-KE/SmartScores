@@ -328,6 +328,87 @@ const renderCumulativeAverages = () => {
     </tr>
   `).join('') || '<tr><td colspan="6" style="text-align:center;padding:20px;color:#666;">No cumulative data yet.</td></tr>';
 };
+  // === TREND ANALYSIS TABLE ===
+const renderTrendAnalysis = () => {
+  const tbody = document.querySelector('#trendTable tbody');
+  if (!tbody) return;
+
+  const records = loadRecords();
+  if (!records.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:#666;">No data for trend analysis.</td></tr>';
+    return;
+  }
+
+  const groups = {};
+  records.forEach(r => {
+    const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
+    if (!groups[key]) {
+      groups[key] = { subject: r.subject, grade: r.grade, stream: r.stream, term: r.term, exams: {} };
+    }
+    groups[key].exams[r.examType] = r.mean;
+  });
+
+  const trends = [];
+  for (const [key, group] of Object.entries(groups)) {
+    const { exams } = group;
+    const opener = exams['Opener Exam'] || null;
+    const mid = exams['Mid Term Exam'] || null;
+    const end = exams['End Term Exam'] || null;
+
+    if ([opener, mid, end].filter(v => v !== null).length < 2) continue;
+
+    let trend = 0;
+    let status = '';
+    let color = '';
+
+    if (opener && end) {
+      trend = (end - opener).toFixed(1);
+      status = trend > 0 ? 'Improved' : trend < 0 ? 'Declined' : 'Stable';
+      color = trend > 0 ? '#16a34a' : trend < 0 ? '#dc2626' : '#f59e0b';
+    } else if (opener && mid) {
+      trend = (mid - opener).toFixed(1);
+      status = trend > 0 ? 'Improving' : 'Declining';
+      color = trend > 0 ? '#16a34a' : '#dc2626';
+    } else if (mid && end) {
+      trend = (end - mid).toFixed(1);
+      status = trend > 0 ? 'Improving' : 'Declining';
+      color = trend > 0 ? '#16a34a' : '#dc2626';
+    }
+
+    trends.push({
+      ...group,
+      opener: opener ? opener.toFixed(1) : '-',
+      mid: mid ? mid.toFixed(1) : '-',
+      end: end ? end.toFixed(1) : '-',
+      trend: trend !== 0 ? `${trend > 0 ? '+' : ''}${trend}%` : '-',
+      status,
+      color
+    });
+  }
+
+  trends.sort((a, b) => 
+    a.subject.localeCompare(b.subject) || 
+    a.grade.localeCompare(b.grade) || 
+    a.stream.localeCompare(b.stream) || 
+    a.term.localeCompare(b.term)
+  );
+
+  tbody.innerHTML = trends.length 
+    ? trends.map(t => `
+        <tr>
+          <td>${t.subject}</td>
+          <td>${t.grade}</td>
+          <td>${t.stream}</td>
+          <td>${t.term}</td>
+          <td>${t.opener}</td>
+          <td>${t.mid}</td>
+          <td>${t.end}</td>
+          <td style="font-weight:bold;color:${t.color}">${t.trend}</td>
+          <td><span style="background:${t.color};color:#fff;padding:4px 8px;border-radius:6px;">${t.status}</span></td>
+        </tr>
+      `).join('')
+    : '<tr><td colspan="9" style="text-align:center;padding:20px;color:#666;">Not enough data for trends.</td></tr>';
+};
 
   // === PROGRESS CHART ===
   const renderProgressChart = () => {
