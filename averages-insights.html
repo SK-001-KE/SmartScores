@@ -6,7 +6,8 @@
   <title>SmartScores - Insights</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.ico" />
-  <script src="app.js" defer></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="app.js" defer></script>
   <style>
     :root { --maroon: #800000; --blue: #2563eb; --light: #f9f9f9; --dark: #333; }
     [data-theme="dark"] { --bg: #1a1a1a; --text: #fff; --maroon: #a40000; --blue: #4f94ff; }
@@ -28,9 +29,7 @@
   </style>
 </head>
 <body>
-  <div style="position:fixed;top:10px;right:10px;z-index:1000;">
-    <button onclick="toggleDarkMode()" style="background:var(--blue);color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;">Dark Mode</button>
-  </div>
+ 
   <!-- DARK MODE -->
 <div style="position:fixed;top:10px;right:10px;z-index:1000;">
   <button onclick="toggleDarkMode()" style="background:var(--blue);color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;">Dark Mode</button>
