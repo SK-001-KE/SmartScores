@@ -307,9 +307,12 @@ const renderCumulativeAverages = () => {
       <td>${g.grade}</td>
       <td>${g.stream}</td>
       <td>${g.term}</td>
-      <td style="font-family:monospace;font-size:0.95em;color:#555;">
-        (${g.meanList}) <strong style="color:#000;">${g.avg}%</strong>
-      </td>
+       <td style="font-family: monospace; font-size: 0.95em; color: #555;">
+          (<%= g.meanList %>)
+        </td>
+        <td>
+          <strong style="color: #000;"><%= g.avg %>%</strong>
+        </td>
     </tr>
   `).join('') || '<tr><td colspan="5" style="text-align:center;padding:20px;color:#666;">No cumulative data yet.</td></tr>';
 };
