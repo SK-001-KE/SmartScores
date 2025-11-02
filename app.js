@@ -601,9 +601,13 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.addEventListener('input', filterRecords);
   }
 
+ const renderAll = () => {
   if (location.pathname.includes('averages-insights')) {
     renderInsights();
+  } else {
+    renderDashboard();
   }
+};
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/service-worker.js');
