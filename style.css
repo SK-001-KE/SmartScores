@@ -116,6 +116,24 @@ table {
   border-radius: 8px;
   overflow: hidden;
 }
+/* SORTABLE TABLE HEADERS */
+#recordsTable th,
+#cumulativeTable th {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+#recordsTable th:hover,
+#cumulativeTable th:hover {
+  background: #f0f0f0;
+}
+
+th::after {
+  content: '';
+  margin-left: 5px;
+  font-size: 0.8em;
+}
 th {
   background: var(--maroon);
   color: var(--white);
@@ -131,6 +149,7 @@ td {
 tr:last-child td { border-bottom: none; }
 tr:hover { background: #f1f5f9; }
 [data-theme="dark"] tr:hover { background: #2a2a2a; }
+
 
 /* === FOOTER === */
 footer {
