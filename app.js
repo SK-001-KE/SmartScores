@@ -259,12 +259,14 @@
   };
 
   // === CUMULATIVE AVERAGES TABLE ===
+// === CUMULATIVE AVERAGES TABLE ===
 const renderCumulativeAverages = () => {
   const tbody = document.querySelector('#cumulativeTable tbody');
   if (!tbody) return;
+
   const records = loadRecords();
   if (!records.length) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#666;">No data for cumulative averages.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#666;">No data for cumulative averages.</td></tr>';
     return;
   }
 
@@ -307,14 +309,14 @@ const renderCumulativeAverages = () => {
       <td>${g.grade}</td>
       <td>${g.stream}</td>
       <td>${g.term}</td>
-       <td style="font-family: monospace; font-size: 0.95em; color: #555;">
-          (<%= g.meanList %>)
-        </td>
-        <td>
-          <strong style="color: #000;"><%= g.avg %>%</strong>
-        </td>
+      <td style="font-family:monospace;font-size:0.95em;color:#555;">
+        (${g.meanList})
+      </td>
+      <td style="font-weight:bold;color:${g.avg >= 75 ? '#16a34a' : g.avg >= 50 ? '#f59e0b' : '#dc2626'};">
+        ${g.avg}%
+      </td>
     </tr>
-  `).join('') || '<tr><td colspan="5" style="text-align:center;padding:20px;color:#666;">No cumulative data yet.</td></tr>';
+  `).join('') || '<tr><td colspan="6" style="text-align:center;padding:20px;color:#666;">No cumulative data yet.</td></tr>';
 };
   const renderTrendAnalysis = () => {
     const tbody = document.querySelector('#trendTable tbody');
