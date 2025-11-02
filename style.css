@@ -142,6 +142,75 @@ footer {
   margin-top: 50px;
 }
 
+/* === INPUT FIELDS – BIGGER & RESPONSIVE === */
+input[type="text"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 14px 16px;
+  margin: 10px 0;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1.1em;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+/* Focus effect */
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+/* Dark mode */
+[data-theme="dark"] input,
+[data-theme="dark"] select {
+  background: #2d2d2d;
+  border-color: #444;
+  color: #fff;
+}
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(79, 148, 255, 0.3);
+}
+
+/* === FORM GROUPS === */
+.form-group {
+  margin-bottom: 18px;
+  text-align: left;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: bold;
+  color: #333;
+  font-size: 0.95em;
+}
+[data-theme="dark"] .form-group label {
+  color: #ddd;
+}
+
+/* === MOBILE: Even bigger on small screens === */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="number"],
+  select {
+    padding: 16px 18px;
+    font-size: 1.15em;
+    border-radius: 10px;
+  }
+  .form-group {
+    margin-bottom: 22px;
+  }
+  .form-group label {
+    font-size: 1em;
+  }
+}
+
 /* === MOBILE === */
 @media (max-width: 768px) {
   nav a { display: block; margin: 8px 15px; }
