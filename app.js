@@ -1,4 +1,4 @@
-// SmartScores v2.9.17 - CLEAN + STABLE + PDF DOWNLOAD
+/ SmartScores v2.9.26 - LOGOUT + SAVE + ALL FIXED
 (() => {
   const STORAGE_KEY = 'smartScores';
   const TARGETS_KEY = 'smartScoresTargets';
@@ -20,25 +20,34 @@
     return { text: 'Below', color: '#ef4444', emoji: 'Alert' };
   };
 
+// === GLOBAL FUNCTIONS ===
   window.toggleDarkMode = () => {
     const isDark = document.documentElement.dataset.theme === 'dark';
     document.documentElement.dataset.theme = isDark ? 'light' : 'dark';
     localStorage.setItem('theme', isDark ? 'light' : 'dark');
   };
 
+  window.logout = () => {
+    if (confirm('Logout and clear your name?')) {
+      localStorage.removeItem('teacherFullName');
+      window.location.href = 'login.html';
+    }
+  };
+  };
+
+  // === LOADERS ===
   const loadTheme = () => {
     const theme = localStorage.getItem('theme') || 'light';
     document.documentElement.dataset.theme = theme;
   };
 
- const loadTeacherName = () => {
-  const name = localStorage.getItem('teacherFullName');
-  if (name && el('teacherName')) {
-    el('teacherName').value = name;
-    el('teacherName').setAttribute('readonly', true); // Prevent edit
-  }
-};
-
+  const loadTeacherName = () => {
+    const name = localStorage.getItem('teacherFullName');
+    if (name && el('teacherName')) {
+      el('teacherName').value = name;
+      el('teacherName').setAttribute('readonly', true);
+    }
+  };
   const loadRecords = () => load(STORAGE_KEY);
   const saveRecords = r => save(STORAGE_KEY, r);
   const loadTargets = () => load(TARGETS_KEY);
@@ -121,6 +130,57 @@ const handleSaveRecord = () => {
     showAlert('Target saved!');
     renderTargets();
   };
+// === RENDER FUNCTIONS ===
+  const renderRecords = () => { /* ... your full renderRecords ... */ };
+  const renderTargets = () => { /* ... your full renderTargets ... */ };
+  const renderAIInsights = () => { /* ... your full renderAIInsights ... */ };
+  const renderProgressChart = () => { /* ... your full renderProgressChart ... */ };
+  const updateDashboardStats = () => { /* ... your full updateDashboardStats ... */ };
+  window.downloadPDF = () => { /* ... your full downloadPDF ... */ };
+  window.exportToExcel = () => { /* ... your full exportToExcel ... */ };
+  window.exportBackup = () => { /* ... your full exportBackup ... */ };
+  window.clearAllData = () => { /* ... your full clearAllData ... */ };
+
+  const renderAll = () => {
+    renderRecords();
+    renderTargets();
+    updateDashboardStats();
+    renderProgressChart();
+    renderAIInsights();
+  };
+// === INIT – MUST BE INSIDE IIFE ===
+  document.addEventListener('DOMContentLoaded', () => {
+    loadTheme();
+    loadTeacherName();
+    renderAll();
+
+    const dataForm = el('dataEntryForm');
+    if (dataForm) {
+      dataForm.addEventListener('submit', e => {
+        e.preventDefault();
+        handleSaveRecord();
+      });
+    }
+
+    const targetForm = el('setTargetsForm');
+    if (targetForm) {
+      targetForm.addEventListener('submit', e => {
+        e.preventDefault();
+        handleSaveTarget();
+      });
+    }
+
+    if (location.pathname.includes('averages-insights')) {
+      renderAIInsights();
+      renderRecords();
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js');
+    }
+  });
+
+})(); // ← END OF IIFE
 
   // === DELETE ===
   window.deleteRecord = (i) => {
@@ -504,45 +564,5 @@ window.downloadPDF = () => {
     }
   };
 
-  // === RENDER ALL ===
-  const renderAll = () => {
-  renderRecords();
-  renderTargets();
-  updateDashboardStats();
-  renderProgressChart();  // ADD THIS LINE
-  renderAIInsights();
-};
 
-  // === INIT ===
- document.addEventListener('DOMContentLoaded', () => {
-  loadTheme();
-  loadTeacherName();  // AUTO-FILL NAME
-  renderAll();
-  // ... rest
-});
-
-    const dataForm = el('dataEntryForm');
-    if (dataForm) {
-      dataForm.addEventListener('submit', e => {
-        e.preventDefault();
-        handleSaveRecord();
-      });
-    }
-
-    const targetForm = el('setTargetsForm');
-    if (targetForm) {
-      targetForm.addEventListener('submit', e => {
-        e.preventDefault();
-        handleSaveTarget();
-      });
-    }
-    if (location.pathname.includes('averages-insights')) {
-  renderAIInsights();
-  renderRecords();  // ADD THIS
-}
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js');
-    }
-  });
 })();
