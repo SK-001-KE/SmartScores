@@ -116,6 +116,70 @@ table {
   border-radius: 8px;
   overflow: hidden;
 }
+/* === INSIGHTS PAGE TABLES – FULL FORMATTING === */
+#insights-page table,
+#cumulativeTable,
+#recordsTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#insights-page table th,
+#cumulativeTable th,
+#recordsTable th {
+  background: #2563eb;
+  color: white;
+  padding: 12px 10px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#insights-page table td,
+#cumulativeTable td,
+#recordsTable td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
+}
+
+/* ZEBRA STRIPES */
+#insights-page table tbody tr:nth-child(even),
+#cumulativeTable tbody tr:nth-child(even),
+#recordsTable tbody tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+/* HOVER ROW */
+#insights-page table tbody tr:hover,
+#cumulativeTable tbody tr:hover,
+#recordsTable tbody tr:hover {
+  background-color: #eff6ff !important;
+  transition: background 0.2s;
+}
+
+/* NO SORT CURSOR IN INSIGHTS */
+#insights-page #recordsTable th,
+#cumulativeTable th {
+  cursor: default !important;
+}
+
+/* RUBRIC BADGE */
+.rubric-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: white;
+}
 /* SORTABLE – ONLY IN RECORDS PAGE */
 #recorded-scores.html #recordsTable th,
 #recordsTable th {
