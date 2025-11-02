@@ -114,6 +114,51 @@ window.filterRecords = () => {
     year: el('year')?.value?.trim(),  // ← STRING
     mean: Number(el('meanScore')?.value)
   };
+    const renderCumulativeAverages = () => {
+  const tbody = document.querySelector('#cumulativeTable tbody');
+  if (!tbody) return;
+
+  const records = loadRecords();
+  if (!records.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#666;">No data for cumulative averages.</td></tr>';
+    return;
+  }
+
+  // Group by subject|grade|stream|term
+  const groups = {};
+  records.forEach(r => {
+    const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
+    if (!groups[key]) groups[key] = { means: [], subject: r.subject, grade: r.grade, stream: r.stream, term: r.term };
+    groups[key].means.push(r.mean);
+  });
+
+  const averages = [];
+  for (const [key, group] of Object.entries(groups)) {
+    const avg = group.means.reduce((sum, m) => sum + m, 0) / group.means.length;
+    averages.push({
+      ...group,
+      numExams: group.means.length,
+      avg: avg.toFixed(1)
+    });
+  }
+
+  // Sort by subject, grade, stream, term
+  averages.sort((a, b) => a.subject.localeCompare(b.subject) || 
+    a.grade.localeCompare(b.grade) || 
+    a.stream.localeCompare(b.stream) || 
+    a.term.localeCompare(b.term));
+
+  tbody.innerHTML = averages.map(g => `
+    <tr>
+      <td>${g.subject}</td>
+      <td>${g.grade}</td>
+      <td>${g.stream}</td>
+      <td>${g.term}</td>
+      <td>${g.numExams}</td>
+      <td style="font-weight:bold; color:${g.avg >= 75 ? '#16a34a' : g.avg >= 50 ? '#f59e0b' : '#dc2626'}">${g.avg}%</td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" style="text-align:center;padding:20px;color:#666;">No cumulative data yet.</td></tr>';
+};
 
   // === VALIDATE ALL FIELDS ===
   if (!record.subject || !record.grade || !record.stream || 
@@ -515,6 +560,7 @@ const autoFillYear = () => {
     updateDashboardStats();
     renderProgressChart();
     renderAIInsights();
+    renderCumulativeAverages();
   };
 
   // === INIT – INSIDE IIFE ===
@@ -546,9 +592,10 @@ const autoFillYear = () => {
     }
 
     if (location.pathname.includes('averages-insights')) {
-      renderAIInsights();
-      renderRecords();
-    }
+  renderAIInsights();
+  renderRecords();
+  renderCumulativeAverages();  // ADD THIS
+}
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js');
