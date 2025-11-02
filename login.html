@@ -6,44 +6,81 @@
   <title>SmartScores - Login</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.ico" />
+  
+  <!-- GLOBAL STYLES -->
+  <link rel="stylesheet" href="style.css" />
+  
   <script src="app.js" defer></script>
-  <style>
-    :root { --blue: #2563eb; --light: #f9f9f9; --dark: #333; }
-    [data-theme="dark"] { --bg: #1a1a1a; --text: #fff; }
-    body { margin:0; font-family:Arial; background:var(--bg); color:var(--text); display:flex; align-items:center; justify-content:center; min-height:100vh; }
-    .login-box { background:white; padding:40px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.1); width:100%; max-width:400px; text-align:center; }
-    [data-theme="dark"] .login-box { background:#2d2d2d; }
-    h1 { color:var(--blue); margin-bottom:20px; }
-    input { width:100%; padding:12px; margin:10px 0; border:2px solid #ddd; border-radius:6px; font-size:16px; }
-    input:focus { border-color:var(--blue); outline:none; }
-    .btn { background:var(--blue); color:white; border:none; padding:14px; width:100%; border-radius:6px; cursor:pointer; font-weight:bold; font-size:16px; }
-    .btn:hover { background:#1d4ed8; }
-    small { display:block; margin-top:20px; color:#666; }
-  </style>
 </head>
 <body>
-  <div class="login-box">
-    <h1>SmartScores</h1>
-    <p>Enter your name to begin</p>
-    <form id="loginForm">
-      <input type="text" id="firstName" placeholder="First Name" required />
-      <input type="text" id="lastName" placeholder="Last Name" required />
-      <button type="submit" class="btn">Login</button>
-    </form>
-    <small>SmartScores v2.9.23 © Kariuki 2025</small>
+  <!-- DARK MODE TOGGLE -->
+  <div style="position:fixed;top:10px;right:10px;z-index:1000;">
+    <button onclick="toggleDarkMode()" style="background:var(--blue);color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;font-size:0.9rem;">
+      Dark Mode
+    </button>
   </div>
 
+  <header>
+    <h1><img src="icon-192x192.png" alt="" style="height:40px;vertical-align:middle;margin-right:10px;border-radius:8px;"> SmartScores</h1>
+    <p>Teacher Performance Tracker</p>
+  </header>
+
+  <nav>
+    <a href="login.html" class="active">Login</a>
+    <a href="index.html">Dashboard</a>
+    <a href="data-entry.html">Data Entry</a>
+    <a href="recorded-scores.html">Records</a>
+    <a href="averages-insights.html">Insights</a>
+    <a href="set-targets.html">Targets</a>
+  </nav>
+
+  <div class="content">
+    <h2 style="margin-bottom:20px;">Teacher Login</h2>
+    
+    <form id="loginForm" style="max-width:400px;margin:0 auto;">
+      <div class="form-group">
+        <label for="fullName">Full Name</label>
+        <input type="text" id="fullName" placeholder="e.g. John Kariuki" required />
+      </div>
+
+      <button type="submit" class="btn" style="width:100%;padding:14px;font-size:1.1em;">
+        Login
+      </button>
+    </form>
+
+    <p style="margin-top:25px;font-size:0.9em;color:#666;">
+      Enter your full name to begin tracking performance.
+    </p>
+  </div>
+
+  <footer>
+    SmartScores v2.9.44 © Kariuki 2025
+  </footer>
+
   <script>
-    // Handle login
-    document.getElementById('loginForm').addEventListener('submit', e => {
+    // === LOGIN FORM HANDLER (Inline for login.html only) ===
+    const form = document.getElementById('loginForm');
+    const input = document.getElementById('fullName');
+
+    // Restore last name
+    const savedName = localStorage.getItem('teacherFullName');
+    if (savedName) {
+      input.value = savedName;
+    }
+
+    form.addEventListener('submit', e => {
       e.preventDefault();
-      const first = document.getElementById('firstName').value.trim();
-      const last = document.getElementById('lastName').value.trim();
-      if (!first || !last) return alert('Enter both names');
-      const fullName = `${first} ${last}`;
-      localStorage.setItem('teacherFullName', fullName);
+      const name = input.value.trim();
+      if (!name) {
+        alert('Please enter your full name.');
+        return;
+      }
+      localStorage.setItem('teacherFullName', name);
       window.location.href = 'index.html';
     });
+
+    // Auto-focus
+    input.focus();
   </script>
 </body>
 </html>
