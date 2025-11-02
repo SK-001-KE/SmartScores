@@ -632,6 +632,82 @@ window.clearAllData = () => {
   }
 };
 
+  // === SORT RECORDS TABLE ===
+let currentRecordSort = { col: 1, dir: 'asc' }; // default: sort by Subject
+
+window.sortRecords = (colIndex) => {
+  const tbody = document.querySelector('#recordsTable tbody');
+  if (!tbody) return;
+
+  const rows = Array.from(tbody.rows);
+  if (rows.length === 0) return;
+
+  // Toggle direction if same column
+  if (currentRecordSort.col === colIndex) {
+    currentRecordSort.dir = currentRecordSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentRecordSort.col = colIndex;
+    currentRecordSort.dir = 'asc';
+  }
+
+  // Define exam order
+  const examOrder = {
+    'Opener Exam': 1,
+    'Mid Term Exam': 2,
+    'End Term Exam': 3
+  };
+
+  rows.sort((a, b) => {
+    let A = a.cells[colIndex].textContent.trim();
+    let B = b.cells[colIndex].textContent.trim();
+
+    // Special: Group by Subject, Grade, Stream, Term, then Exam
+    if (currentRecordSort.col === 1 || currentRecordSort.col === 2 || 
+        currentRecordSort.col === 3 || currentRecordSort.col === 4) {
+      // First group by Subject, Grade, Stream, Term
+      const groupA = `${a.cells[1].textContent}|${a.cells[2].textContent}|${a.cells[3].textContent}|${a.cells[4].textContent}`;
+      const groupB = `${b.cells[1].textContent}|${b.cells[2].textContent}|${b.cells[3].textContent}|${b.cells[4].textContent}`;
+      if (groupA !== groupB) {
+        return currentRecordSort.dir === 'asc' ? groupA.localeCompare(groupB) : groupB.localeCompare(groupA);
+      }
+    }
+
+    // Within group: sort by Exam order
+    if (colIndex === 5) {
+      const orderA = examOrder[A] || 99;
+      const orderB = examOrder[B] || 99;
+      return currentRecordSort.dir === 'asc' ? orderA - orderB : orderB - orderA;
+    }
+
+    // Number columns
+    if (colIndex === 7 || colIndex === 8) {
+      A = parseFloat(A.replace(/[+%]/g, '')) || 0;
+      B = parseFloat(B.replace(/[+%]/g, '')) || 0;
+    }
+
+    let result = 0;
+    if (typeof A === 'number') {
+      result = A - B;
+    } else {
+      result = A.localeCompare(B);
+    }
+
+    return currentRecordSort.dir === 'asc' ? result : -result;
+  });
+
+  // Re-append sorted rows
+  rows.forEach(row => tbody.appendChild(row));
+
+  // Visual feedback
+  document.querySelectorAll('#recordsTable th').forEach((th, i) => {
+    th.style.fontWeight = i === colIndex ? 'bold' : 'normal';
+    th.textContent = th.textContent.replace(/[down arrow][up arrow]/g, '');
+    if (i === colIndex) {
+      th.textContent += currentRecordSort.dir === 'asc' ? ' down arrow' : ' up arrow';
+    }
+  });
+};
+
   // === RENDER ALL ===
   const renderDashboard = () => {
     renderRecords();
