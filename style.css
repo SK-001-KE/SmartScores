@@ -1,4 +1,6 @@
-/* style.css – GLOBAL STYLES FOR SMARTSCORES */
+/* ============================================================
+   style.css – GLOBAL STYLES FOR SMARTSCORES
+   ============================================================ */
 
 /* === THEME COLORS === */
 :root {
@@ -19,39 +21,11 @@
 }
 
 /* === EMOJI SUPPORT === */
-/* Emoji-safe fonts for text elements */
-body, button, input, select, textarea, td, th, p, span, .rubric-badge {
+* {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
                "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
                "Noto Color Emoji", Arial, sans-serif !important;
 }
-
-/* Emoji alignment in rubric badges */
-.rubric-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #fff;
-  line-height: 1.2;
-  vertical-align: middle;
-}
-
-/* Dark mode badge polish */
-[data-theme="dark"] .rubric-badge {
-  color: #fff;
-  box-shadow: 0 0 4px rgba(255,255,255,0.15);
-}
-
-/* Prevent emoji clipping in tables */
-td, th {
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
 
 /* === BODY & LAYOUT === */
 body {
@@ -61,7 +35,10 @@ body {
   margin: 0;
   padding: 0;
 }
-[data-theme="dark"] body { color: #fff; }
+
+[data-theme="dark"] body {
+  color: #fff;
+}
 
 /* === HEADER === */
 header {
@@ -70,8 +47,17 @@ header {
   padding: 15px;
   text-align: center;
 }
-header h1 { margin: 0; font-size: 1.8em; }
-header p { margin: 5px 0 0; font-size: 1em; opacity: 0.9; }
+
+header h1 {
+  margin: 0;
+  font-size: 1.8em;
+}
+
+header p {
+  margin: 5px 0 0;
+  font-size: 1em;
+  opacity: 0.9;
+}
 
 /* === NAVIGATION === */
 nav {
@@ -80,6 +66,7 @@ nav {
   text-align: center;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+
 nav a {
   color: var(--white);
   text-decoration: none;
@@ -90,7 +77,9 @@ nav a {
   transition: 0.3s;
   font-size: 0.95em;
 }
-nav a:hover, nav a.active {
+
+nav a:hover,
+nav a.active {
   background: var(--blue);
   transform: translateY(-1px);
 }
@@ -104,7 +93,8 @@ nav a:hover, nav a.active {
 }
 
 /* === BUTTONS === */
-button, .btn {
+button,
+.btn {
   background: var(--blue);
   color: var(--white);
   border: none;
@@ -116,16 +106,21 @@ button, .btn {
   font-size: 0.9em;
   transition: 0.2s;
 }
-button:hover, .btn:hover {
+
+button:hover,
+.btn:hover {
   background: #1d4ed8;
   transform: translateY(-1px);
 }
+
 .btn-danger {
   background: #dc2626;
 }
+
 .btn-danger:hover {
   background: #b91c1c;
 }
+
 .btn-group {
   display: flex;
   justify-content: center;
@@ -144,6 +139,7 @@ table {
   border-radius: 8px;
   overflow: hidden;
 }
+
 /* === INSIGHTS PAGE TABLES – FULL FORMATTING === */
 #insights-page table,
 #cumulativeTable,
@@ -178,14 +174,14 @@ table {
   vertical-align: middle;
 }
 
-/* ZEBRA STRIPES */
+/* === ZEBRA STRIPES === */
 #insights-page table tbody tr:nth-child(even),
 #cumulativeTable tbody tr:nth-child(even),
 #recordsTable tbody tr:nth-child(even) {
   background-color: #f9fafb;
 }
 
-/* HOVER ROW */
+/* === HOVER ROW === */
 #insights-page table tbody tr:hover,
 #cumulativeTable tbody tr:hover,
 #recordsTable tbody tr:hover {
@@ -193,13 +189,13 @@ table {
   transition: background 0.2s;
 }
 
-/* NO SORT CURSOR IN INSIGHTS */
+/* === NO SORT CURSOR IN INSIGHTS === */
 #insights-page #recordsTable th,
 #cumulativeTable th {
   cursor: default !important;
 }
 
-/* RUBRIC BADGE */
+/* === RUBRIC BADGE === */
 .rubric-badge {
   display: inline-block;
   padding: 4px 8px;
@@ -208,7 +204,8 @@ table {
   font-weight: 600;
   color: white;
 }
-/* SORTABLE – ONLY IN RECORDS PAGE */
+
+/* === SORTABLE – ONLY IN RECORDS PAGE === */
 #recorded-scores.html #recordsTable th,
 #recordsTable th {
   cursor: pointer;
@@ -220,7 +217,7 @@ table {
   background: #f0f0f0;
 }
 
-/* NO SORTING IN INSIGHTS */
+/* === NO SORTING IN INSIGHTS === */
 #insights-page #recordsTable th,
 #cumulativeTable th {
   cursor: default !important;
@@ -256,7 +253,7 @@ select {
   transition: border 0.2s, box-shadow 0.2s;
 }
 
-/* Focus effect */
+/* === FOCUS EFFECT === */
 input:focus,
 select:focus {
   outline: none;
@@ -264,13 +261,14 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
-/* Dark mode */
+/* === DARK MODE INPUTS === */
 [data-theme="dark"] input,
 [data-theme="dark"] select {
   background: #2d2d2d;
   border-color: #444;
   color: #fff;
 }
+
 [data-theme="dark"] input:focus,
 [data-theme="dark"] select:focus {
   border-color: var(--blue);
@@ -282,6 +280,7 @@ select:focus {
   margin-bottom: 18px;
   text-align: left;
 }
+
 .form-group label {
   display: block;
   margin-bottom: 6px;
@@ -289,11 +288,12 @@ select:focus {
   color: #333;
   font-size: 0.95em;
 }
+
 [data-theme="dark"] .form-group label {
   color: #ddd;
 }
 
-/* === MOBILE: Even bigger on small screens === */
+/* === MOBILE: Bigger Inputs on Small Screens === */
 @media (max-width: 768px) {
   input[type="text"],
   input[type="number"],
@@ -302,18 +302,33 @@ select:focus {
     font-size: 1.15em;
     border-radius: 10px;
   }
+
   .form-group {
     margin-bottom: 22px;
   }
+
   .form-group label {
     font-size: 1em;
   }
 }
 
-/* === MOBILE === */
+/* === MOBILE LAYOUT === */
 @media (max-width: 768px) {
-  nav a { display: block; margin: 8px 15px; }
-  .btn-group { flex-direction: column; }
-  table { font-size: 0.9em; }
-  th, td { padding: 8px; }
+  nav a {
+    display: block;
+    margin: 8px 15px;
+  }
+
+  .btn-group {
+    flex-direction: column;
+  }
+
+  table {
+    font-size: 0.9em;
+  }
+
+  th,
+  td {
+    padding: 8px;
+  }
 }
