@@ -326,24 +326,97 @@ const updateDashboardStats = () => {
   }
 };
 
-  // === PDF DOWNLOAD – FIXED ===
-  window.downloadPDF = () => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text('SmartScores Report', 105, 20, { align: 'center' });
+// === DOWNLOAD PDF – PROFESSIONAL TABLE ===
+window.downloadPDF = () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
 
-    const records = loadRecords();
-    let y = 40;
-    records.forEach(r => {
-      doc.setFontSize(10);
-      doc.text(`${r.subject} G${r.grade} ${r.stream} – ${r.mean.toFixed(1)}%`, 20, y);
-      y += 8;
-      if (y > 270) { doc.addPage(); y = 20; }
+  // Title
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text('SmartScores Performance Report', pageWidth / 2, 20, { align: 'center' });
+
+  // Date
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, 28, { align: 'center' });
+
+  const records = loadRecords();
+  if (!records.length) {
+    doc.text('No records found.', 20, 40);
+    doc.save(`SmartScores_Report_${new Date().toISOString().slice(0,10)}.pdf`);
+    return;
+  }
+
+  // Table setup
+  const startY = 40;
+  let y = startY;
+  const rowHeight = 8;
+  const colWidths = [30, 18, 18, 25, 30, 20, 25]; // Subject, Grade, Stream, Term, Exam, Mean, Rubric
+  const headers = ['Subject', 'Grade', 'Stream', 'Term', 'Exam', 'Mean', 'Rubric'];
+
+  // Header
+  doc.setFillColor(37, 99, 235); // Blue
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+
+  let x = 14;
+  headers.forEach((h, i) => {
+    doc.rect(x, y - 6, colWidths[i], 8, 'F');
+    doc.text(h, x + 2, y - 1);
+    x += colWidths[i];
+  });
+  y += rowHeight;
+
+  // Body
+  doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+
+  records.forEach(r => {
+    if (y > pageHeight - 20) {
+      doc.addPage();
+      y = 20;
+    }
+
+    const rub = rubric(r.mean);
+    const cells = [
+      r.subject,
+      `G${r.grade}`,
+      r.stream,
+      r.term,
+      r.examType,
+      `${r.mean.toFixed(1)}%`,
+      `${rub.emoji} ${rub.text}`
+    ];
+
+    x = 14;
+    cells.forEach((cell, i) => {
+      if (i === 6) {
+        // Rubric cell with background
+        const color = rub.color.replace('#', '');
+        const rColor = parseInt(color.substr(0,2), 16);
+        const gColor = parseInt(color.substr(2,2), 16);
+        const bColor = parseInt(color.substr(4,2), 16);
+        doc.setFillColor(rColor, gColor, bColor);
+        doc.rect(x, y - 6, colWidths[i], 7, 'F');
+        doc.setTextColor(255, 255, 255);
+      } else {
+        doc.setTextColor(0, 0, 0);
+      }
+      doc.text(cell, x + 2, y - 1);
+      x += colWidths[i];
     });
 
-    doc.save(`SmartScores_${new Date().toISOString().slice(0,10)}.pdf`);
-  };
+    y += rowHeight;
+  });
+
+  // Save
+  doc.save(`SmartScores_Report_${new Date().toISOString().slice(0,10)}.pdf`);
+};
 
   // === EXCEL EXPORT ===
   window.exportToExcel = () => {
