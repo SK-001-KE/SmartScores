@@ -34,6 +34,28 @@
     }
   };
 
+  // === SEARCH – FIXED ===
+window.filterRecords = () => {
+  const searchInput = el('searchInput');
+  const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+  const rows = document.querySelectorAll('#recordsTable tbody tr');
+  let visibleCount = 0;
+
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    if (text.includes(searchTerm)) {
+      row.style.display = '';
+      visibleCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  if (searchTerm && visibleCount === 0) {
+    showAlert('No records found. Try different keywords.');
+  }
+};
+
   window.deleteRecord = (i) => {
     if (confirm('Delete record?')) {
       const records = loadRecords();
@@ -509,6 +531,11 @@ const autoFillYear = () => {
         handleSaveRecord();
       });
     }
+
+    const searchInput = el('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', filterRecords);  // Real-time search
+  }
 
     const targetForm = el('setTargetsForm');
     if (targetForm) {
