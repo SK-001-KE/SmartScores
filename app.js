@@ -175,39 +175,44 @@
 
   // === RENDER FUNCTIONS (ALL RESTORED) ===
   const renderRecords = () => {
-    const tbody = document.querySelector('#recordsTable tbody');
-    if (!tbody) return;
-    const records = loadRecords();
-    const targets = loadTargets();
-    const targetMap = {};
-    targets.forEach(t => {
-      const key = `${t.subject}|${t.grade}|${t.stream}|${t.term}|${t.examType}`;
-      targetMap[key] = t.score;
-    });
-    tbody.innerHTML = records.map(r => {
-      const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}|${r.examType}`;
-      const target = targetMap[key] || 0;
-      const deviation = (r.mean - target).toFixed(1);
-      const rub = rubric(r.mean);
-      return `
-        <tr>
-          <td>${r.teacher}</td>
-          <td>${r.subject}</td>
-          <td>${r.grade}</td>
-          <td>${r.stream}</td>
-          <td>${r.term}</td>
-          <td>${r.examType}</td>
-          <td>${r.year}</td>
-          <td>${r.mean.toFixed(1)}%</td>
-          <td>${target}%</td>
-          <td style="font-weight:bold;color:${deviation >= 0 ? '#16a34a' : '#dc2626'}">
-            ${deviation >= 0 ? '+' : ''}${deviation}%
-          </td>
-          <td><span style="background:${rub.color};color:#fff;padding:4px 8px;border-radius:6px;">${rub.emoji} ${rub.text}</span></td>
-        </tr>
-      `;
-    }).join('') || '<tr><td colspan="11">No records yet.</td></tr>';
-  };
+  const tbody = document.querySelector('#recordsTable tbody');
+  if (!tbody) return;
+
+  const records = loadRecords();
+  const targets = loadTargets();
+  const targetMap = {};
+  targets.forEach(t => {
+    const key = `${t.subject}|${t.grade}|${t.stream}|${t.term}|${t.examType}`;
+    targetMap[key] = t.score;
+  });
+
+  tbody.innerHTML = records.map(r => {
+    const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}|${r.examType}`;
+    const target = targetMap[key] || 0;
+    const deviation = (r.mean - target).toFixed(1);
+    const rub = rubric(r.mean);
+    return `
+      <tr>
+        <td>${r.teacher}</td>
+        <td>${r.subject}</td>
+        <td>${r.grade}</td>
+        <td>${r.stream}</td>
+        <td>${r.term}</td>
+        <td>${r.examType}</td>
+        <td>${r.year}</td>
+        <td>${r.mean.toFixed(1)}%</td>
+        <td>${target}%</td>
+        <td style="font-weight:bold;color:${deviation >= 0 ? '#16a34a' : '#dc2626'}">
+          ${deviation >= 0 ? '+' : ''}${deviation}%
+        </td>
+        <td><span style="background:${rub.color};color:#fff;padding:4px 8px;border-radius:6px;">${rub.emoji} ${rub.text}</span></td>
+      </tr>
+    `;
+  }).join('') || '<tr><td colspan="11">No records yet.</td></tr>';
+
+  // AUTO GROUP BY SUBJECT + EXAM ORDER
+  sortRecords(1); // ← THIS LINE ADDED
+};
 
   const renderTargets = () => {
     const tbody = document.querySelector('#targetsTable tbody');
