@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartScores - Login</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="favicon.ico" />
+  <script src="app.js" defer></script>
+  <style>
+    :root { --blue: #2563eb; --light: #f9f9f9; --dark: #333; }
+    [data-theme="dark"] { --bg: #1a1a1a; --text: #fff; }
+    body { margin:0; font-family:Arial; background:var(--bg); color:var(--text); display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .login-box { background:white; padding:40px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.1); width:100%; max-width:400px; text-align:center; }
+    [data-theme="dark"] .login-box { background:#2d2d2d; }
+    h1 { color:var(--blue); margin-bottom:20px; }
+    input { width:100%; padding:12px; margin:10px 0; border:2px solid #ddd; border-radius:6px; font-size:16px; }
+    input:focus { border-color:var(--blue); outline:none; }
+    .btn { background:var(--blue); color:white; border:none; padding:14px; width:100%; border-radius:6px; cursor:pointer; font-weight:bold; font-size:16px; }
+    .btn:hover { background:#1d4ed8; }
+    small { display:block; margin-top:20px; color:#666; }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h1>SmartScores</h1>
+    <p>Enter your name to begin</p>
+    <form id="loginForm">
+      <input type="text" id="firstName" placeholder="First Name" required />
+      <input type="text" id="lastName" placeholder="Last Name" required />
+      <button type="submit" class="btn">Login</button>
+    </form>
+    <small>SmartScores v2.9.23 © Kariuki 2025</small>
+  </div>
+
+  <script>
+    // Handle login
+    document.getElementById('loginForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const first = document.getElementById('firstName').value.trim();
+      const last = document.getElementById('lastName').value.trim();
+      if (!first || !last) return alert('Enter both names');
+      const fullName = `${first} ${last}`;
+      localStorage.setItem('teacherFullName', fullName);
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>
