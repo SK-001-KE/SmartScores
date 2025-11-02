@@ -570,6 +570,13 @@ const renderInsights = () => {
   renderCumulativeAverages();
   renderTrendAnalysis();
 };
+  // ADD THIS HERE
+const renderAll = () => {
+  if (location.pathname.includes('averages-insights')) {
+    renderInsights();
+  } else {
+    renderDashboard();
+  }
 
   // === INIT – INSIDE IIFE ===
 document.addEventListener('DOMContentLoaded', () => {
@@ -600,14 +607,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (searchInput) {
     searchInput.addEventListener('input', filterRecords);
   }
-
- const renderAll = () => {
-  if (location.pathname.includes('averages-insights')) {
-    renderInsights();
-  } else {
-    renderDashboard();
-  }
-};
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/service-worker.js');
