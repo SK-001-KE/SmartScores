@@ -315,7 +315,7 @@ const renderCumulativeAverages = () => {
         ${g.avg}%
       </td>
     </tr>
-  `).join('') || '<tr><td colspan="6" style="text-align:center;padding:20px;color:#666;">No cumulative data yet.</td></tr>';
+  `).join('');
 };
   const renderTrendAnalysis = () => {
     const tbody = document.querySelector('#trendTable tbody');
