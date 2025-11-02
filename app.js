@@ -282,6 +282,52 @@ const autoFillYear = () => {
       ? insights.map(i => `<p class="insight">${i}</p>`).join('')
       : '<p class="insight">All subjects on track with targets!</p>';
   };
+  // === CUMULATIVE AVERAGES TABLE ===
+const renderCumulativeAverages = () => {
+  const tbody = document.querySelector('#cumulativeTable tbody');
+  if (!tbody) return;
+
+  const records = loadRecords();
+  if (!records.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#666;">No data for cumulative averages.</td></tr>';
+    return;
+  }
+
+  // Group by subject|grade|stream|term
+  const groups = {};
+  records.forEach(r => {
+    const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
+    if (!groups[key]) groups[key] = { means: [], subject: r.subject, grade: r.grade, stream: r.stream, term: r.term };
+    groups[key].means.push(r.mean);
+  });
+
+  const averages = [];
+  for (const [key, group] of Object.entries(groups)) {
+    const avg = group.means.reduce((sum, m) => sum + m, 0) / group.means.length;
+    averages.push({
+      ...group,
+      numExams: group.means.length,
+      avg: avg.toFixed(1)
+    });
+  }
+
+  // Sort
+  averages.sort((a, b) => a.subject.localeCompare(b.subject) ||
+    a.grade.localeCompare(b.grade) ||
+    a.stream.localeCompare(b.stream) ||
+    a.term.localeCompare(b.term));
+
+  tbody.innerHTML = averages.map(g => `
+    <tr>
+      <td>${g.subject}</td>
+      <td>${g.grade}</td>
+      <td>${g.stream}</td>
+      <td>${g.term}</td>
+      <td>${g.numExams}</td>
+      <td style="font-weight:bold;color:${g.avg >= 75 ? '#16a34a' : g.avg >= 50 ? '#f59e0b' : '#dc2626'}">${g.avg}%</td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" style="text-align:center;padding:20px;color:#666;">No cumulative data yet.</td></tr>';
+};
 
   // === PROGRESS CHART ===
   const renderProgressChart = () => {
@@ -526,15 +572,14 @@ const renderInsights = () => {
 };
 
   // === INIT – INSIDE IIFE ===
- document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
   loadTheme();
   loadTeacherName();
   autoFillYear();
 
-  // RENDER CORRECT PAGE
-  renderAll();
+  renderAll();  // ← NOW WORKS
 
-    // FORM SUBMISSIONS
+  // FORM SUBMISSIONS
   const dataForm = el('dataEntryForm');
   if (dataForm) {
     dataForm.addEventListener('submit', e => {
@@ -543,44 +588,25 @@ const renderInsights = () => {
     });
   }
 
-    const searchInput = el('searchInput');
-  if (searchInput) {
-    searchInput.addEventListener('input', filterRecords);  // Real-time search
-  }
-
-    const targetForm = el('setTargetsForm');
+  const targetForm = el('setTargetsForm');
   if (targetForm) {
     targetForm.addEventListener('submit', e => {
       e.preventDefault();
       handleSaveTarget();
     });
   }
-   const renderCumulativeAverages = () => {
-  const tbody = document.querySelector('#cumulativeTable tbody');
-  if (!tbody) return;  // ← PREVENT ERROR
-  // ... rest
-};
 
-const renderTrendAnalysis = () => {
-  const tbody = document.querySelector('#trendTable tbody');
-  if (!tbody) return;  // ← PREVENT ERROR
-  // ... rest
-};
-
-const renderAIInsights = () => {
-  const container = el('insights');
-  if (!container) return;  // ← PREVENT ERROR
-  // ... rest
-};
-
-    // INSIGHTS PAGE ONLY
-  if (location.pathname.includes('averages-insights')) {
-    renderInsights();  // ← Safe to call again
+  const searchInput = el('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', filterRecords);
   }
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js');
-    }
-  });
+  if (location.pathname.includes('averages-insights')) {
+    renderInsights();
+  }
 
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js');
+  }
+});
 })(); // END OF IIFE
