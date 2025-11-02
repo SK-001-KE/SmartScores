@@ -136,6 +136,13 @@
   showAlert('Record saved successfully!');
   renderAll();
 };
+
+const autoFillYear = () => {
+  const yearInput = el('year');
+  if (yearInput && !yearInput.value.trim()) {
+    yearInput.value = new Date().getFullYear();
+  }
+};
   // === SAVE TARGET ===
   const handleSaveTarget = () => {
     const target = {
