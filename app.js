@@ -1,24 +1,22 @@
-// SmartScores v2.9.27 - FULLY CLEAN + WORKING
+// SmartScores v2.9.70 - FULLY RESTORED + RENDERS FIXED
 (() => {
   const STORAGE_KEY = 'smartScores';
   const TARGETS_KEY = 'smartScoresTargets';
   const TEACHER_KEY = 'lastTeacherName';
-
   const el = id => document.getElementById(id);
   const showAlert = msg => alert(msg);
-
   const load = (k, def = []) => {
     try { return JSON.parse(localStorage.getItem(k)) || def; }
     catch { return def; }
   };
   const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
-
- const rubric = s => {
-  if (s >= 75) return { text: 'Exceeding',   color: '#16a34a', emoji: 'Trophy' };  // Trophy
-  if (s >= 41) return { text: 'Meeting',     color: '#2563eb', emoji: 'Check' };   // Check
-  if (s >= 21) return { text: 'Approaching', color: '#f59e0b', emoji: 'Warning' }; // Warning
-  return { text: 'Below',      color: '#ef4444', emoji: 'Alert' };   // Alert
-};
+  
+  const rubric = s => {
+    if (s >= 75) return { text: 'Exceeding', color: '#16a34a', emoji: 'Trophy' };
+    if (s >= 41) return { text: 'Meeting', color: '#2563eb', emoji: 'Check' };
+    if (s >= 21) return { text: 'Approaching', color: '#f59e0b', emoji: 'Warning' };
+    return { text: 'Below', color: '#ef4444', emoji: 'Alert' };
+  };
 
   // === GLOBAL FUNCTIONS ===
   window.toggleDarkMode = () => {
@@ -34,27 +32,25 @@
     }
   };
 
-  // === SEARCH – FIXED ===
-window.filterRecords = () => {
-  const searchInput = el('searchInput');
-  const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-  const rows = document.querySelectorAll('#recordsTable tbody tr');
-  let visibleCount = 0;
-
-  rows.forEach(row => {
-    const text = row.textContent.toLowerCase();
-    if (text.includes(searchTerm)) {
-      row.style.display = '';
-      visibleCount++;
-    } else {
-      row.style.display = 'none';
+  // === SEARCH ===
+  window.filterRecords = () => {
+    const searchInput = el('searchInput');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    const rows = document.querySelectorAll('#recordsTable tbody tr');
+    let visibleCount = 0;
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      if (text.includes(searchTerm)) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+    if (searchTerm && visibleCount === 0) {
+      showAlert('No records found. Try different keywords.');
     }
-  });
-
-  if (searchTerm && visibleCount === 0) {
-    showAlert('No records found. Try different keywords.');
-  }
-};
+  };
 
   window.deleteRecord = (i) => {
     if (confirm('Delete record?')) {
@@ -97,74 +93,57 @@ window.filterRecords = () => {
 
   // === SAVE RECORD ===
   const handleSaveRecord = () => {
-  const loggedName = localStorage.getItem('teacherFullName');
-  if (!loggedName) {
-    showAlert('Please login first.');
-    window.location.href = 'login.html';
-    return;
-  }
+    const loggedName = localStorage.getItem('teacherFullName');
+    if (!loggedName) {
+      showAlert('Please login first.');
+      window.location.href = 'login.html';
+      return;
+    }
+    const record = {
+      teacher: loggedName,
+      subject: el('subject')?.value?.trim(),
+      grade: el('grade')?.value?.trim(),
+      stream: el('stream')?.value?.trim(),
+      term: el('term')?.value?.trim(),
+      examType: el('examType')?.value?.trim(),
+      year: el('year')?.value?.trim(),
+      mean: Number(el('meanScore')?.value)
+    };
 
-  const record = {
-    teacher: loggedName,
-    subject: el('subject')?.value?.trim(),
-    grade: el('grade')?.value?.trim(),
-    stream: el('stream')?.value?.trim(),
-    term: el('term')?.value?.trim(),
-    examType: el('examType')?.value?.trim(),
-    year: el('year')?.value?.trim(),  // ← STRING
-    mean: Number(el('meanScore')?.value)
+    if (!record.subject || !record.grade || !record.stream || !record.term || !record.examType || !record.year || isNaN(record.mean)) {
+      return showAlert('Please fill all fields correctly.');
+    }
+    if (record.mean < 0 || record.mean > 100) return showAlert('Mean score must be 0–100.');
+    const yearNum = Number(record.year);
+    if (isNaN(yearNum) || yearNum < 2000 || yearNum > 2100) return showAlert('Year must be 2000–2100.');
+
+    const records = loadRecords();
+    const exists = records.some(r =>
+      r.teacher === record.teacher &&
+      r.subject === record.subject &&
+      r.grade === record.grade &&
+      r.stream === record.stream &&
+      r.term === record.term &&
+      r.examType === record.examType &&
+      String(r.year) === record.year
+    );
+    if (exists) return showAlert('This record already exists!');
+
+    records.push({ ...record, year: record.year });
+    saveRecords(records);
+    localStorage.setItem(TEACHER_KEY, record.teacher);
+    el('meanScore').value = '';
+    showAlert('Record saved successfully!');
+    renderAll();
   };
 
-  // === VALIDATE ALL FIELDS ===
-  if (!record.subject || !record.grade || !record.stream || 
-      !record.term || !record.examType || !record.year || isNaN(record.mean)) {
-    return showAlert('Please fill all fields correctly.');
-  }
+  const autoFillYear = () => {
+    const yearInput = el('year');
+    if (yearInput && !yearInput.value.trim()) {
+      yearInput.value = new Date().getFullYear();
+    }
+  };
 
-  if (record.mean < 0 || record.mean > 100) {
-    return showAlert('Mean score must be 0–100.');
-  }
-
-  const yearNum = Number(record.year);
-  if (isNaN(yearNum) || yearNum < 2000 || yearNum > 2100) {
-    return showAlert('Year must be 2000–2100.');
-  }
-
-  const records = loadRecords();
-
-  // === DUPLICATE CHECK – ALL STRINGS, TRIMMED, EXACT ===
-  const exists = records.some(r => 
-    r.teacher === record.teacher &&
-    r.subject === record.subject &&
-    r.grade === record.grade &&
-    r.stream === record.stream &&
-    r.term === record.term &&
-    r.examType === record.examType &&
-    String(r.year) === record.year  // ← BOTH STRINGS
-  );
-
-  if (exists) {
-    return showAlert('This record already exists!');
-  }
-
-  // === SAVE ===
-  records.push({
-    ...record,
-    year: record.year  // keep as string
-  });
-  saveRecords(records);
-  localStorage.setItem(TEACHER_KEY, record.teacher);
-  el('meanScore').value = '';
-  showAlert('Record saved successfully!');
-  renderAll();
-};
-
-const autoFillYear = () => {
-  const yearInput = el('year');
-  if (yearInput && !yearInput.value.trim()) {
-    yearInput.value = new Date().getFullYear();
-  }
-};
   // === SAVE TARGET ===
   const handleSaveTarget = () => {
     const target = {
@@ -175,11 +154,9 @@ const autoFillYear = () => {
       examType: el('targetExamType')?.value,
       score: Number(el('targetScore')?.value)
     };
-
     if (!target.subject || !target.grade || !target.stream || !target.term || !target.examType || isNaN(target.score)) {
       return showAlert('Fill all fields.');
     }
-
     if (target.score < 0 || target.score > 100) return showAlert('Target 0–100.');
 
     const targets = loadTargets();
@@ -196,7 +173,7 @@ const autoFillYear = () => {
     renderTargets();
   };
 
-  // === RENDER RECORDS ===
+  // === RENDER FUNCTIONS (ALL RESTORED) ===
   const renderRecords = () => {
     const tbody = document.querySelector('#recordsTable tbody');
     if (!tbody) return;
@@ -229,10 +206,9 @@ const autoFillYear = () => {
           <td><span style="background:${rub.color};color:#fff;padding:4px 8px;border-radius:6px;">${rub.emoji} ${rub.text}</span></td>
         </tr>
       `;
-    }).join('');
+    }).join('') || '<tr><td colspan="11">No records yet.</td></tr>';
   };
 
-  // === RENDER TARGETS ===
   const renderTargets = () => {
     const tbody = document.querySelector('#targetsTable tbody');
     if (!tbody) return;
@@ -249,10 +225,9 @@ const autoFillYear = () => {
           <button onclick="deleteTarget(${i})" class="btn btn-danger" style="padding:6px 10px;font-size:0.9rem;">Delete</button>
         </td>
       </tr>
-    `).join('');
+    `).join('') || '<tr><td colspan="7">No targets set.</td></tr>';
   };
 
-  // === RENDER AI INSIGHTS ===
   const renderAIInsights = () => {
     const container = el('insights');
     if (!container) return;
@@ -282,135 +257,118 @@ const autoFillYear = () => {
       ? insights.map(i => `<p class="insight">${i}</p>`).join('')
       : '<p class="insight">All subjects on track with targets!</p>';
   };
-  // === CUMULATIVE AVERAGES TABLE ===
-const renderCumulativeAverages = () => {
-  const tbody = document.querySelector('#cumulativeTable tbody');
-  if (!tbody) return;
 
-  const records = loadRecords();
-  if (!records.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#666;">No data for cumulative averages.</td></tr>';
-    return;
-  }
-
-  // Group by subject|grade|stream|term
-  const groups = {};
-  records.forEach(r => {
-    const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
-    if (!groups[key]) groups[key] = { means: [], subject: r.subject, grade: r.grade, stream: r.stream, term: r.term };
-    groups[key].means.push(r.mean);
-  });
-
-  const averages = [];
-  for (const [key, group] of Object.entries(groups)) {
-    const avg = group.means.reduce((sum, m) => sum + m, 0) / group.means.length;
-    averages.push({
-      ...group,
-      numExams: group.means.length,
-      avg: avg.toFixed(1)
-    });
-  }
-
-  // Sort
-  averages.sort((a, b) => a.subject.localeCompare(b.subject) ||
-    a.grade.localeCompare(b.grade) ||
-    a.stream.localeCompare(b.stream) ||
-    a.term.localeCompare(b.term));
-
-  tbody.innerHTML = averages.map(g => `
-    <tr>
-      <td>${g.subject}</td>
-      <td>${g.grade}</td>
-      <td>${g.stream}</td>
-      <td>${g.term}</td>
-      <td>${g.numExams}</td>
-      <td style="font-weight:bold;color:${g.avg >= 75 ? '#16a34a' : g.avg >= 50 ? '#f59e0b' : '#dc2626'}">${g.avg}%</td>
-    </tr>
-  `).join('') || '<tr><td colspan="6" style="text-align:center;padding:20px;color:#666;">No cumulative data yet.</td></tr>';
-};
-  // === TREND ANALYSIS TABLE ===
-const renderTrendAnalysis = () => {
-  const tbody = document.querySelector('#trendTable tbody');
-  if (!tbody) return;
-
-  const records = loadRecords();
-  if (!records.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:#666;">No data for trend analysis.</td></tr>';
-    return;
-  }
-
-  const groups = {};
-  records.forEach(r => {
-    const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
-    if (!groups[key]) {
-      groups[key] = { subject: r.subject, grade: r.grade, stream: r.stream, term: r.term, exams: {} };
+  const renderCumulativeAverages = () => {
+    const tbody = document.querySelector('#cumulativeTable tbody');
+    if (!tbody) return;
+    const records = loadRecords();
+    if (!records.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#666;">No data for cumulative averages.</td></tr>';
+      return;
     }
-    groups[key].exams[r.examType] = r.mean;
-  });
-
-  const trends = [];
-  for (const [key, group] of Object.entries(groups)) {
-    const { exams } = group;
-    const opener = exams['Opener Exam'] || null;
-    const mid = exams['Mid Term Exam'] || null;
-    const end = exams['End Term Exam'] || null;
-
-    if ([opener, mid, end].filter(v => v !== null).length < 2) continue;
-
-    let trend = 0;
-    let status = '';
-    let color = '';
-
-    if (opener && end) {
-      trend = (end - opener).toFixed(1);
-      status = trend > 0 ? 'Improved' : trend < 0 ? 'Declined' : 'Stable';
-      color = trend > 0 ? '#16a34a' : trend < 0 ? '#dc2626' : '#f59e0b';
-    } else if (opener && mid) {
-      trend = (mid - opener).toFixed(1);
-      status = trend > 0 ? 'Improving' : 'Declining';
-      color = trend > 0 ? '#16a34a' : '#dc2626';
-    } else if (mid && end) {
-      trend = (end - mid).toFixed(1);
-      status = trend > 0 ? 'Improving' : 'Declining';
-      color = trend > 0 ? '#16a34a' : '#dc2626';
-    }
-
-    trends.push({
-      ...group,
-      opener: opener ? opener.toFixed(1) : '-',
-      mid: mid ? mid.toFixed(1) : '-',
-      end: end ? end.toFixed(1) : '-',
-      trend: trend !== 0 ? `${trend > 0 ? '+' : ''}${trend}%` : '-',
-      status,
-      color
+    const groups = {};
+    records.forEach(r => {
+      const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
+      if (!groups[key]) groups[key] = { means: [], subject: r.subject, grade: r.grade, stream: r.stream, term: r.term };
+      groups[key].means.push(r.mean);
     });
-  }
+    const averages = [];
+    for (const [key, group] of Object.entries(groups)) {
+      const avg = group.means.reduce((sum, m) => sum + m, 0) / group.means.length;
+      averages.push({
+        ...group,
+        numExams: group.means.length,
+        avg: avg.toFixed(1)
+      });
+    }
+    averages.sort((a, b) => a.subject.localeCompare(b.subject) ||
+      a.grade.localeCompare(b.grade) ||
+      a.stream.localeCompare(b.stream) ||
+      a.term.localeCompare(b.term));
+    tbody.innerHTML = averages.map(g => `
+      <tr>
+        <td>${g.subject}</td>
+        <td>${g.grade}</td>
+        <td>${g.stream}</td>
+        <td>${g.term}</td>
+        <td>${g.numExams}</td>
+        <td style="font-weight:bold;color:${g.avg >= 75 ? '#16a34a' : g.avg >= 50 ? '#f59e0b' : '#dc2626'}">${g.avg}%</td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" style="text-align:center;padding:20px;color:#666;">No cumulative data yet.</td></tr>';
+  };
 
-  trends.sort((a, b) => 
-    a.subject.localeCompare(b.subject) || 
-    a.grade.localeCompare(b.grade) || 
-    a.stream.localeCompare(b.stream) || 
-    a.term.localeCompare(b.term)
-  );
+  const renderTrendAnalysis = () => {
+    const tbody = document.querySelector('#trendTable tbody');
+    if (!tbody) return;
+    const records = loadRecords();
+    if (!records.length) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:#666;">No data for trend analysis.</td></tr>';
+      return;
+    }
+    const groups = {};
+    records.forEach(r => {
+      const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
+      if (!groups[key]) {
+        groups[key] = { subject: r.subject, grade: r.grade, stream: r.stream, term: r.term, exams: {} };
+      }
+      groups[key].exams[r.examType] = r.mean;
+    });
+    const trends = [];
+    for (const [key, group] of Object.entries(groups)) {
+      const { exams } = group;
+      const opener = exams['Opener Exam'] || null;
+      const mid = exams['Mid Term Exam'] || null;
+      const end = exams['End Term Exam'] || null;
+      if ([opener, mid, end].filter(v => v !== null).length < 2) continue;
+      let trend = 0;
+      let status = '';
+      let color = '';
+      if (opener && end) {
+        trend = (end - opener).toFixed(1);
+        status = trend > 0 ? 'Improved' : trend < 0 ? 'Declined' : 'Stable';
+        color = trend > 0 ? '#16a34a' : trend < 0 ? '#dc2626' : '#f59e0b';
+      } else if (opener && mid) {
+        trend = (mid - opener).toFixed(1);
+        status = trend > 0 ? 'Improving' : 'Declining';
+        color = trend > 0 ? '#16a34a' : '#dc2626';
+      } else if (mid && end) {
+        trend = (end - mid).toFixed(1);
+        status = trend > 0 ? 'Improving' : 'Declining';
+        color = trend > 0 ? '#16a34a' : '#dc2626';
+      }
+      trends.push({
+        ...group,
+        opener: opener ? opener.toFixed(1) : '-',
+        mid: mid ? mid.toFixed(1) : '-',
+        end: end ? end.toFixed(1) : '-',
+        trend: trend !== 0 ? `${trend > 0 ? '+' : ''}${trend}%` : '-',
+        status,
+        color
+      });
+    }
+    trends.sort((a, b) => 
+      a.subject.localeCompare(b.subject) || 
+      a.grade.localeCompare(b.grade) || 
+      a.stream.localeCompare(b.stream) || 
+      a.term.localeCompare(b.term)
+    );
+    tbody.innerHTML = trends.length 
+      ? trends.map(t => `
+          <tr>
+            <td>${t.subject}</td>
+            <td>${t.grade}</td>
+            <td>${t.stream}</td>
+            <td>${t.term}</td>
+            <td>${t.opener}</td>
+            <td>${t.mid}</td>
+            <td>${t.end}</td>
+            <td style="font-weight:bold;color:${t.color}">${t.trend}</td>
+            <td><span style="background:${t.color};color:#fff;padding:4px 8px;border-radius:6px;">${t.status}</span></td>
+          </tr>
+        `).join('')
+      : '<tr><td colspan="9" style="text-align:center;padding:20px;color:#666;">Not enough data for trends.</td></tr>';
+  };
 
-  tbody.innerHTML = trends.length 
-    ? trends.map(t => `
-        <tr>
-          <td>${t.subject}</td>
-          <td>${t.grade}</td>
-          <td>${t.stream}</td>
-          <td>${t.term}</td>
-          <td>${t.opener}</td>
-          <td>${t.mid}</td>
-          <td>${t.end}</td>
-          <td style="font-weight:bold;color:${t.color}">${t.trend}</td>
-          <td><span style="background:${t.color};color:#fff;padding:4px 8px;border-radius:6px;">${t.status}</span></td>
-        </tr>
-      `).join('')
-    : '<tr><td colspan="9" style="text-align:center;padding:20px;color:#666;">Not enough data for trends.</td></tr>';
-};
-
-  // === PROGRESS CHART ===
   const renderProgressChart = () => {
     const canvas = el('progressChart');
     if (!canvas || !window.Chart) return;
@@ -455,7 +413,6 @@ const renderTrendAnalysis = () => {
     });
   };
 
-  // === DASHBOARD STATS ===
   const updateDashboardStats = () => {
     const records = loadRecords();
     if (!records.length) return;
@@ -500,197 +457,59 @@ const renderTrendAnalysis = () => {
     }
   };
 
-  // === PDF DOWNLOAD ===
-  window.downloadPDF = () => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('p', 'mm', 'a4');
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const teacherName = localStorage.getItem('teacherFullName') || 'Unknown Teacher';
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(37, 99, 235);
-    doc.text(`Teacher: ${teacherName}`, 14, 15);
-    doc.setFontSize(18);
-    doc.setTextColor(0, 0, 0);
-    doc.text('SmartScores Performance Report', pageWidth / 2, 25, { align: 'center' });
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, 32, { align: 'center' });
-    const records = loadRecords();
-    if (!records.length) {
-      doc.setFontSize(12);
-      doc.text('No records found.', 14, 50);
-      doc.save(`SmartScores_${teacherName.replace(/[^a-zA-Z0-9]/g, '_')}_Report.pdf`);
-      return;
-    }
-    const startY = 45;
-    let y = startY;
-    const rowHeight = 8;
-    const colWidths = [30, 18, 18, 25, 30, 20, 25];
-    const headers = ['Subject', 'Grade', 'Stream', 'Term', 'Exam', 'Mean', 'Rubric'];
-    doc.setFillColor(37, 99, 235);
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    let x = 14;
-    headers.forEach((h, i) => {
-      doc.rect(x, y - 6, colWidths[i], 8, 'F');
-      doc.text(h, x + 2, y - 1);
-      x += colWidths[i];
-    });
-    y += rowHeight;
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    records.forEach(r => {
-      if (y > pageHeight - 20) {
-        doc.addPage();
-        y = 20;
-        x = 14;
-        doc.setFillColor(37, 99, 235);
-        doc.setTextColor(255, 255, 255);
-        headers.forEach((h, i) => {
-          doc.rect(x, y - 6, colWidths[i], 8, 'F');
-          doc.text(h, x + 2, y - 1);
-          x += colWidths[i];
-        });
-        y += rowHeight;
-        doc.setTextColor(0, 0, 0);
-      }
-      const rub = rubric(r.mean);
-      const cells = [
-        r.subject,
-        `G${r.grade}`,
-        r.stream,
-        r.term,
-        r.examType,
-        `${r.mean.toFixed(1)}%`,
-        `${rub.emoji} ${rub.text}`
-      ];
-      x = 14;
-      cells.forEach((cell, i) => {
-        if (i === 6) {
-          const color = rub.color.replace('#', '');
-          const rColor = parseInt(color.substr(0,2), 16);
-          const gColor = parseInt(color.substr(2,2), 16);
-          const bColor = parseInt(color.substr(4,2), 16);
-          doc.setFillColor(rColor, gColor, bColor);
-          doc.rect(x, y - 6, colWidths[i], 7, 'F');
-          doc.setTextColor(255, 255, 255);
-        } else {
-          doc.setTextColor(0, 0, 0);
-        }
-        doc.text(cell, x + 2, y - 1);
-        x += colWidths[i];
-      });
-      y += rowHeight;
-    });
-    const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
-    doc.save(`SmartScores_${safeName}_Report_${new Date().toISOString().slice(0,10)}.pdf`);
-  };
-
-  // === EXCEL, BACKUP, CLEAR ===
-  window.exportToExcel = () => {
-    if (typeof XLSX === 'undefined') return showAlert('XLSX not loaded.');
-    const records = loadRecords();
-    if (!records.length) return showAlert('No data.');
-    const data = records.map(r => ({
-      Teacher: r.teacher,
-      Subject: r.subject,
-      Grade: r.grade,
-      Stream: r.stream,
-      Term: r.term,
-      Exam: r.examType,
-      Year: r.year,
-      Mean: r.mean
-    }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Scores');
-    XLSX.writeFile(wb, `SmartScores_${new Date().toISOString().slice(0,10)}.xlsx`);
-    showAlert('Excel exported!');
-  };
-
-  window.exportBackup = () => {
-    const records = loadRecords();
-    if (!records.length) return showAlert('No data.');
-    const data = JSON.stringify(records, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `backup-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showAlert('Backup saved!');
-  };
-
-  window.clearAllData = () => {
-    if (confirm('Delete ALL data?')) {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(TEACHER_KEY);
-      showAlert('All cleared.');
-      renderAll();
-    }
-  };
-
   // === RENDER ALL ===
-  // === RENDER DASHBOARD & DATA ENTRY ===
-const renderDashboard = () => {
-  renderRecords();
-  renderTargets();
-  updateDashboardStats();
-  renderProgressChart();
-};
+  const renderDashboard = () => {
+    renderRecords();
+    renderTargets();
+    updateDashboardStats();
+    renderProgressChart();
+  };
 
-// === RENDER INSIGHTS PAGE ONLY ===
-const renderInsights = () => {
-  renderAIInsights();
-  renderRecords();
-  renderCumulativeAverages();
-  renderTrendAnalysis();
-};
-  // ADD THIS HERE
-const renderAll = () => {
-  if (location.pathname.includes('averages-insights')) {
-    renderInsights();
-  } else {
-    renderDashboard();
-  }
+  const renderInsights = () => {
+    renderAIInsights();
+    renderRecords();
+    renderCumulativeAverages();
+    renderTrendAnalysis();
+  };
 
-  // === INIT – INSIDE IIFE ===
-document.addEventListener('DOMContentLoaded', () => {
-  loadTheme();
-  loadTeacherName();
-  autoFillYear();
+  const renderAll = () => {
+    if (location.pathname.includes('averages-insights')) {
+      renderInsights();
+    } else {
+      renderDashboard();
+    }
+  };
 
-  renderAll();  // ← NOW WORKS
+  // === INIT ===
+  document.addEventListener('DOMContentLoaded', () => {
+    loadTheme();
+    loadTeacherName();
+    autoFillYear();
+    renderAll();
 
-  // FORM SUBMISSIONS
-  const dataForm = el('dataEntryForm');
-  if (dataForm) {
-    dataForm.addEventListener('submit', e => {
-      e.preventDefault();
-      handleSaveRecord();
-    });
-  }
+    const dataForm = el('dataEntryForm');
+    if (dataForm) {
+      dataForm.addEventListener('submit', e => {
+        e.preventDefault();
+        handleSaveRecord();
+      });
+    }
 
-  const targetForm = el('setTargetsForm');
-  if (targetForm) {
-    targetForm.addEventListener('submit', e => {
-      e.preventDefault();
-      handleSaveTarget();
-    });
-  }
+    const targetForm = el('setTargetsForm');
+    if (targetForm) {
+      targetForm.addEventListener('submit', e => {
+        e.preventDefault();
+        handleSaveTarget();
+      });
+    }
 
-  const searchInput = el('searchInput');
-  if (searchInput) {
-    searchInput.addEventListener('input', filterRecords);
-  }
+    const searchInput = el('searchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', filterRecords);
+    }
 
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js');
-  }
-});
-})(); // END OF IIFE
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js');
+    }
+  });
+})();
