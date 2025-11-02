@@ -1,6 +1,4 @@
-/* ============================================================
-   style.css – GLOBAL STYLES FOR SMARTSCORES
-   ============================================================ */
+/* style.css – GLOBAL STYLES FOR SMARTSCORES */
 
 /* === THEME COLORS === */
 :root {
@@ -64,7 +62,7 @@ nav {
   background: var(--maroon);
   padding: 12px 0;
   text-align: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 nav a {
@@ -135,7 +133,7 @@ table {
   border-collapse: collapse;
   margin: 20px 0;
   background: var(--white);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -148,7 +146,7 @@ table {
   border-collapse: collapse;
   margin: 20px 0;
   font-size: 0.95rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -174,14 +172,14 @@ table {
   vertical-align: middle;
 }
 
-/* === ZEBRA STRIPES === */
+/* ZEBRA STRIPES */
 #insights-page table tbody tr:nth-child(even),
 #cumulativeTable tbody tr:nth-child(even),
 #recordsTable tbody tr:nth-child(even) {
   background-color: #f9fafb;
 }
 
-/* === HOVER ROW === */
+/* HOVER ROW */
 #insights-page table tbody tr:hover,
 #cumulativeTable tbody tr:hover,
 #recordsTable tbody tr:hover {
@@ -189,13 +187,13 @@ table {
   transition: background 0.2s;
 }
 
-/* === NO SORT CURSOR IN INSIGHTS === */
+/* NO SORT CURSOR IN INSIGHTS */
 #insights-page #recordsTable th,
 #cumulativeTable th {
   cursor: default !important;
 }
 
-/* === RUBRIC BADGE === */
+/* RUBRIC BADGE */
 .rubric-badge {
   display: inline-block;
   padding: 4px 8px;
@@ -205,7 +203,7 @@ table {
   color: white;
 }
 
-/* === SORTABLE – ONLY IN RECORDS PAGE === */
+/* SORTABLE – ONLY IN RECORDS PAGE */
 #recorded-scores.html #recordsTable th,
 #recordsTable th {
   cursor: pointer;
@@ -217,7 +215,7 @@ table {
   background: #f0f0f0;
 }
 
-/* === NO SORTING IN INSIGHTS === */
+/* NO SORTING IN INSIGHTS */
 #insights-page #recordsTable th,
 #cumulativeTable th {
   cursor: default !important;
@@ -253,7 +251,7 @@ select {
   transition: border 0.2s, box-shadow 0.2s;
 }
 
-/* === FOCUS EFFECT === */
+/* Focus effect */
 input:focus,
 select:focus {
   outline: none;
@@ -261,7 +259,7 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
-/* === DARK MODE INPUTS === */
+/* Dark mode */
 [data-theme="dark"] input,
 [data-theme="dark"] select {
   background: #2d2d2d;
@@ -293,7 +291,7 @@ select:focus {
   color: #ddd;
 }
 
-/* === MOBILE: Bigger Inputs on Small Screens === */
+/* === MOBILE: Even bigger on small screens === */
 @media (max-width: 768px) {
   input[type="text"],
   input[type="number"],
@@ -312,7 +310,7 @@ select:focus {
   }
 }
 
-/* === MOBILE LAYOUT === */
+/* === MOBILE === */
 @media (max-width: 768px) {
   nav a {
     display: block;
