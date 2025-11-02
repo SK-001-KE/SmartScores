@@ -13,10 +13,12 @@
   const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
   const rubric = s => {
-    if (s >= 75) return { text: 'Exceeding', color: '#16a34a', emoji: 'Trophy' };
-    if (s >= 41) return { text: 'Meeting', color: '#2563eb', emoji: 'Check' };
-    if (s >= 21) return { text: 'Approaching', color: '#f59e0b', emoji: 'Warning' };
-    return { text: 'Below', color: '#ef4444', emoji: 'Alert' };
+  if (s >= 75) return { text: 'Exceeding', color: '#16a34a', emoji: '🏆' };   // Trophy
+  if (s >= 41) return { text: 'Meeting', color: '#2563eb', emoji: '✅' };     // Check mark
+  if (s >= 21) return { text: 'Approaching', color: '#f59e0b', emoji: '⚠️' }; // Warning
+  return { text: 'Below', color: '#ef4444', emoji: '🚨' };                    // Alert
+};
+
   };
 
   // === GLOBAL FUNCTIONS ===
