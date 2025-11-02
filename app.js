@@ -187,7 +187,7 @@
   });
 
   tbody.innerHTML = records.map(r => {
-    const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}|${r.examType}`;
+    const key = `${r.subject}|${r.grade}|${r.stream}|${t.term}|${r.examType}`;
     const target = targetMap[key] || 0;
     const deviation = (r.mean - target).toFixed(1);
     const rub = rubric(r.mean);
@@ -205,13 +205,13 @@
         <td style="font-weight:bold;color:${deviation >= 0 ? '#16a34a' : '#dc2626'}">
           ${deviation >= 0 ? '+' : ''}${deviation}%
         </td>
-        <td><span style="background:${rub.color};color:#fff;padding:4px 8px;border-radius:6px;">${rub.emoji} ${rub.text}</span></td>
+        <td><span class="rubric-badge" style="background:${rub.color};">${rub.emoji} ${rub.text}</span></td>
       </tr>
     `;
   }).join('') || '<tr><td colspan="11">No records yet.</td></tr>';
 
-  // AUTO GROUP BY SUBJECT + EXAM ORDER
-  sortRecords(1); // ← THIS LINE ADDED
+  // Auto-group by Subject + Exam order
+  sortRecords(1);
 };
 
   const renderTargets = () => {
