@@ -42,41 +42,42 @@
   const saveTargets = t => save(TARGETS_KEY, t);
 
   // === SAVE RECORD ===
-  const handleSaveRecord = () => {
-    const record = {
-      teacher: el('teacherName')?.value.trim(),
-      subject: el('subject')?.value,
-      grade: el('grade')?.value,
-      stream: el('stream')?.value,
-      term: el('term')?.value,
-      examType: el('examType')?.value,
-      year: el('year')?.value,
-      mean: Number(el('meanScore')?.value)
-    };
-
-    if (!record.teacher || !record.subject || !record.grade || !record.stream || 
-        !record.term || !record.examType || !record.year || isNaN(record.mean)) {
-      return showAlert('Please fill all fields.');
-    }
-
-    if (record.mean < 0 || record.mean > 100) return showAlert('Mean 0–100.');
-    if (record.year < 2000 || record.year > 2100) return showAlert('Year 2000–2100.');
-
-    const records = loadRecords();
-    const exists = records.some(r =>
-      r.teacher === record.teacher && r.subject === record.subject &&
-      r.grade === record.grade && r.stream === record.stream &&
-      r.term === record.term && r.examType === record.examType && r.year === record.year
-    );
-    if (exists) return showAlert('Record exists!');
-
-    records.push(record);
-    saveRecords(records);
-    localStorage.setItem(TEACHER_KEY, record.teacher);
-    el('meanScore').value = '';
-    showAlert('Saved!');
-    renderAll();
+  // ADD THIS IF MISSING
+const handleSaveRecord = () => {
+  const record = {
+    teacher: el('teacherName')?.value.trim(),
+    subject: el('subject')?.value,
+    grade: el('grade')?.value,
+    stream: el('stream')?.value,
+    term: el('term')?.value,
+    examType: el('examType')?.value,
+    year: el('year')?.value,
+    mean: Number(el('meanScore')?.value)
   };
+
+  if (!record.teacher || !record.subject || !record.grade || !record.stream || 
+      !record.term || !record.examType || !record.year || isNaN(record.mean)) {
+    return showAlert('Please fill all fields correctly.');
+  }
+
+  if (record.mean < 0 || record.mean > 100) return showAlert('Mean score must be 0–100.');
+  if (record.year < 2000 || record.year > 2100) return showAlert('Year must be 2000–2100.');
+
+  const records = loadRecords();
+  const exists = records.some(r =>
+    r.teacher === record.teacher && r.subject === record.subject &&
+    r.grade === record.grade && r.stream === record.stream &&
+    r.term === record.term && r.examType === record.examType && r.year === record.year
+  );
+  if (exists) return showAlert('This record already exists!');
+
+  records.push(record);
+  saveRecords(records);
+  localStorage.setItem(TEACHER_KEY, record.teacher);
+  el('meanScore').value = '';
+  showAlert('Record saved successfully!');
+  renderAll();
+};
 
   // === SAVE TARGET ===
   const handleSaveTarget = () => {
