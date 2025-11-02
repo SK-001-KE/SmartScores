@@ -116,40 +116,28 @@ table {
   border-radius: 8px;
   overflow: hidden;
 }
-/* SORTABLE TABLE HEADERS */
-#recordsTable th,
-#cumulativeTable th {
+/* SORTABLE – ONLY IN RECORDS PAGE */
+#recorded-scores.html #recordsTable th,
+#recordsTable th {
   cursor: pointer;
   user-select: none;
   transition: background 0.2s;
 }
 
-#recordsTable th:hover,
-#cumulativeTable th:hover {
+#recorded-scores.html #recordsTable th:hover {
   background: #f0f0f0;
 }
 
-th::after {
-  content: '';
-  margin-left: 5px;
-  font-size: 0.8em;
+/* NO SORTING IN INSIGHTS */
+#insights-page #recordsTable th,
+#cumulativeTable th {
+  cursor: default !important;
 }
-th {
-  background: var(--maroon);
-  color: var(--white);
-  padding: 12px;
-  text-align: left;
-  font-weight: bold;
-}
-td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #eee;
-}
-[data-theme="dark"] td { border-color: #444; }
-tr:last-child td { border-bottom: none; }
-tr:hover { background: #f1f5f9; }
-[data-theme="dark"] tr:hover { background: #2a2a2a; }
 
+#insights-page #recordsTable th:hover,
+#cumulativeTable th:hover {
+  background: none !important;
+}
 
 /* === FOOTER === */
 footer {
