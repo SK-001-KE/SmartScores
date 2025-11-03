@@ -729,13 +729,25 @@
 
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js').catch(()=>{/*sw register failed*/});
 
-    // Attach rubric key toggle if present on page
-    const rubricBtn = document.getElementById('rubricBtn');
-    const rubricPanel = document.getElementById('rubricPanel');
-    if (rubricBtn && rubricPanel) {
-      rubricBtn.addEventListener('click', () => {
-        rubricPanel.style.display = rubricPanel.style.display === 'block' ? 'none' : 'block';
-      });
-    }
-  });
+      // Attach rubric key toggle if present on page
+  const rubricBtn = document.getElementById('rubricBtn');
+  const rubricPanel = document.getElementById('rubricPanel');
+  if (rubricBtn && rubricPanel) {
+    rubricBtn.addEventListener('click', () => {
+      rubricPanel.style.display = rubricPanel.style.display === 'block' ? 'none' : 'block';
+    });
+  }
+
+  // Service Worker auto-update listener
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data?.type === 'NEW_VERSION_AVAILABLE') {
+        if (confirm('SmartScores update available! Refresh now?')) {
+          navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+          window.location.reload();
+        }
+      }
+    });
+  }
+
 })();
