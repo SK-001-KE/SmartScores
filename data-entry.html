@@ -4,155 +4,119 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartScores - Data Entry</title>
+
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.ico" />
   <link rel="apple-touch-icon" href="icon-192x192.png" />
+
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Scripts -->
+  <script src="auth.js" defer></script>
   <script src="app.js" defer></script>
-  <script src="app.js" defer></script>
- <link rel="stylesheet" href="style.css" />
-  <script src="auth.js"></script>
 </head>
+
 <body>
-  <div style="position:fixed;top:10px;right:10px;z-index:1000;">
-    <button onclick="toggleDarkMode()" style="background:var(--blue);color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;">Dark Mode</button>
-  </div>
-  <!-- DARK MODE -->
-<div style="position:fixed;top:10px;right:10px;z-index:1000;">
-  <button onclick="toggleDarkMode()" style="background:var(--blue);color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;">Dark Mode</button>
+<!-- TOP RIGHT BUTTONS -->
+<div class="top-buttons">
+  <button onclick="toggleDarkMode()" class="btn-blue small">Dark Mode</button>
+  <button onclick="logout()" class="btn-red small">Logout</button>
 </div>
 
-<!-- LOGOUT -->
-<div style="position:fixed;top:10px;right:60px;z-index:1000;">
-  <button onclick="logout()" style="background:#dc2626;color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;font-size:0.8rem;">Logout</button>
-</div>
+<header>
+  <h1>
+    <img src="icon-192x192.png" alt="SmartScores" class="logo-small">
+    SmartScores
+  </h1>
+  <p>Data Entry</p>
+</header>
 
-  <header>
-    <h1>
-      <img src="icon-192x192.png" alt="SmartScores" style="height:40px;vertical-align:middle;margin-right:10px;border-radius:8px;">
-      SmartScores
-    </h1>
-    <p>Data Entry</p>
-  </header>
+<nav>
+  <a href="index.html">Dashboard</a>
+  <a href="data-entry.html" class="active">Data Entry</a>
+  <a href="recorded-scores.html">Recorded Scores</a>
+  <a href="averages-insights.html">Averages & Insights</a>
+  <a href="set-targets.html">Set Targets</a>
+</nav>
 
-  <nav>
-    <a href="index.html">Dashboard</a>
-    <a href="data-entry.html" class="active">Data Entry</a>
-    <a href="recorded-scores.html">Recorded Scores</a>
-    <a href="averages-insights.html">Averages & Insights</a>
-    <a href="set-targets.html">Set Targets</a>
-  </nav>
-
- <div class="content">
+<div class="content">
   <h2>Enter Teacher Mean Scores</h2>
-<form id="dataEntryForm">
-  <div class="form-group">
-    <label for="teacherName">Teacher's Name</label>
-    <input type="text" id="teacherName" placeholder="Enter Teacher's Name" required />
-  </div>
-  <div class="form-group">
-    <label for="subject">Subject</label>
-    <select id="subject" required>
-      <option value="">--Select Subject--</option>
-      <option value="Mathematics">Mathematics</option>
-      <option value="English">English</option>
-      <option value="Kiswahili">Kiswahili</option>
-      <option value="Science">Science</option>
-      <option value="Agriculture and Nutrition">Agriculture and Nutrition</option>
-      <option value="Creative Arts">Creative Arts</option>
-      <option value="Social Studies">Social Studies</option>
-      <option value="CRE">CRE</option>
-      <option value="Pre-Technical Studies">Pre-Technical Studies</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label for="grade">Grade</label>
-    <select id="grade" required>
-      <option value="">--Select Grade--</option>
-      <option value="4">4</option>
-      <option value="5">5</option>
-      <option value="6">6</option>
-      <option value="7">7</option>
-      <option value="8">8</option>
-      <option value="9">9</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label for="stream">Stream</label>
-    <select id="stream" required>
-      <option value="">--Select Stream--</option>
-      <option value="Faith">Faith</option>
-      <option value="Glory">Glory</option>
-      <option value="Joy">Joy</option>
-      <option value="Love">Love</option>
-      <option value="Peace">Peace</option>
-      <option value="Unity">Unity</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label for="term">Term</label>
-    <select id="term" required>
-      <option value="">--Select Term--</option>
-      <option value="Term 1">Term 1</option>
-      <option value="Term 2">Term 2</option>
-      <option value="Term 3">Term 3</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label for="examType">Exam Type</label>
-    <select id="examType" required>
-      <option value="">--Select Exam Type--</option>
-     <option value="Opener Exam">Opener Exam</option>
-  <option value="Mid Term Exam">Mid Term Exam</option>
-  <option value="End Term Exam">End Term Exam</option>
-</select>
-  </div>
+  <form id="dataEntryForm">
+
     <div class="form-group">
-  <label for="year">Year</label>
-  <input type="number" id="year" placeholder="Auto-filled" min="2000" max="2100" required />
+      <label for="teacherName">Teacher's Name</label>
+      <input type="text" id="teacherName" placeholder="Enter Teacher's Name" required />
+    </div>
+
+    <div class="form-group">
+      <label for="subject">Subject</label>
+      <select id="subject" required>
+        <option value="">--Select Subject--</option>
+        <option>Mathematics</option><option>English</option><option>Kiswahili</option>
+        <option>Science</option><option>Agriculture and Nutrition</option>
+        <option>Creative Arts</option><option>Social Studies</option>
+        <option>CRE</option><option>Pre-Technical Studies</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="grade">Grade</label>
+      <select id="grade" required>
+        <option value="">--Select Grade--</option>
+        <option>4</option><option>5</option><option>6</option>
+        <option>7</option><option>8</option><option>9</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="stream">Stream</label>
+      <select id="stream" required>
+        <option value="">--Select Stream--</option>
+        <option>Faith</option><option>Glory</option><option>Joy</option>
+        <option>Love</option><option>Peace</option><option>Unity</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="term">Term</label>
+      <select id="term" required>
+        <option value="">--Select Term--</option>
+        <option>Term 1</option><option>Term 2</option><option>Term 3</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="examType">Exam Type</label>
+      <select id="examType" required>
+        <option value="">--Select Exam Type--</option>
+        <option>Opener Exam</option>
+        <option>Mid Term Exam</option>
+        <option>End Term Exam</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="year">Year</label>
+      <input type="number" id="year" placeholder="Auto-filled" min="2000" max="2100" required />
+    </div>
+
+    <div class="form-group">
+      <label for="meanScore">Mean Score</label>
+      <input type="number" id="meanScore" placeholder="Enter Mean Score" min="0" max="100" step="0.1" required />
+    </div>
+
+    <button type="submit" class="btn">Save Record</button>
+  </form>
 </div>
-      <div class="form-group">
-    <label for="meanScore">Mean Score</label>
-    <input type="number" id="meanScore" placeholder="Enter Mean Score" min="0" max="100" step="0.1" required />
-  </div>
 
-  <!-- ONLY ONE BUTTON – PERFECT -->
-  <button type="submit" class="btn">Save Record</button>
-</form>
+<footer>SmartScores v2.9.6 © Kariuki 2025</footer>
 
-  <footer>SmartScores v2.9.6 © Kariuki 2025</footer>
-   <!-- RUBRIC KEY BUTTON -->
-<div id="rubricBtn" style="
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: var(--maroon, #800000);
-    color: white;
-    padding: 10px 16px;
-    border-radius: 25px;
-    cursor: pointer;
-    font-weight: bold;
-    z-index: 999;
-">
-  Rubric Key
-</div>
+<!-- RUBRIC KEY BUTTON -->
+<div id="rubricBtn" class="floating-btn">Rubric Key</div>
 
-<!-- RUBRIC KEY PANEL -->
-<div id="rubricPanel" style="
-    position: fixed;
-    bottom: 70px;
-    right: 20px;
-    width: 280px;
-    background: white;
-    border: 2px solid var(--blue, #003366);
-    border-radius: 10px;
-    padding: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    display: none;
-    z-index: 999;
-    font-size: 0.85rem;
-">
+<!-- RUBRIC PANEL -->
+<div id="rubricPanel" class="rubric-panel">
   <strong>Rubric Key</strong><br><br>
-
   <div class="rubric EE1">EE1: 90–99</div>
   <div class="rubric EE2">EE2: 75–89</div>
   <div class="rubric ME1">ME1: 58–74</div>
@@ -164,11 +128,13 @@
 </div>
 
 <script>
-  const btn = document.getElementById("rubricBtn");
+document.getElementById("rubricBtn").onclick = () => {
   const panel = document.getElementById("rubricPanel");
-  btn.onclick = () => {
-    panel.style.display = panel.style.display === "block" ? "none" : "block";
-  };
+  panel.style.display = panel.style.display === "block" ? "none" : "block";
+};
+
+// Auto-fill current year
+document.getElementById("year").value = new Date().getFullYear();
 </script>
 
 </body>
