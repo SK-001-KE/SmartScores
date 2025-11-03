@@ -120,5 +120,56 @@
 </form>
 
   <footer>SmartScores v2.9.6 © Kariuki 2025</footer>
+   <!-- RUBRIC KEY BUTTON -->
+<div id="rubricBtn" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--maroon, #800000);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    z-index: 999;
+">
+  Rubric Key
+</div>
+
+<!-- RUBRIC KEY PANEL -->
+<div id="rubricPanel" style="
+    position: fixed;
+    bottom: 70px;
+    right: 20px;
+    width: 280px;
+    background: white;
+    border: 2px solid var(--blue, #003366);
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    display: none;
+    z-index: 999;
+    font-size: 0.85rem;
+">
+  <strong>Rubric Key</strong><br><br>
+
+  <div class="rubric EE1">EE1: 90–99</div>
+  <div class="rubric EE2">EE2: 75–89</div>
+  <div class="rubric ME1">ME1: 58–74</div>
+  <div class="rubric ME2">ME2: 41–57</div>
+  <div class="rubric AE1">AE1: 31–40</div>
+  <div class="rubric AE2">AE2: 21–30</div>
+  <div class="rubric BE1">BE1: 11–20</div>
+  <div class="rubric BE2">BE2: 0–10</div>
+</div>
+
+<script>
+  const btn = document.getElementById("rubricBtn");
+  const panel = document.getElementById("rubricPanel");
+  btn.onclick = () => {
+    panel.style.display = panel.style.display === "block" ? "none" : "block";
+  };
+</script>
+
 </body>
 </html>
