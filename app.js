@@ -266,37 +266,68 @@
   };
 
   const renderCumulativeAverages = () => {
-    const tbody = document.querySelector('#cumulativeTable tbody');
-    if (!tbody) return;
-    const records = loadRecords();
-    if (!records.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#666;">No data for cumulative averages.</td></tr>';
-      return;
+  const tbody = document.querySelector('#cumulativeTable tbody');
+  if (!tbody) return;
+  const records = loadRecords();
+  if (!records.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#666;">No data for cumulative averages.</td></tr>';
+    return;
+  }
+
+  const groups = {};
+  records.forEach(r => {
+    const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
+    if (!groups[key]) {
+      groups[key] = { 
+        subject: r.subject, 
+        grade: r.grade, 
+        stream: r.stream, 
+        term: r.term,
+        opener: null,
+        mid: null,
+        end: null
+      };
     }
-    const groups = {};
-    records.forEach(r => {
-      const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
-      if (!groups[key]) groups[key] = { means: [], subject: r.subject, grade: r.grade, stream: r.stream, term: r.term };
-      groups[key].means.push(r.mean);
-    });
-    const averages = [];
-    for (const [key, group] of Object.entries(groups)) {
-      const avg = group.means.reduce((sum, m) => sum + m, 0) / group.means.length;
-      const meanList = group.means.map(m => m.toFixed(1)).join('; ');
-      averages.push({ ...group, meanList, avg: avg.toFixed(1) });
-    }
-    averages.sort((a, b) => a.subject.localeCompare(b.subject) || a.grade.localeCompare(b.grade) || a.stream.localeCompare(b.stream) || a.term.localeCompare(b.term));
-    tbody.innerHTML = averages.map(g => `
-      <tr>
-        <td>${g.subject}</td>
-        <td>${g.grade}</td>
-        <td>${g.stream}</td>
-        <td>${g.term}</td>
-        <td style="font-family:monospace;font-size:0.95em;color:#555;">(${g.meanList})</td>
-        <td style="font-weight:bold;color:${g.avg >= 75 ? '#16a34a' : g.avg >= 50 ? '#f59e0b' : '#dc2626'};">${g.avg}%</td>
-      </tr>
-    `).join('');
-  };
+    if (r.examType === 'Opener Exam') groups[key].opener = r.mean;
+    if (r.examType === 'Mid Term Exam') groups[key].mid = r.mean;
+    if (r.examType === 'End Term Exam') groups[key].end = r.mean;
+  });
+
+  const averages = [];
+  for (const [key, g] of Object.entries(groups)) {
+    const scores = [g.opener, g.mid, g.end].filter(s => s !== null);
+    const avg = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : '0.0';
+    averages.push({ ...g, avg });
+  }
+
+  averages.sort((a, b) => 
+    a.subject.localeCompare(b.subject) || 
+    a.grade.localeCompare(b.grade) || 
+    a.stream.localeCompare(b.stream) || 
+    a.term.localeCompare(b.term)
+  );
+
+  tbody.innerHTML = averages.map(g => `
+    <tr>
+      <td>${g.subject}</td>
+      <td>${g.grade}</td>
+      <td>${g.stream}</td>
+      <td>${g.term}</td>
+      <td style="text-align:center;font-weight:600;color:${g.opener >= 50 ? '#16a34a' : '#dc2626'}">
+        ${g.opener ? g.opener.toFixed(1) + '%' : '–'}
+      </td>
+      <td style="text-align:center;font-weight:600;color:${g.mid >= 50 ? '#16a34a' : '#dc2626'}">
+        ${g.mid ? g.mid.toFixed(1) + '%' : '–'}
+      </td>
+      <td style="text-align:center;font-weight:600;color:${g.end >= 50 ? '#16a34a' : '#dc2626'}">
+        ${g.end ? g.end.toFixed(1) + '%' : '–'}
+      </td>
+      <td style="font-weight:bold;font-size:1.1em;color:${g.avg >= 75 ? '#16a34a' : g.avg >= 50 ? '#f59e0b' : '#dc2626'}">
+        ${g.avg}%
+      </td>
+    </tr>
+  `).join('');
+};
 
   const renderTrendAnalysis = () => {
     const tbody = document.querySelector('#trendTable tbody');
