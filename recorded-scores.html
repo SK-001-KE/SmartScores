@@ -38,22 +38,29 @@
       </select>
       <button onclick="runAutoDelete()" class="btn">Run Auto Delete</button>
     </div>
+    <div class="rubric-key">
+  <span style="color:#16a34a;font-weight:bold;">EE</span> Exceeding |
+  <span style="color:#2563eb;font-weight:bold;">ME</span> Meeting |
+  <span style="color:#f59e0b;font-weight:bold;">AE</span> Approaching |
+  <span style="color:#ef4444;font-weight:bold;">BE</span> Below
+</div>
    <table id="recordsTable">
-  <thead>
-    <tr>
-      <th onclick="sortRecords(0)">Teacher</th>
-      <th onclick="sortRecords(1)">Subject</th>
-      <th onclick="sortRecords(2)">Grade</th>
-      <th onclick="sortRecords(3)">Stream</th>
-      <th onclick="sortRecords(4)">Term</th>
-      <th onclick="sortRecords(5)">Exam</th>
-      <th onclick="sortRecords(6)">Year</th>
-      <th onclick="sortRecords(7)">Mean</th>
-      <th onclick="sortRecords(8)">Target</th>
-      <th onclick="sortRecords(9)">Deviation</th>
-      <th>Rubric</th>
-    </tr>
-  </thead>
+ <thead>
+  <tr>
+    <th onclick="sortRecords(0)">Teacher</th>
+    <th onclick="sortRecords(1)">Subject</th>
+    <th onclick="sortRecords(2)">Grade</th>
+    <th onclick="sortRecords(3)">Stream</th>
+    <th onclick="sortRecords(4)">Term</th>
+    <th onclick="sortRecords(5)">Exam</th>
+    <th onclick="sortRecords(6)">Year</th>
+    <th onclick="sortRecords(7)">Mean</th>
+    <th onclick="sortRecords(8)">Target</th>
+    <th onclick="sortRecords(9)">Deviation</th>
+    <th onclick="sortRecords(10)">Rubric</th>
+    <th>Actions</th>
+  </tr>
+</thead>
   <tbody></tbody>
 </table>
     <div style="text-align:center;margin:20px;">
