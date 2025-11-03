@@ -1,52 +1,62 @@
-// SmartScores Service Worker – v2.9.5
-const CACHE_NAME = 'smartscores-cache-v1';
+// SmartScores PWA Service Worker — v3.0
+const CACHE_NAME = "smartscores-v3";
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/data-entry.html',
-  '/recorded-scores.html',
-  '/averages-insights.html',
-  '/set-targets.html',
-  '/app.js',
-  '/manifest.json',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
-  '/favicon.ico',
-  // External libs (optional – will be cached on first load)
-  'https://cdn.jsdelivr.net/npm/chart.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+  "/",
+  "/index.html",
+  "/data-entry.html",
+  "/recorded-scores.html",
+  "/averages-insights.html",
+  "/set-targets.html",
+  "/styles.css",
+  "/app.js",
+  "/manifest.json",
+  "/icon-192x192.png",
+  "/icon-512x512.png",
+  "/favicon.ico",
 ];
 
-// Install – cache everything
-self.addEventListener('install', e => {
+self.addEventListener("install", (e) => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
   self.skipWaiting();
 });
 
-// Activate – delete old caches
-self.addEventListener('activate', e => {
+self.addEventListener("activate", (e) => {
   e.waitUntil(
-    caches.keys().then(names => Promise.all(
-      names.filter(n => n !== CACHE_NAME).map(n => caches.delete(n))
-    ))
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    )
   );
   self.clients.claim();
 });
 
-// Fetch – serve from cache, fallback to network
-self.addEventListener('fetch', e => {
+// Network-First strategy
+self.addEventListener("fetch", (e) => {
+  if (e.request.method !== "GET") return;
+
   e.respondWith(
-    caches.match(e.request).then(resp => resp || fetch(e.request).then(netResp => {
-      // Cache new responses (except Chrome-extension requests)
-      if (!e.request.url.startsWith('chrome-extension://')) {
-        const clone = netResp.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
-      }
-      return netResp;
-    }))
+    fetch(e.request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(e.request))
   );
+});
+
+// Auto-Update + Prompt Client
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
+self.addEventListener("install", () => {
+  self.clients.matchAll().then((clients) => {
+    clients.forEach((client) =>
+      client.postMessage({ type: "NEW_VERSION_AVAILABLE" })
+    );
+  });
 });
