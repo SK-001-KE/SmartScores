@@ -1,73 +1,55 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores - Recorded Scores</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.ico" />
- <script src="app.js"></script>
- <link rel="stylesheet" href="style.css" />
-  <script src="auth.js"></script>
+  <title>Recorded Scores - SmartScores</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="app.js"></script>
 </head>
 <body>
-  <!-- Same header/nav -->
-  <header>
-  <h1><img src="icon-192x192.png" alt="" style="height:40px;vertical-align:middle;margin-right:10px;border-radius:8px;"> SmartScores</h1>
-    </h1>
-    <p>Recorded Scores</p>
-</header>
-<nav>
-  <a href="index.html">Dashboard</a>
-  <a href="data-entry.html">Data Entry</a>
-  <a href="recorded-scores.html">Recorded Scores</a>
-  <a href="averages-insights.html">Averages & Insights</a>
-  <a href="set-targets.html">Set Targets</a>
-</nav>
-  <div class="content">
-    <h2>Recorded Scores</h2>
-  <input type="text" id="searchInput" placeholder="🔍 Search records (teacher, subject, grade...)"
-         onkeyup="filterRecords()" style="width:100%; padding:12px; margin:15px 0; border:2px solid #ddd; border-radius:6px; font-size:16px;" />
-   
-    <div class="settings-container" style="margin:20px 0;text-align:center;">
-      <label>Auto Delete Old Data:</label>
-      <select id="autoDeleteSetting" style="margin:0 10px;padding:5px;">
-        <option value="none">Keep All</option>
-        <option value="1" selected>Keep 1 Year</option>
-        <option value="2">Keep 2 Years</option>
-      </select>
-      <button onclick="runAutoDelete()" class="btn">Run Auto Delete</button>
-    </div>
+  <nav class="navbar">
+    <h2>SmartScores</h2>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a class="active" href="recorded-scores.html">Recorded Scores</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <h1>Recorded Scores</h1>
+
+    <input type="text" id="searchInput" placeholder="Search student, subject, class..." class="search-bar" />
+
+    <table class="records-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Teacher</th>
+          <th>Class</th>
+          <th>Subject</th>
+          <th>Student</th>
+          <th>Score</th>
+          <th>Rubric</th>
+        </tr>
+      </thead>
+      <tbody id="recordsBody"></tbody>
+    </table>
+
     <div class="rubric-key">
-  <span style="color:#16a34a;font-weight:bold;">EE</span> Exceeding |
-  <span style="color:#2563eb;font-weight:bold;">ME</span> Meeting |
-  <span style="color:#f59e0b;font-weight:bold;">AE</span> Approaching |
-  <span style="color:#ef4444;font-weight:bold;">BE</span> Below
-</div>
-   <table id="recordsTable">
- <thead>
-  <tr>
-    <th onclick="sortRecords(0)">Teacher</th>
-    <th onclick="sortRecords(1)">Subject</th>
-    <th onclick="sortRecords(2)">Grade</th>
-    <th onclick="sortRecords(3)">Stream</th>
-    <th onclick="sortRecords(4)">Term</th>
-    <th onclick="sortRecords(5)">Exam</th>
-    <th onclick="sortRecords(6)">Year</th>
-    <th onclick="sortRecords(7)">Mean</th>
-    <th onclick="sortRecords(8)">Target</th>
-    <th onclick="sortRecords(9)">Deviation</th>
-    <th onclick="sortRecords(10)">Rubric</th>
-    <th>Actions</th>
-  </tr>
-</thead>
-  <tbody></tbody>
-</table>
-    <div style="text-align:center;margin:20px;">
-  <button onclick="exportToExcel()" class="btn">Export Excel</button>
-  <button onclick="exportBackup()" class="btn">Backup JSON</button>
-  <button onclick="clearAllData()" class="btn btn-danger">Clear All</button>
-</div>
-  </div>
+      <h3>Rubric Key</h3>
+      <ul>
+        <li><span class="badge ee1">EE1</span> 90-99</li>
+        <li><span class="badge ee2">EE2</span> 75-89</li>
+        <li><span class="badge me1">ME1</span> 58-74</li>
+        <li><span class="badge me2">ME2</span> 41-57</li>
+        <li><span class="badge ae1">AE1</span> 31-40</li>
+        <li><span class="badge ae2">AE2</span> 21-30</li>
+        <li><span class="badge be1">BE1</span> 11-20</li>
+        <li><span class="badge be2">BE2</span> 0-10</li>
+      </ul>
+    </div>
+
+  </main>
 </body>
 </html>
