@@ -3,101 +3,92 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores</title>
+  <title>SmartScores - Dashboard</title>
+
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.ico" />
   <link rel="apple-touch-icon" href="icon-192x192.png" />
- <script src="app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="style.css" />
-  <script src="auth.js"></script>
+
+  <!-- Scripts -->
+  <script src="auth.js" defer></script>
+  <script src="app.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 </head>
+
 <body>
-  <div style="position:fixed;top:10px;right:10px;z-index:1000;">
-    <button onclick="toggleDarkMode()" style="background:var(--blue);color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;">Dark Mode</button>
-  </div>
-  <!-- DARK MODE -->
-<div style="position:fixed;top:10px;right:10px;z-index:1000;">
-  <button onclick="toggleDarkMode()" style="background:var(--blue);color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;">Dark Mode</button>
+
+<!-- TOP RIGHT CONTROLS -->
+<div class="top-buttons">
+  <button onclick="toggleDarkMode()" class="btn-blue small">Dark Mode</button>
+  <button onclick="logout()" class="btn-red small">Logout</button>
 </div>
 
-<!-- LOGOUT -->
-<div style="position:fixed;top:10px;right:60px;z-index:1000;">
-  <button onclick="logout()" style="background:#dc2626;color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;font-size:0.8rem;">Logout</button>
-</div>
+<header>
+  <h1>
+    <img src="icon-192x192.png" class="logo-small" alt="SmartScores">
+    SmartScores
+  </h1>
+  <p>Set targets. Track performance. Improve. Easy.</p>
+</header>
 
-  <header>
-    <h1>
-      <img src="icon-192x192.png" alt="SmartScores" style="height:40px;vertical-align:middle;margin-right:10px;border-radius:8px;">
-      SmartScores
-    </h1>
-    <p>Set targets. Track performance. Improve. Easy.</p>
-  </header>
+<nav>
+  <a href="index.html" class="active">Dashboard</a>
+  <a href="data-entry.html">Data Entry</a>
+  <a href="recorded-scores.html">Recorded Scores</a>
+  <a href="averages-insights.html">Averages & Insights</a>
+  <a href="set-targets.html">Set Targets</a>
+</nav>
 
-  <nav>
-    <a href="index.html" class="active">Dashboard</a>
-    <a href="data-entry.html">Data Entry</a>
-    <a href="recorded-scores.html">Recorded Scores</a>
-    <a href="averages-insights.html">Averages & Insights</a>
-    <a href="set-targets.html">Set Targets</a>
-  </nav>
-
- <div class="content">
+<div class="content">
   <h2>Dashboard</h2>
 
-  <div style="display:flex;flex-wrap:wrap;gap:20px;justify-content:center;margin:30px 0;">
-    <div id="totalAvgCard" style="background:#2563eb;color:white;padding:25px;border-radius:16px;text-align:center;flex:1;min-width:200px;max-width:260px;box-shadow:0 4px 12px rgba(37,99,235,.2);">
-      <h2 style="margin:0;font-size:3rem;color:#fff;font-weight:bold;">— %</h2>
-      <p style="margin:8px 0;font-size:1.3rem;color:#fff;">—</p>
-      <small style="color:#e0f2fe;">Overall Performance</small>
+  <div class="dashboard-cards">
+
+    <div class="dash-card blue" id="totalAvgCard">
+      <h2>— %</h2>
+      <p>—</p>
+      <small>Overall Performance</small>
     </div>
 
-    <div id="bestSubjectCard" style="background:#16a34a;color:white;padding:25px;border-radius:16px;text-align:center;flex:1;min-width:200px;max-width:260px;box-shadow:0 4px 12px rgba(22,163,74,.2);">
-      <h2 style="margin:0;font-size:2.5rem;color:#fff;font-weight:bold;">— %</h2>
-      <p style="margin:8px 0;font-size:1.2rem;color:#fff;">—</p>
-      <small style="color:#e0f2fe;">Best Subject</small>
+    <div class="dash-card green" id="bestSubjectCard">
+      <h2>— %</h2>
+      <p>—</p>
+      <small>Best Subject</small>
     </div>
 
-    <div id="worstSubjectCard" style="background:#dc2626;color:white;padding:25px;border-radius:16px;text-align:center;flex:1;min-width:200px;max-width:260px;box-shadow:0 4px 12px rgba(220,38,38,.2);">
-      <h2 style="margin:0;font-size:2.5rem;color:#fff;font-weight:bold;">— %</h2>
-      <p style="margin:8px 0;font-size:1.2rem;color:#fff;">—</p>
-      <small style="color:#e0f2fe;">Needs Attention</small>
+    <div class="dash-card red" id="worstSubjectCard">
+      <h2>— %</h2>
+      <p>—</p>
+      <small>Needs Attention</small>
     </div>
-    
-   
-    <div style="margin:40px 0; text-align:center;">
-  <h3>Progress Over Time</h3>
-  <canvas id="progressChart" style="max-height:300px;"></canvas>
-  <p><small>Mean score trend across terms</small></p>
-</div>
+
   </div>
-</div>
-   <div style="text-align:center;margin:30px 0;">
-  <button id="printBtn" onclick="downloadPDF()" class="btn">Download PDF</button>
-</div>
 
-  <div style="text-align:center;margin-top:30px;">
+  <div class="chart-box">
+    <h3>Progress Over Time</h3>
+    <canvas id="progressChart"></canvas>
+    <p><small>Mean score trend across terms</small></p>
+  </div>
+
+  <div class="center-btn">
+    <button id="printBtn" onclick="downloadPDF()" class="btn">Download PDF</button>
+  </div>
+
+  <div class="center-btn">
     <button onclick="exportBackup()" class="btn">Backup Data</button>
-  
- 
-  </div>
-</div>
-  
-  <div style="position:fixed;top:10px;right:60px;z-index:1000;">
-  <button 
-    onclick="logout()" 
-    style="background:#dc2626;color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;font-size:0.8rem;">
-    Logout
-  </button>
-</div>
-  
-    <div id="backupReminder" class="backup-reminder">
-      Backup overdue! <a href="#" onclick="exportBackup();this.parentElement.style.display='none';return false;" style="color:#92400e;text-decoration:underline;">Backup now</a>
-    </div>
   </div>
 
-  <footer>SmartScores v2.9.5 © Kariuki 2025</footer>
+  <div id="backupReminder" class="backup-reminder">
+    Backup overdue! 
+    <a href="#" onclick="exportBackup();this.parentElement.style.display='none';return false;">Backup now</a>
+  </div>
+
+</div>
+
+<footer>SmartScores v2.9.6 © Kariuki 2025</footer>
+
 </body>
 </html>
