@@ -13,11 +13,11 @@
   const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
   const rubric = s => {
-    if (s >= 75) return { text: 'Exceeding', color: '#16a34a', emoji: 'Trophy' };
-    if (s >= 41) return { text: 'Meeting', color: '#2563eb', emoji: 'Check' };
-    if (s >= 21) return { text: 'Approaching', color: '#f59e0b', emoji: 'Warning' };
-    return { text: 'Below', color: '#ef4444', emoji: 'Alert' };
-  };
+  if (s >= 75) return { text: 'Exceeding Expectations', short: 'EE', color: '#16a34a' };
+  if (s >= 50) return { text: 'Meeting Expectations', short: 'ME', color: '#2563eb' };
+  if (s >= 30) return { text: 'Approaching Expectations', short: 'AE', color: '#f59e0b' };
+  return { text: 'Below Expectations', short: 'BE', color: '#ef4444' };
+};
 
   // === GLOBAL FUNCTIONS ===
   window.toggleDarkMode = () => {
@@ -209,7 +209,7 @@
           <td style="font-weight:bold;color:${deviation >= 0 ? '#16a34a' : '#dc2626'}">
             ${deviation >= 0 ? '+' : ''}${deviation}%
           </td>
-          <td><span class="rubric-badge" style="background:${rub.color};">${rub.emoji} ${rub.text}</span></td>
+          <td><span class="rubric-badge" style="background:${rub.color};">${rub.short}</span></td>
         </tr>
       `;
     }).join('');
@@ -322,9 +322,9 @@
       <td style="text-align:center;font-weight:600;color:${g.end >= 50 ? '#16a34a' : '#dc2626'}">
         ${g.end ? g.end.toFixed(1) + '%' : '–'}
       </td>
-      <td style="font-weight:bold;font-size:1.1em;color:${g.avg >= 75 ? '#16a34a' : g.avg >= 50 ? '#f59e0b' : '#dc2626'}">
-        ${g.avg}%
-      </td>
+      <td style="font-weight:bold;color:${g.avg >= 75 ? '#16a34a' : g.avg >= 50 ? '#2563eb' : g.avg >= 30 ? '#f59e0b' : '#ef4444'}">
+  ${g.avg}% <small>(${rub.short})</small>
+</td>
     </tr>
   `).join('');
 };
