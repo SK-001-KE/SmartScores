@@ -145,6 +145,15 @@
       yearInput.value = new Date().getFullYear();
     }
   };
+  const examMap = {
+  'Opener': 'Opener Exam',
+  'Mid': 'Mid Term Exam',
+  'End': 'End Term Exam',
+  'opener': 'Opener Exam',
+  'mid': 'Mid Term Exam',
+  'end': 'End Term Exam'
+};
+record.examType = examMap[record.examType] || record.examType;
 
   // === SAVE TARGET ===
   const handleSaveTarget = () => {
@@ -288,9 +297,9 @@
         end: null
       };
     }
-    if (r.examType === 'Opener Exam') groups[key].opener = r.mean;
-    if (r.examType === 'Mid Term Exam') groups[key].mid = r.mean;
-    if (r.examType === 'End Term Exam') groups[key].end = r.mean;
+    if (r.examType.includes('Opener')) groups[key].opener = r.mean;
+if (r.examType.includes('Mid')) groups[key].mid = r.mean;
+if (r.examType.includes('End')) groups[key].end = r.mean;
   });
 
   const averages = [];
@@ -330,61 +339,100 @@
 };
 
   const renderTrendAnalysis = () => {
-    const tbody = document.querySelector('#trendTable tbody');
-    if (!tbody) return;
-    const records = loadRecords();
-    if (!records.length) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:#666;">No data for trend analysis.</td></tr>';
-      return;
+  const tbody = document.querySelector('#trendTable tbody');
+  if (!tbody) return;
+  const records = loadRecords();
+  if (!records.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:#666;">No data for trend analysis.</td></tr>';
+    return;
+  }
+
+  const groups = {};
+  records.forEach(r => {
+    const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
+    if (!groups[key]) {
+      groups[key] = { 
+        subject: r.subject, 
+        grade: r.grade, 
+        stream: r.stream, 
+        term: r.term, 
+        exams: {} 
+      };
     }
-    const groups = {};
-    records.forEach(r => {
-      const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
-      if (!groups[key]) groups[key] = { subject: r.subject, grade: r.grade, stream: r.stream, term: r.term, exams: {} };
-      groups[key].exams[r.examType] = r.mean;
+    // ROBUST MATCHING – Accepts "Opener", "Opener Exam", etc.
+    if (r.examType.toLowerCase().includes('opener')) groups[key].exams['Opener Exam'] = r.mean;
+    if (r.examType.toLowerCase().includes('mid')) groups[key].exams['Mid Term Exam'] = r.mean;
+    if (r.examType.toLowerCase().includes('end')) groups[key].exams['End Term Exam'] = r.mean;
+  });
+
+  const trends = [];
+  for (const [key, group] of Object.entries(groups)) {
+    const { exams } = group;
+    const opener = exams['Opener Exam'] || null;
+    const mid = exams['Mid Term Exam'] || null;
+    const end = exams['End Term Exam'] || null;
+
+    // Need at least 2 exams
+    if ([opener, mid, end].filter(v => v !== null).length < 2) continue;
+
+    let trend = 0;
+    let status = '';
+    let color = '';
+    let rub = { short: '' };
+
+    if (opener && end) {
+      trend = (end - opener).toFixed(1);
+      status = trend > 0 ? 'Improved' : trend < 0 ? 'Declined' : 'Stable';
+      color = trend > 0 ? '#16a34a' : trend < 0 ? '#ef4444' : '#f59e0b';
+      rub = rubric(end);
+    } else if (opener && mid) {
+      trend = (mid - opener).toFixed(1);
+      status = trend > 0 ? 'Improving' : 'Declining';
+      color = trend > 0 ? '#16a34a' : '#ef4444';
+      rub = rubric(mid);
+    } else if (mid && end) {
+      trend = (end - mid).toFixed(1);
+      status = trend > 0 ? 'Improving' : 'Declining';
+      color = trend > 0 ? '#16a34a' : '#ef4444';
+      rub = rubric(end);
+    }
+
+    trends.push({
+      ...group,
+      opener: opener ? opener.toFixed(1) : '–',
+      mid: mid ? mid.toFixed(1) : '–',
+      end: end ? end.toFixed(1) : '–',
+      trend: trend !== 0 ? `${trend > 0 ? '+' : ''}${trend}%` : '–',
+      status,
+      color,
+      rub: rub.short
     });
-    const trends = [];
-    for (const [key, group] of Object.entries(groups)) {
-      const { exams } = group;
-      const opener = exams['Opener Exam'] || null;
-      const mid = exams['Mid Term Exam'] || null;
-      const end = exams['End Term Exam'] || null;
-      if ([opener, mid, end].filter(v => v !== null).length < 2) continue;
-      let trend = 0;
-      let status = '';
-      let color = '';
-      if (opener && end) {
-        trend = (end - opener).toFixed(1);
-        status = trend > 0 ? 'Improved' : trend < 0 ? 'Declined' : 'Stable';
-        color = trend > 0 ? '#16a34a' : trend < 0 ? '#dc2626' : '#f59e0b';
-      } else if (opener && mid) {
-        trend = (mid - opener).toFixed(1);
-        status = trend > 0 ? 'Improving' : 'Declining';
-        color = trend > 0 ? '#16a34a' : '#dc2626';
-      } else if (mid && end) {
-        trend = (end - mid).toFixed(1);
-        status = trend > 0 ? 'Improving' : 'Declining';
-        color = trend > 0 ? '#16a34a' : '#dc2626';
-      }
-      trends.push({ ...group, opener: opener ? opener.toFixed(1) : '-', mid: mid ? mid.toFixed(1) : '-', end: end ? end.toFixed(1) : '-', trend: trend !== 0 ? `${trend > 0 ? '+' : ''}${trend}%` : '-', status, color });
-    }
-    trends.sort((a, b) => a.subject.localeCompare(b.subject) || a.grade.localeCompare(b.grade) || a.stream.localeCompare(b.stream) || a.term.localeCompare(b.term));
-    tbody.innerHTML = trends.length 
-      ? trends.map(t => `
-          <tr>
-            <td>${t.subject}</td>
-            <td>${t.grade}</td>
-            <td>${t.stream}</td>
-            <td>${t.term}</td>
-            <td>${t.opener}</td>
-            <td>${t.mid}</td>
-            <td>${t.end}</td>
-            <td style="font-weight:bold;color:${t.color}">${t.trend}</td>
-            <td><span class="rubric-badge" style="background:${t.color};">${t.status}</span></td>
-          </tr>
-        `).join('')
-      : '<tr><td colspan="9" style="text-align:center;padding:20px;color:#666;">Not enough data for trends.</td></tr>';
-  };
+  }
+
+  // Sort by Subject → Grade → Stream → Term
+  trends.sort((a, b) => 
+    a.subject.localeCompare(b.subject) || 
+    a.grade.localeCompare(b.grade) || 
+    a.stream.localeCompare(b.stream) || 
+    a.term.localeCompare(b.term)
+  );
+
+  tbody.innerHTML = trends.length 
+    ? trends.map(t => `
+        <tr>
+          <td>${t.subject}</td>
+          <td>${t.grade}</td>
+          <td>${t.stream}</td>
+          <td>${t.term}</td>
+          <td style="text-align:center;font-weight:600;">${t.opener}%</td>
+          <td style="text-align:center;font-weight:600;">${t.mid}%</td>
+          <td style="text-align:center;font-weight:600;">${t.end}%</td>
+          <td style="font-weight:bold;color:${t.color}">${t.trend}</td>
+          <td><span class="rubric-badge" style="background:${t.color};">${t.status} (${t.rub})</span></td>
+        </tr>
+      `).join('')
+    : '<tr><td colspan="9" style="text-align:center;padding:20px;color:#666;">Not enough data (need 2+ exams).</td></tr>';
+};
 
   const renderProgressChart = () => {
     const canvas = el('progressChart');
@@ -663,9 +711,15 @@ const hexToRgb = (hex) => {
   const renderDashboard = () => { renderRecords(); renderTargets(); updateDashboardStats(); renderProgressChart(); };
   const renderInsights = () => {
   renderAIInsights();
-  renderRecords();  // ← ALL RECORDS
-  renderCumulativeAverages();  // ← FIXED
-  renderTrendAnalysis();  // ← FIXED
+  renderRecords();
+  renderCumulativeAverages();
+  renderTrendAnalysis();
+  
+  // FORCE REFRESH TABLES
+  setTimeout(() => {
+    renderCumulativeAverages();
+    renderTrendAnalysis();
+  }, 100);
 };
   const renderAll = () => {
     if (location.pathname.includes('averages-insights')) renderInsights();
