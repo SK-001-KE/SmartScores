@@ -4,80 +4,65 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartScores - Login</title>
+
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="icon-192x192.png" />
   <link rel="stylesheet" href="style.css" />
 
-  <!-- LOAD app.js FIRST – NO defer -->
+  <!-- Load app.js first (handles auto-login check) -->
   <script src="app.js"></script>
 </head>
+
 <body>
-  <!-- DARK MODE TOGGLE -->
-  <div style="position:fixed;top:10px;right:10px;z-index:1000;">
-    <button onclick="toggleDarkMode()" style="background:var(--blue);color:white;padding:8px 12px;border:none;border-radius:20px;cursor:pointer;font-size:0.9rem;">
-      Dark Mode
-    </button>
-  </div>
 
-  <header>
-    <h1>
-      <img src="icon-192x192.png" alt="SmartScores" style="height:40px;vertical-align:middle;margin-right:10px;border-radius:8px;">
-      SmartScores
-    </h1>
-    <p>Teacher Performance Tracker</p>
-  </header>
+<!-- DARK MODE BUTTON -->
+<div class="top-buttons">
+  <button onclick="toggleDarkMode()" class="btn-blue small">Dark Mode</button>
+</div>
 
-   <nav>
-    <a href="index.html">Dashboard</a>
-    <a href="data-entry.html" class="active">Data Entry</a>
-    <a href="recorded-scores.html">Recorded Scores</a>
-    <a href="averages-insights.html">Averages & Insights</a>
-    <a href="set-targets.html">Set Targets</a>
-  </nav>
+<header>
+  <h1>
+    <img src="icon-192x192.png" class="logo-small" alt="SmartScores">
+    SmartScores
+  </h1>
+  <p>Teacher Performance Tracker</p>
+</header>
 
-  <div class="content">
-    <h2 style="margin-bottom:20px;">Teacher Login</h2>
-    
-    <form id="loginForm" style="max-width:400px;margin:0 auto;">
-      <div class="form-group">
-        <label for="firstName">First Name</label>
-        <input type="text" id="firstName" placeholder="e.g. John" required />
-      </div>
+<div class="content centered">
+  <h2>Teacher Login</h2>
 
-      <div class="form-group">
-        <label for="lastName">Last Name</label>
-        <input type="text" id="lastName" placeholder="e.g. Kariuki" required />
-      </div>
+  <form id="loginForm" class="form-box">
+    <div class="form-group">
+      <label for="firstName">First Name</label>
+      <input type="text" id="firstName" placeholder="e.g. John" required>
+    </div>
 
-      <button type="submit" class="btn" style="width:100%;padding:14px;font-size:1.1em;">
-        Login
-      </button>
-    </form>
+    <div class="form-group">
+      <label for="lastName">Last Name</label>
+      <input type="text" id="lastName" placeholder="e.g. Kariuki" required>
+    </div>
 
-    <p style="margin-top:20px;font-size:0.9em;color:#666;">
-      Enter your full name to begin tracking performance.
-    </p>
-  </div>
+    <button type="submit" class="btn full">Login</button>
+  </form>
 
-  <footer>SmartScores v2.9.60 © Kariuki 2025</footer>
+  <p class="hint">Enter your full name to begin tracking performance.</p>
+</div>
 
-  <!-- INLINE LOGIN SCRIPT – RUNS AFTER app.js -->
-  <script>
-    // === LOGIN FORM – FIRST + LAST NAME ===
+<footer>SmartScores v2.9.6 © Kariuki 2025</footer>
+
+<!-- LOGIN SCRIPT -->
+<script>
 const form = document.getElementById('loginForm');
 const firstNameInput = document.getElementById('firstName');
 const lastNameInput = document.getElementById('lastName');
-const navLinks = document.querySelectorAll("nav a");
 
-// Disable nav before login
-if (!localStorage.getItem('teacherFullName')) {
-  navLinks.forEach(link => {
-    link.style.pointerEvents = "none";
-    link.style.opacity = "0.4";
-  });
+// Auto-redirect if already logged in
+if (localStorage.getItem('teacherFullName')) {
+  window.location.href = "index.html";
 }
 
-// Restore name if previously logged in
+// Restore name if typed before log in
 const savedName = localStorage.getItem('teacherFullName');
 if (savedName) {
   const [first, ...last] = savedName.split(' ');
@@ -85,30 +70,19 @@ if (savedName) {
   lastNameInput.value = last ? last.join(' ') : '';
 }
 
-// Submit handler
 form.addEventListener('submit', e => {
   e.preventDefault();
+
   const first = firstNameInput.value.trim();
   const last = lastNameInput.value.trim();
+  if (!first || !last) return alert("Enter both First & Last Name");
 
-  if (!first || !last) {
-    return alert('Please enter both First and Last Name.');
-  }
-
-  // Save + enable nav
-  const fullName = `${first} ${last}`;
-  localStorage.setItem('teacherFullName', fullName);
-  
-  navLinks.forEach(link => {
-    link.style.pointerEvents = "auto";
-    link.style.opacity = "1";
-  });
-
-  window.location.href = 'index.html';
+  localStorage.setItem('teacherFullName', `${first} ${last}`);
+  window.location.href = "index.html";
 });
 
 firstNameInput.focus();
+</script>
 
-  </script>
 </body>
 </html>
