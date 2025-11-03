@@ -661,7 +661,12 @@ const hexToRgb = (hex) => {
 
   // === RENDER ALL ===
   const renderDashboard = () => { renderRecords(); renderTargets(); updateDashboardStats(); renderProgressChart(); };
-  const renderInsights = () => { renderAIInsights(); renderRecords(); renderCumulativeAverages(); renderTrendAnalysis(); };
+  const renderInsights = () => {
+  renderAIInsights();
+  renderRecords();  // ← ALL RECORDS
+  renderCumulativeAverages();  // ← FIXED
+  renderTrendAnalysis();  // ← FIXED
+};
   const renderAll = () => {
     if (location.pathname.includes('averages-insights')) renderInsights();
     else renderDashboard();
