@@ -1,323 +1,223 @@
-/* style.css – GLOBAL STYLES FOR SMARTSCORES */
-
-/* === THEME COLORS === */
+/* ========== ROOT COLORS ========= */
 :root {
   --maroon: #800000;
-  --blue: #2563eb;
+  --maroon-dark: #5c0000;
+  --blue: #1e3a8a;
+  --blue-light: #3b82f6;
   --white: #ffffff;
-  --light-gray: #f9f9f9;
-  --dark-gray: #333;
+  --gray: #f4f4f4;
+  --text-dark: #222;
+  --text-light: #fdfdfd;
+  --border: #ddd;
+
+  --card-bg: #ffffff;
+  --card-text: #000;
 }
 
-/* === DARK MODE === */
-[data-theme="dark"] {
-  --maroon: #a40000;
-  --blue: #4f94ff;
-  --light-gray: #1a1a1a;
-  --white: #2d2d2d;
-  --dark-gray: #111;
+/* Dark Theme */
+html[data-theme="dark"] {
+  --card-bg: #121212;
+  --card-text: #e6e6e6;
+  --gray: #1e1e1e;
+  --text-dark: #ffffff;
+  --border: #444;
 }
 
-/* === FONT STACK (NO EMOJI PRIORITY) === */
-* {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-               Arial, sans-serif !important;
-}
-
-/* === BODY & LAYOUT === */
+/* ========== GENERAL ========== */
 body {
-  font-family: Arial, sans-serif;
-  background: var(--light-gray);
-  color: #000;
+  font-family: "Segoe UI", Roboto, sans-serif;
+  background: var(--gray);
   margin: 0;
   padding: 0;
+  color: var(--text-dark);
 }
 
-[data-theme="dark"] body {
-  color: #fff;
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
 }
 
-/* === HEADER === */
-header {
-  background: var(--blue);
-  color: var(--white);
-  padding: 15px;
-  text-align: center;
+/* Headings */
+h1, h2, h3 {
+  color: var(--maroon);
+  margin-bottom: 10px;
 }
 
-header h1 {
-  margin: 0;
-  font-size: 1.8em;
-}
-
-header p {
-  margin: 5px 0 0;
-  font-size: 1em;
-  opacity: 0.9;
-}
-
-.rubric-key {
-  margin-top: 10px;
-  font-size: 0.8rem;
-  color: #555;
-  text-align: center;
-}
-
-.rubric-key span {
-  display: inline-block;
-  margin: 0 8px;
-}
-
-/* === NAVIGATION === */
+/* ========== NAVIGATION ========== */
 nav {
   background: var(--maroon);
-  padding: 12px 0;
-  text-align: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 nav a {
   color: var(--white);
+  margin-right: 18px;
   text-decoration: none;
-  font-weight: bold;
-  margin: 0 15px;
-  padding: 8px 16px;
+  font-weight: 600;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+/* Dark toggle */
+.toggle-dark-btn {
+  background: var(--blue);
+  padding: 7px 12px;
   border-radius: 6px;
-  transition: 0.3s;
-  font-size: 0.95em;
-}
-
-nav a:hover,
-nav a.active {
-  background: var(--blue);
-  transform: translateY(-1px);
-}
-
-/* === CONTENT === */
-.content {
-  max-width: 1000px;
-  margin: 30px auto;
-  padding: 0 15px;
-  text-align: center;
-}
-
-/* === BUTTONS === */
-button,
-.btn {
-  background: var(--blue);
-  color: var(--white);
   border: none;
-  padding: 10px 16px;
-  margin: 8px 5px;
-  border-radius: 6px;
+  color: white;
   cursor: pointer;
-  font-weight: bold;
-  font-size: 0.9em;
-  transition: 0.2s;
 }
 
-button:hover,
-.btn:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
+/* ========== BUTTONS ========== */
+button, .btn {
+  background: var(--blue);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button:hover, .btn:hover {
+  background: var(--blue-light);
 }
 
 .btn-danger {
-  background: #dc2626;
+  background: var(--maroon);
 }
 
 .btn-danger:hover {
-  background: #b91c1c;
+  background: var(--maroon-dark);
 }
 
-.btn-group {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 20px 0;
+/* ========== INPUTS & FORMS ========== */
+input, select {
+  width: 100%;
+  padding: 11px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 1rem;
 }
 
-/* === TABLES === */
+label {
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* ========== DASHBOARD CARDS ========== */
+.card {
+  background: var(--card-bg);
+  color: var(--card-text);
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.card h2 {
+  font-size: 2.5rem;
+  margin: 0;
+}
+
+/* Card grid */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+/* ========== TABLE STYLE ========== */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin: 20px 0;
-  background: var(--white);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--card-bg);
   border-radius: 8px;
   overflow: hidden;
 }
 
-/* === INSIGHTS PAGE TABLES – FULL FORMATTING === */
-#insights-page table,
-#cumulativeTable,
-#recordsTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 20px 0;
-  font-size: 0.95rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-#insights-page table th,
-#cumulativeTable th,
-#recordsTable th {
-  background: #2563eb;
-  color: white;
-  padding: 12px 10px;
-  text-align: left;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-#insights-page table td,
-#cumulativeTable td,
-#recordsTable td {
-  padding: 12px 10px;
-  border-bottom: 1px solid #e5e7eb;
-  vertical-align: middle;
-}
-
-/* Row striping */
-#insights-page table tbody tr:nth-child(even),
-#cumulativeTable tbody tr:nth-child(even),
-#recordsTable tbody tr:nth-child(even) {
-  background-color: #f9fafb;
-}
-
-/* Hover effect */
-#insights-page table tbody tr:hover,
-#cumulativeTable tbody tr:hover,
-#recordsTable tbody tr:hover {
-  background-color: #eff6ff !important;
-  transition: background 0.2s;
-}
-
-/* Sorting behavior */
-#recorded-scores.html #recordsTable th,
-#recordsTable th {
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.2s;
-}
-
-#recorded-scores.html #recordsTable th:hover {
-  background: #f0f0f0;
-}
-
-/* Disable sort on Insights */
-#insights-page #recordsTable th,
-#cumulativeTable th {
-  cursor: default !important;
-}
-
-/* === FOOTER === */
-footer {
-  background: var(--dark-gray);
-  color: var(--white);
-  text-align: center;
+th, td {
   padding: 12px;
-  font-size: 0.9em;
-  margin-top: 50px;
-}
-
-/* === INPUTS === */
-input[type="text"],
-input[type="number"],
-select {
-  width: 100%;
-  padding: 14px 16px;
-  margin: 10px 0;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  font-size: 1.1em;
-  font-family: inherit;
-  box-sizing: border-box;
-  transition: border 0.2s, box-shadow 0.2s;
-}
-
-input:focus,
-select:focus {
-  outline: none;
-  border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-}
-
-[data-theme="dark"] input,
-[data-theme="dark"] select {
-  background: #2d2d2d;
-  border-color: #444;
-  color: #fff;
-}
-
-/* === FORM GROUPS === */
-.form-group {
-  margin-bottom: 18px;
   text-align: left;
+  border-bottom: 1px solid var(--border);
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: bold;
-  color: #333;
-  font-size: 0.95em;
+th {
+  background: var(--blue);
+  color: white;
+  font-size: 0.95rem;
 }
 
-/* === MOBILE === */
-@media (max-width: 768px) {
-  input[type="text"],
-  input[type="number"],
-  select {
-    padding: 16px 18px;
-    font-size: 1.15em;
-    border-radius: 10px;
-  }
-
-  .form-group {
-    margin-bottom: 22px;
-  }
-
-  .form-group label {
-    font-size: 1em;
-  }
-
-  nav a {
-    display: block;
-    margin: 8px 15px;
-  }
-
-  table {
-    font-size: 0.9em;
-  }
-
-  th,
-  td {
-    padding: 8px;
-  }
+/* Alternate rows */
+tr:nth-child(even) {
+  background: rgba(0,0,0,0.04);
 }
 
-/* === RUBRIC BADGES (NEW) === */
-.badge {
-  display: inline-block;
-  padding: 4px 8px;
+/* ========== ANNOUNCEMENTS / INSIGHTS ========== */
+.insight {
+  background: var(--blue);
+  color: white;
+  padding: 8px 12px;
   border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #fff;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
 }
 
-/* Rubric Color Shades */
-.ee1 { background: #006b3c; }  /* Deep Emerald (90–99) */
-.ee2 { background: #22c55e; }  /* Emerald (75–89) */
-.me1 { background: #3b82f6; }  /* Light Blue (58–74) */
-.me2 { background: #1e40af; }  /* Muted Blue (41–57) */
-.ae1 { background: #f59e0b; }  /* Amber (31–40) */
-.ae2 { background: #f97316; }  /* Orange (21–30) */
-.be1 { background: #ef4444; }  /* Red (11–20) */
-.be2 { background: #7f1d1d; }  /* Dark Red (0–10) */
+/* ========== RUBRIC COLORS (badges) ========== */
+.rubric {
+  font-weight: 700;
+  padding: 5px 9px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.85rem;
+  display: inline-block;
+}
+
+.EE1 { background:#0B6623; }
+.EE2 { background:#2E8B57; }
+.ME1 { background:#1E3A8A; }
+.ME2 { background:#3B82F6; }
+.AE1 { background:#F97316; }
+.AE2 { background:#FDBA74; color:#000 !important; }
+.BE1 { background:#DC2626; }
+.BE2 { background:#7F1D1D; }
+
+/* Legend */
+.rubric-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.rubric-legend span {
+  padding: 4px 7px;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 0.8rem;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  nav {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  table, thead {
+    font-size: 0.85rem;
+  }
+
+  input, select, button {
+    font-size: 0.9rem;
+  }
+}
