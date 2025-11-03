@@ -32,52 +32,7 @@
       window.location.href = 'login.html';
     }
   };
-  // === LOGIN FORM – FIRST + LAST NAME ===
-const form = document.getElementById('loginForm');
-const firstNameInput = document.getElementById('firstName');
-const lastNameInput = document.getElementById('lastName');
-const navLinks = document.querySelectorAll("nav a");
-
-// Disable nav before login
-if (!localStorage.getItem('teacherFullName')) {
-  navLinks.forEach(link => {
-    link.style.pointerEvents = "none";
-    link.style.opacity = "0.4";
-  });
-}
-
-// Restore name if previously logged in
-const savedName = localStorage.getItem('teacherFullName');
-if (savedName) {
-  const [first, ...last] = savedName.split(' ');
-  firstNameInput.value = first || '';
-  lastNameInput.value = last ? last.join(' ') : '';
-}
-
-// Submit handler
-form.addEventListener('submit', e => {
-  e.preventDefault();
-  const first = firstNameInput.value.trim();
-  const last = lastNameInput.value.trim();
-
-  if (!first || !last) {
-    return alert('Please enter both First and Last Name.');
-  }
-
-  // Save + enable nav
-  const fullName = `${first} ${last}`;
-  localStorage.setItem('teacherFullName', fullName);
-  
-  navLinks.forEach(link => {
-    link.style.pointerEvents = "auto";
-    link.style.opacity = "1";
-  });
-
-  window.location.href = 'index.html';
-});
-
-firstNameInput.focus();
-
+ 
 
   // === SEARCH & DELETE ===
   window.filterRecords = () => {
