@@ -515,56 +515,66 @@
   });
 
   // === CUMULATIVE AVERAGES ===
-  if (y > pageHeight - 40) { doc.addPage(); y = 20; } else y += 8;
-  doc.setFontSize(10); doc.setTextColor(37, 99, 235); doc.setFont('helvetica', 'bold');
-  doc.text('Cumulative Averages', 10, y); y += 6;
+  // === CUMULATIVE AVERAGES ===
+if (y > pageHeight - 40) { doc.addPage(); y = 20; } else y += 8;
+doc.setFontSize(10); doc.setTextColor(37, 99, 235); doc.setFont('helvetica', 'bold');
+doc.text('Cumulative Averages', 10, y); y += 6;
 
-  doc.setFontSize(8); doc.setTextColor(255, 255, 255); doc.setFillColor(37, 99, 235);
+doc.setFontSize(8); doc.setTextColor(255, 255, 255); doc.setFillColor(37, 99, 235);
+x = 10;
+const cumWidths = [40, 15, 20, 25, 18, 18, 18, 25];  // ← WIDER AVG COLUMN
+const cumHeaders = ['Subject', 'Grade', 'Stream', 'Term', 'Opener', 'Mid', 'End', 'Avg'];
+cumHeaders.forEach((h, i) => {
+  doc.rect(x, y, cumWidths[i], 6, 'F');
+  doc.text(h, x + 1, y + 4);
+  x += cumWidths[i];
+});
+y += 6;
+
+doc.setFontSize(7); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal');
+const cumGroups = {};
+records.forEach(r => {
+  const k = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
+  if (!cumGroups[k]) cumGroups[k] = { opener: null, mid: null, end: null, ...r };
+  if (r.examType === 'Opener Exam') cumGroups[k].opener = r.mean;
+  if (r.examType === 'Mid Term Exam') cumGroups[k].mid = r.mean;
+  if (r.examType === 'End Term Exam') cumGroups[k].end = r.mean;
+});
+
+Object.values(cumGroups).forEach(g => {
+  if (y > pageHeight - 15) { doc.addPage(); y = 20; }
+  const scores = [g.opener, g.mid, g.end].filter(s => s !== null);
+  const avgNum = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+  const avg = avgNum.toFixed(1);
+  const rub = rubric(avgNum);
+  const row = [
+    g.subject.substring(0, 14),
+    `G${g.grade}`,
+    g.stream,
+    g.term,
+    g.opener ? `${g.opener.toFixed(0)}%` : '–',
+    g.mid ? `${g.mid.toFixed(0)}%` : '–',
+    g.end ? `${g.end.toFixed(0)}%` : '–',
+    `${avg}% (${rub.short})`
+  ];
   x = 10;
-  const cumWidths = [40, 15, 20, 25, 18, 18, 18, 20];
-  const cumHeaders = ['Subject', 'Grade', 'Stream', 'Term', 'Opener', 'Mid', 'End', 'Avg'];
-  cumHeaders.forEach((h, i) => {
-    doc.rect(x, y, cumWidths[i], 6, 'F');
-    doc.text(h, x + 1, y + 4);
+  row.forEach((cell, i) => {
+    if (i === 7) {
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(
+        avgNum >= 75 ? 22 : avgNum >= 50 ? 37 : avgNum >= 30 ? 245 : 239,
+        avgNum >= 75 ? 163 : avgNum >= 50 ? 99 : avgNum >= 30 ? 158 : 68,
+        avgNum >= 75 ? 74 : avgNum >= 50 ? 235 : avgNum >= 30 ? 11 : 68
+      );
+    } else {
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+    }
+    doc.text(cell, x + 1, y + 4);
     x += cumWidths[i];
   });
-  y += 6;
-
-  doc.setFontSize(7); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal');
-  const cumGroups = {};
-  records.forEach(r => {
-    const k = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
-    if (!cumGroups[k]) cumGroups[k] = { opener: null, mid: null, end: null, ...r };
-    if (r.examType === 'Opener Exam') cumGroups[k].opener = r.mean;
-    if (r.examType === 'Mid Term Exam') cumGroups[k].mid = r.mean;
-    if (r.examType === 'End Term Exam') cumGroups[k].end = r.mean;
-  });
-
-  Object.values(cumGroups).forEach(g => {
-    if (y > pageHeight - 15) { doc.addPage(); y = 20; }
-    const scores = [g.opener, g.mid, g.end].filter(s => s !== null);
-    const avg = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : '0';
-    const row = [
-      g.subject.substring(0, 14),
-      `G${g.grade}`,
-      g.stream,
-      g.term,
-      g.opener ? `${g.opener.toFixed(0)}%` : '–',
-      g.mid ? `${g.mid.toFixed(0)}%` : '–',
-      g.end ? `${g.end.toFixed(0)}%` : '–',
-      `${avg}%`
-    ];
-    x = 10;
-    row.forEach((cell, i) => {
-      const score = parseFloat(cell);
-      if (i >= 4 && !isNaN(score)) {
-        doc.setTextColor(score >= 50 ? 22 : 194, score >= 50 ? 163 : 38, score >= 50 ? 74 : 38);
-      } else doc.setTextColor(0, 0, 0);
-      doc.text(cell, x + 1, y + 4);
-      x += cumWidths[i];
-    });
-    y += 5;
-  });
+  y += 5;
+});
 
   // === FOOTER ===
   doc.setFontSize(7); doc.setTextColor(150, 150, 150);
