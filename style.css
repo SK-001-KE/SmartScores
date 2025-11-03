@@ -18,11 +18,10 @@
   --dark-gray: #111;
 }
 
-/* === EMOJI SUPPORT === */
+/* === FONT STACK (NO EMOJI PRIORITY) === */
 * {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-               "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
-               "Noto Color Emoji", Arial, sans-serif !important;
+               Arial, sans-serif !important;
 }
 
 /* === BODY & LAYOUT === */
@@ -56,12 +55,14 @@ header p {
   font-size: 1em;
   opacity: 0.9;
 }
+
 .rubric-key {
   margin-top: 10px;
   font-size: 0.8rem;
   color: #555;
   text-align: center;
 }
+
 .rubric-key span {
   display: inline-block;
   margin: 0 8px;
@@ -182,14 +183,14 @@ table {
   vertical-align: middle;
 }
 
-/* ZEBRA STRIPES */
+/* Row striping */
 #insights-page table tbody tr:nth-child(even),
 #cumulativeTable tbody tr:nth-child(even),
 #recordsTable tbody tr:nth-child(even) {
   background-color: #f9fafb;
 }
 
-/* HOVER ROW */
+/* Hover effect */
 #insights-page table tbody tr:hover,
 #cumulativeTable tbody tr:hover,
 #recordsTable tbody tr:hover {
@@ -197,23 +198,7 @@ table {
   transition: background 0.2s;
 }
 
-/* NO SORT CURSOR IN INSIGHTS */
-#insights-page #recordsTable th,
-#cumulativeTable th {
-  cursor: default !important;
-}
-
-/* RUBRIC BADGE */
-.rubric-badge {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: white;
-}
-
-/* SORTABLE – ONLY IN RECORDS PAGE */
+/* Sorting behavior */
 #recorded-scores.html #recordsTable th,
 #recordsTable th {
   cursor: pointer;
@@ -225,15 +210,10 @@ table {
   background: #f0f0f0;
 }
 
-/* NO SORTING IN INSIGHTS */
+/* Disable sort on Insights */
 #insights-page #recordsTable th,
 #cumulativeTable th {
   cursor: default !important;
-}
-
-#insights-page #recordsTable th:hover,
-#cumulativeTable th:hover {
-  background: none !important;
 }
 
 /* === FOOTER === */
@@ -246,7 +226,7 @@ footer {
   margin-top: 50px;
 }
 
-/* === INPUT FIELDS – BIGGER & RESPONSIVE === */
+/* === INPUTS === */
 input[type="text"],
 input[type="number"],
 select {
@@ -261,7 +241,6 @@ select {
   transition: border 0.2s, box-shadow 0.2s;
 }
 
-/* Focus effect */
 input:focus,
 select:focus {
   outline: none;
@@ -269,18 +248,11 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
-/* Dark mode */
 [data-theme="dark"] input,
 [data-theme="dark"] select {
   background: #2d2d2d;
   border-color: #444;
   color: #fff;
-}
-
-[data-theme="dark"] input:focus,
-[data-theme="dark"] select:focus {
-  border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(79, 148, 255, 0.3);
 }
 
 /* === FORM GROUPS === */
@@ -297,11 +269,7 @@ select:focus {
   font-size: 0.95em;
 }
 
-[data-theme="dark"] .form-group label {
-  color: #ddd;
-}
-
-/* === MOBILE: Even bigger on small screens === */
+/* === MOBILE === */
 @media (max-width: 768px) {
   input[type="text"],
   input[type="number"],
@@ -318,17 +286,10 @@ select:focus {
   .form-group label {
     font-size: 1em;
   }
-}
 
-/* === MOBILE === */
-@media (max-width: 768px) {
   nav a {
     display: block;
     margin: 8px 15px;
-  }
-
-  .btn-group {
-    flex-direction: column;
   }
 
   table {
@@ -340,3 +301,23 @@ select:focus {
     padding: 8px;
   }
 }
+
+/* === RUBRIC BADGES (NEW) === */
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Rubric Color Shades */
+.ee1 { background: #006b3c; }  /* Deep Emerald (90–99) */
+.ee2 { background: #22c55e; }  /* Emerald (75–89) */
+.me1 { background: #3b82f6; }  /* Light Blue (58–74) */
+.me2 { background: #1e40af; }  /* Muted Blue (41–57) */
+.ae1 { background: #f59e0b; }  /* Amber (31–40) */
+.ae2 { background: #f97316; }  /* Orange (21–30) */
+.be1 { background: #ef4444; }  /* Red (11–20) */
+.be2 { background: #7f1d1d; }  /* Dark Red (0–10) */
