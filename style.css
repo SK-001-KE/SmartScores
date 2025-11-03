@@ -56,16 +56,6 @@ header p {
   font-size: 1em;
   opacity: 0.9;
 }
-.rubric-key {
-  margin-top: 10px;
-  font-size: 0.8rem;
-  color: #555;
-  text-align: center;
-}
-.rubric-key span {
-  display: inline-block;
-  margin: 0 8px;
-}
 
 /* === NAVIGATION === */
 nav {
