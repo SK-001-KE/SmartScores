@@ -1,4 +1,4 @@
-// SmartScores v2.9.99 - FINAL VERSION - ALL FEATURES INCLUDED
+// SmartScores v2.9.99 - UPDATED for EE1..BE2 rubrics, PDF legend & badge colors
 (() => {
   const STORAGE_KEY = 'smartScores';
   const TARGETS_KEY = 'smartScoresTargets';
@@ -12,12 +12,41 @@
   };
   const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
-  const rubric = s => {
-  if (s >= 75) return { text: 'Exceeding Expectations', short: 'EE', color: '#16a34a' };
-  if (s >= 50) return { text: 'Meeting Expectations', short: 'ME', color: '#2563eb' };
-  if (s >= 30) return { text: 'Approaching Expectations', short: 'AE', color: '#f59e0b' };
-  return { text: 'Below Expectations', short: 'BE', color: '#ef4444' };
-};
+  // === RUBRIC (EE1..BE2) ===
+  const rubricMap = [
+    { code: 'EE1', min: 90, max: 100, color: '#0B6623', text: 'EE1 90-99' },
+    { code: 'EE2', min: 75, max: 89, color: '#2E8B57', text: 'EE2 75-89' },
+    { code: 'ME1', min: 58, max: 74, color: '#1E3A8A', text: 'ME1 58-74' },
+    { code: 'ME2', min: 41, max: 57, color: '#3B82F6', text: 'ME2 41-57' },
+    { code: 'AE1', min: 31, max: 40, color: '#F97316', text: 'AE1 31-40' },
+    { code: 'AE2', min: 21, max: 30, color: '#FDBA74', text: 'AE2 21-30' }, // light -> black text
+    { code: 'BE1', min: 11, max: 20, color: '#DC2626', text: 'BE1 11-20' },
+    { code: 'BE2', min: 0,  max: 10, color: '#7F1D1D', text: 'BE2 0-10' }
+  ];
+
+  const getRubric = (scoreRaw) => {
+    const score = Number(scoreRaw);
+    if (isNaN(score)) return { code: 'N/A', color: '#999', text: 'N/A' };
+    for (const r of rubricMap) {
+      if (score >= r.min && score <= r.max) return { code: r.code, color: r.color, text: r.text, min: r.min, max: r.max };
+    }
+    // fallback (covers >100 or negative)
+    if (score > 100) return { code: 'EE1', color: rubricMap[0].color, text: rubricMap[0].text };
+    return { code: 'BE2', color: rubricMap[rubricMap.length - 1].color, text: rubricMap[rubricMap.length - 1].text };
+  };
+
+  // Helper: hex -> [r,g,b]
+  const hexToRgb = (hex) => {
+    const v = hex.replace('#','');
+    return [parseInt(v.substr(0,2),16), parseInt(v.substr(2,2),16), parseInt(v.substr(4,2),16)];
+  };
+
+  // Create HTML badge for web tables (background + white text except AE2)
+  const formatRubricBadge = (score) => {
+    const r = getRubric(score);
+    const textColor = (r.code === 'AE2') ? '#000' : '#fff';
+    return `<span class="rubric ${r.code}" style="background:${r.color};color:${textColor};padding:4px 8px;border-radius:6px;font-weight:700;display:inline-block;font-size:0.9rem;">${r.code}</span>`;
+  };
 
   // === GLOBAL FUNCTIONS ===
   window.toggleDarkMode = () => {
@@ -32,45 +61,46 @@
       window.location.href = 'login.html';
     }
   };
- 
 
   // === SEARCH & DELETE ===
+  // filterRecords now handles both table layouts (#recordsTable tbody OR #recordsBody)
   window.filterRecords = () => {
-    const searchInput = el('searchInput');
-    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-    const rows = document.querySelectorAll('#recordsTable tbody tr');
-    let visibleCount = 0;
+    const searchEl = el('searchInput');
+    const q = searchEl ? searchEl.value.toLowerCase() : '';
+    // collect rows from either table structure
+    const tb = document.querySelector('#recordsTable tbody') || document.getElementById('recordsBody');
+    if (!tb) return;
+    const rows = Array.from(tb.querySelectorAll('tr'));
+    let visible = 0;
     rows.forEach(row => {
       const text = row.textContent.toLowerCase();
-      if (text.includes(searchTerm)) {
-        row.style.display = '';
-        visibleCount++;
-      } else {
-        row.style.display = 'none';
-      }
+      if (!q || text.includes(q)) { row.style.display=''; visible++; }
+      else row.style.display='none';
     });
-    if (searchTerm && visibleCount === 0) {
-      showAlert('No records found. Try different keywords.');
-    }
+    if (q && visible === 0) showAlert('No records found. Try different keywords.');
   };
 
   window.deleteRecord = (i) => {
     if (confirm('Delete record?')) {
       const records = loadRecords();
-      records.splice(i, 1);
-      saveRecords(records);
-      showAlert('Deleted.');
-      renderAll();
+      if (i >= 0 && i < records.length) {
+        records.splice(i, 1);
+        saveRecords(records);
+        showAlert('Deleted.');
+        renderAll();
+      }
     }
   };
 
   window.deleteTarget = (i) => {
     if (confirm('Delete target?')) {
       const targets = loadTargets();
-      targets.splice(i, 1);
-      saveTargets(targets);
-      showAlert('Deleted.');
-      renderTargets();
+      if (i >= 0 && i < targets.length) {
+        targets.splice(i, 1);
+        saveTargets(targets);
+        showAlert('Deleted.');
+        renderTargets();
+      }
     }
   };
 
@@ -101,16 +131,29 @@
       window.location.href = 'login.html';
       return;
     }
-    const record = {
-      teacher: loggedName,
-      subject: el('subject')?.value?.trim(),
-      grade: el('grade')?.value?.trim(),
-      stream: el('stream')?.value?.trim(),
-      term: el('term')?.value?.trim(),
-      examType: el('examType')?.value?.trim(),
-      year: el('year')?.value?.trim(),
-      mean: Number(el('meanScore')?.value)
+    const subject = el('subject')?.value?.trim();
+    const grade = el('grade')?.value?.trim();
+    const stream = el('stream')?.value?.trim();
+    const term = el('term')?.value?.trim();
+    let examType = el('examType')?.value?.trim();
+    const year = el('year')?.value?.trim();
+    const mean = Number(el('meanScore')?.value);
+
+    // normalize examType if needed
+    const examMap = {
+      'opener': 'Opener Exam',
+      'opener exam': 'Opener Exam',
+      'mid': 'Mid Term Exam',
+      'mid term exam': 'Mid Term Exam',
+      'end': 'End Term Exam',
+      'end term exam': 'End Term Exam'
     };
+    if (examType) {
+      const k = examType.toLowerCase();
+      examType = examMap[k] || examType;
+    }
+
+    const record = { teacher: loggedName, subject, grade, stream, term, examType, year, mean };
 
     if (!record.subject || !record.grade || !record.stream || !record.term || !record.examType || !record.year || isNaN(record.mean)) {
       return showAlert('Please fill all fields correctly.');
@@ -131,10 +174,10 @@
     );
     if (exists) return showAlert('This record already exists!');
 
-    records.push({ ...record, year: record.year });
+    records.push({ ...record, year: record.year, mean: Number(record.mean) });
     saveRecords(records);
     localStorage.setItem(TEACHER_KEY, record.teacher);
-    el('meanScore').value = '';
+    if (el('meanScore')) el('meanScore').value = '';
     showAlert('Record saved successfully!');
     renderAll();
   };
@@ -145,24 +188,15 @@
       yearInput.value = new Date().getFullYear();
     }
   };
-  const examMap = {
-  'Opener': 'Opener Exam',
-  'Mid': 'Mid Term Exam',
-  'End': 'End Term Exam',
-  'opener': 'Opener Exam',
-  'mid': 'Mid Term Exam',
-  'end': 'End Term Exam'
-};
-record.examType = examMap[record.examType] || record.examType;
 
   // === SAVE TARGET ===
   const handleSaveTarget = () => {
     const target = {
-      subject: el('targetSubject')?.value,
-      grade: el('targetGrade')?.value,
-      stream: el('targetStream')?.value,
-      term: el('targetTerm')?.value,
-      examType: el('targetExamType')?.value,
+      subject: el('targetSubject')?.value?.trim(),
+      grade: el('targetGrade')?.value?.trim(),
+      stream: el('targetStream')?.value?.trim(),
+      term: el('targetTerm')?.value?.trim(),
+      examType: el('targetExamType')?.value?.trim(),
       score: Number(el('targetScore')?.value)
     };
     if (!target.subject || !target.grade || !target.stream || !target.term || !target.examType || isNaN(target.score)) {
@@ -179,14 +213,17 @@ record.examType = examMap[record.examType] || record.examType;
 
     targets.push(target);
     saveTargets(targets);
-    el('targetScore').value = '';
+    if (el('targetScore')) el('targetScore').value = '';
     showAlert('Target saved!');
     renderTargets();
   };
 
   // === RENDER RECORDS ===
   const renderRecords = () => {
-    const tbody = document.querySelector('#recordsTable tbody');
+    // support two table structures:
+    // 1) <table id="recordsTable"><tbody>...</tbody></table>
+    // 2) <table class="records-table"><tbody id="recordsBody">...</tbody></table>
+    const tbody = document.querySelector('#recordsTable tbody') || document.getElementById('recordsBody');
     if (!tbody) return;
     const records = loadRecords();
     if (!records.length) {
@@ -199,30 +236,28 @@ record.examType = examMap[record.examType] || record.examType;
       const key = `${t.subject}|${t.grade}|${t.stream}|${t.term}|${t.examType}`;
       targetMap[key] = t.score;
     });
-    tbody.innerHTML = records.map(r => {
+
+    tbody.innerHTML = records.map((r, idx) => {
       const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}|${r.examType}`;
-      const target = targetMap[key] || 0;
-      const deviation = (r.mean - target).toFixed(1);
-      const rub = rubric(r.mean);
+      const target = Number(targetMap[key] || 0);
+      const deviationNum = Number((r.mean - target).toFixed(1));
+      const deviationStr = `${deviationNum >= 0 ? '+' : ''}${deviationNum.toFixed(1)}%`;
+      const rubricBadge = formatRubricBadge(r.mean);
+      // include a delete action where table originally supported actions (some pages expect deleteRecord)
+      const actions = `<button onclick="deleteRecord(${idx})" class="btn btn-danger" style="padding:6px 8px;font-size:0.85rem;border-radius:6px;">Delete</button>`;
       return `
         <tr>
-          <td>${r.teacher}</td>
-          <td>${r.subject}</td>
-          <td>${r.grade}</td>
-          <td>${r.stream}</td>
-          <td>${r.term}</td>
-          <td>${r.examType}</td>
-          <td>${r.year}</td>
-          <td>${r.mean.toFixed(1)}%</td>
-          <td>${target}%</td>
-          <td style="font-weight:bold;color:${deviation >= 0 ? '#16a34a' : '#dc2626'}">
-            ${deviation >= 0 ? '+' : ''}${deviation}%
-          </td>
-          <td><span class="rubric-badge" style="background:${rub.color};">${rub.short}</span></td>
+          <td>${r.year || ''}</td>
+          <td>${r.teacher || ''}</td>
+          <td>G${r.grade || ''} • ${r.stream || ''}</td>
+          <td>${r.subject || ''}</td>
+          <td>-</td>
+          <td style="text-align:right;">${Number(r.mean).toFixed(1)}%</td>
+          <td style="text-align:center;">${rubricBadge}</td>
         </tr>
       `;
     }).join('');
-    sortRecords(1); // Auto-group by subject
+    // don't auto-sort here (we can't rely on column indexes for both table shapes)
   };
 
   const renderTargets = () => {
@@ -261,12 +296,12 @@ record.examType = examMap[record.examType] || record.examType;
     const insights = [];
     records.forEach(r => {
       const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}|${r.examType}`;
-      const target = targetMap[key] || 0;
-      const deviation = r.mean - target;
+      const target = Number(targetMap[key] || 0);
+      const deviation = Number((r.mean - target).toFixed(1));
       if (deviation < -10) {
-        insights.push(`${r.subject} (G${r.grade} ${r.stream}) – ${r.mean.toFixed(1)}% vs ${target}% target: **${deviation.toFixed(1)}% below** – Needs urgent attention`);
+        insights.push(`${r.subject} (G${r.grade} ${r.stream}) – ${r.mean.toFixed(1)}% vs ${target}% target: ${Math.abs(deviation).toFixed(1)}% below – Needs urgent attention`);
       } else if (deviation > 10) {
-        insights.push(`${r.subject} (G${r.grade} ${r.stream}) – ${r.mean.toFixed(1)}% vs ${target}% target: **+${deviation.toFixed(1)}% above** – Outstanding!`);
+        insights.push(`${r.subject} (G${r.grade} ${r.stream}) – ${r.mean.toFixed(1)}% vs ${target}% target: +${deviation.toFixed(1)}% – Outstanding!`);
       }
     });
     container.innerHTML = insights.length
@@ -275,150 +310,154 @@ record.examType = examMap[record.examType] || record.examType;
   };
 
   const renderCumulativeAverages = () => {
-  const tbody = document.querySelector('#cumulativeTable tbody');
-  if (!tbody) return;
-  const records = loadRecords();
-  if (!records.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#666;">No data for cumulative averages.</td></tr>';
-    return;
-  }
-
-  const groups = {};
-  records.forEach(r => {
-    const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
-    if (!groups[key]) {
-      groups[key] = { 
-        subject: r.subject, 
-        grade: r.grade, 
-        stream: r.stream, 
-        term: r.term,
-        opener: null,
-        mid: null,
-        end: null
-      };
+    const tbody = document.querySelector('#cumulativeTable tbody');
+    if (!tbody) return;
+    const records = loadRecords();
+    if (!records.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#666;">No data for cumulative averages.</td></tr>';
+      return;
     }
-    if (r.examType.includes('Opener')) groups[key].opener = r.mean;
-if (r.examType.includes('Mid')) groups[key].mid = r.mean;
-if (r.examType.includes('End')) groups[key].end = r.mean;
-  });
 
-  const averages = [];
-  for (const [key, g] of Object.entries(groups)) {
-    const scores = [g.opener, g.mid, g.end].filter(s => s !== null);
-    const avg = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : '0.0';
-    averages.push({ ...g, avg });
-  }
+    const groups = {};
+    records.forEach(r => {
+      const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
+      if (!groups[key]) {
+        groups[key] = {
+          subject: r.subject,
+          grade: r.grade,
+          stream: r.stream,
+          term: r.term,
+          opener: null,
+          mid: null,
+          end: null
+        };
+      }
+      const examTypeLower = (r.examType || '').toLowerCase();
+      if (examTypeLower.includes('opener')) groups[key].opener = Number(r.mean);
+      if (examTypeLower.includes('mid')) groups[key].mid = Number(r.mean);
+      if (examTypeLower.includes('end')) groups[key].end = Number(r.mean);
+    });
 
-  averages.sort((a, b) => 
-    a.subject.localeCompare(b.subject) || 
-    a.grade.localeCompare(b.grade) || 
-    a.stream.localeCompare(b.stream) || 
-    a.term.localeCompare(b.term)
-  );
+    const averages = [];
+    for (const [key, g] of Object.entries(groups)) {
+      const scores = [g.opener, g.mid, g.end].filter(s => s !== null && !isNaN(s));
+      const avgNum = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+      const avg = avgNum.toFixed(1);
+      averages.push({ ...g, avg, avgNum });
+    }
 
-  tbody.innerHTML = averages.map(g => `
-    <tr>
-      <td>${g.subject}</td>
-      <td>${g.grade}</td>
-      <td>${g.stream}</td>
-      <td>${g.term}</td>
-      <td style="text-align:center;font-weight:600;color:${g.opener >= 50 ? '#16a34a' : '#dc2626'}">
-        ${g.opener ? g.opener.toFixed(1) + '%' : '–'}
-      </td>
-      <td style="text-align:center;font-weight:600;color:${g.mid >= 50 ? '#16a34a' : '#dc2626'}">
-        ${g.mid ? g.mid.toFixed(1) + '%' : '–'}
-      </td>
-      <td style="text-align:center;font-weight:600;color:${g.end >= 50 ? '#16a34a' : '#dc2626'}">
-        ${g.end ? g.end.toFixed(1) + '%' : '–'}
-      </td>
-      <td style="font-weight:bold;color:${g.avg >= 75 ? '#16a34a' : g.avg >= 50 ? '#2563eb' : g.avg >= 30 ? '#f59e0b' : '#ef4444'}">
-  ${g.avg}% <small>(${rub.short})</small>
-</td>
-    </tr>
-  `).join('');
-};
+    averages.sort((a, b) =>
+      a.subject.localeCompare(b.subject) ||
+      a.grade.localeCompare(b.grade) ||
+      a.stream.localeCompare(b.stream) ||
+      a.term.localeCompare(b.term)
+    );
+
+    tbody.innerHTML = averages.map(g => {
+      const rub = getRubric(g.avgNum);
+      return `
+        <tr>
+          <td>${g.subject}</td>
+          <td>${g.grade}</td>
+          <td>${g.stream}</td>
+          <td>${g.term}</td>
+          <td style="text-align:center;font-weight:600;color:${(g.opener !== null && g.opener >= 50) ? '#16a34a' : '#dc2626'}">
+            ${g.opener !== null ? g.opener.toFixed(1) + '%' : '–'}
+          </td>
+          <td style="text-align:center;font-weight:600;color:${(g.mid !== null && g.mid >= 50) ? '#16a34a' : '#dc2626'}">
+            ${g.mid !== null ? g.mid.toFixed(1) + '%' : '–'}
+          </td>
+          <td style="text-align:center;font-weight:600;color:${(g.end !== null && g.end >= 50) ? '#16a34a' : '#dc2626'}">
+            ${g.end !== null ? g.end.toFixed(1) + '%' : '–'}
+          </td>
+          <td style="font-weight:bold;color:${g.avgNum >= 90 ? '#0B6623' : g.avgNum >= 75 ? '#2E8B57' : g.avgNum >= 58 ? '#1E3A8A' : g.avgNum >= 41 ? '#3B82F6' : g.avgNum >= 31 ? '#F97316' : g.avgNum >= 21 ? '#FDBA74' : g.avgNum >= 11 ? '#DC2626' : '#7F1D1D'}">
+            ${g.avg}% <small>(${rub.code})</small>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  };
 
   const renderTrendAnalysis = () => {
-  const tbody = document.querySelector('#trendTable tbody');
-  if (!tbody) return;
-  const records = loadRecords();
-  if (!records.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:#666;">No data for trend analysis.</td></tr>';
-    return;
-  }
-
-  const groups = {};
-  records.forEach(r => {
-    const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
-    if (!groups[key]) {
-      groups[key] = { 
-        subject: r.subject, 
-        grade: r.grade, 
-        stream: r.stream, 
-        term: r.term, 
-        exams: {} 
-      };
-    }
-    // ROBUST MATCHING – Accepts "Opener", "Opener Exam", etc.
-    if (r.examType.toLowerCase().includes('opener')) groups[key].exams['Opener Exam'] = r.mean;
-    if (r.examType.toLowerCase().includes('mid')) groups[key].exams['Mid Term Exam'] = r.mean;
-    if (r.examType.toLowerCase().includes('end')) groups[key].exams['End Term Exam'] = r.mean;
-  });
-
-  const trends = [];
-  for (const [key, group] of Object.entries(groups)) {
-    const { exams } = group;
-    const opener = exams['Opener Exam'] || null;
-    const mid = exams['Mid Term Exam'] || null;
-    const end = exams['End Term Exam'] || null;
-
-    // Need at least 2 exams
-    if ([opener, mid, end].filter(v => v !== null).length < 2) continue;
-
-    let trend = 0;
-    let status = '';
-    let color = '';
-    let rub = { short: '' };
-
-    if (opener && end) {
-      trend = (end - opener).toFixed(1);
-      status = trend > 0 ? 'Improved' : trend < 0 ? 'Declined' : 'Stable';
-      color = trend > 0 ? '#16a34a' : trend < 0 ? '#ef4444' : '#f59e0b';
-      rub = rubric(end);
-    } else if (opener && mid) {
-      trend = (mid - opener).toFixed(1);
-      status = trend > 0 ? 'Improving' : 'Declining';
-      color = trend > 0 ? '#16a34a' : '#ef4444';
-      rub = rubric(mid);
-    } else if (mid && end) {
-      trend = (end - mid).toFixed(1);
-      status = trend > 0 ? 'Improving' : 'Declining';
-      color = trend > 0 ? '#16a34a' : '#ef4444';
-      rub = rubric(end);
+    const tbody = document.querySelector('#trendTable tbody');
+    if (!tbody) return;
+    const records = loadRecords();
+    if (!records.length) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:#666;">No data for trend analysis.</td></tr>';
+      return;
     }
 
-    trends.push({
-      ...group,
-      opener: opener ? opener.toFixed(1) : '–',
-      mid: mid ? mid.toFixed(1) : '–',
-      end: end ? end.toFixed(1) : '–',
-      trend: trend !== 0 ? `${trend > 0 ? '+' : ''}${trend}%` : '–',
-      status,
-      color,
-      rub: rub.short
+    const groups = {};
+    records.forEach(r => {
+      const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
+      if (!groups[key]) {
+        groups[key] = {
+          subject: r.subject,
+          grade: r.grade,
+          stream: r.stream,
+          term: r.term,
+          exams: {}
+        };
+      }
+      const examLower = (r.examType || '').toLowerCase();
+      if (examLower.includes('opener')) groups[key].exams['Opener Exam'] = Number(r.mean);
+      if (examLower.includes('mid')) groups[key].exams['Mid Term Exam'] = Number(r.mean);
+      if (examLower.includes('end')) groups[key].exams['End Term Exam'] = Number(r.mean);
     });
-  }
 
-  // Sort by Subject → Grade → Stream → Term
-  trends.sort((a, b) => 
-    a.subject.localeCompare(b.subject) || 
-    a.grade.localeCompare(b.grade) || 
-    a.stream.localeCompare(b.stream) || 
-    a.term.localeCompare(b.term)
-  );
+    const trends = [];
+    for (const [key, group] of Object.entries(groups)) {
+      const { exams } = group;
+      const opener = exams['Opener Exam'] ?? null;
+      const mid = exams['Mid Term Exam'] ?? null;
+      const end = exams['End Term Exam'] ?? null;
 
-  tbody.innerHTML = trends.length 
-    ? trends.map(t => `
+      // Need at least 2 exams
+      if ([opener, mid, end].filter(v => v !== null).length < 2) continue;
+
+      let trendNum = 0;
+      let status = '';
+      let color = '';
+      let rub = { code: '' };
+
+      if (opener !== null && end !== null) {
+        trendNum = Number((end - opener).toFixed(1));
+        status = trendNum > 0 ? 'Improved' : trendNum < 0 ? 'Declined' : 'Stable';
+        color = trendNum > 0 ? '#16a34a' : trendNum < 0 ? '#ef4444' : '#f59e0b';
+        rub = getRubric(end);
+      } else if (opener !== null && mid !== null) {
+        trendNum = Number((mid - opener).toFixed(1));
+        status = trendNum > 0 ? 'Improving' : 'Declining';
+        color = trendNum > 0 ? '#16a34a' : '#ef4444';
+        rub = getRubric(mid);
+      } else if (mid !== null && end !== null) {
+        trendNum = Number((end - mid).toFixed(1));
+        status = trendNum > 0 ? 'Improving' : 'Declining';
+        color = trendNum > 0 ? '#16a34a' : '#ef4444';
+        rub = getRubric(end);
+      }
+
+      trends.push({
+        ...group,
+        opener: opener !== null ? opener.toFixed(1) : '–',
+        mid: mid !== null ? mid.toFixed(1) : '–',
+        end: end !== null ? end.toFixed(1) : '–',
+        trend: trendNum !== 0 ? `${trendNum > 0 ? '+' : ''}${trendNum}%` : '–',
+        status,
+        color,
+        rub: rub.code
+      });
+    }
+
+    trends.sort((a, b) =>
+      a.subject.localeCompare(b.subject) ||
+      a.grade.localeCompare(b.grade) ||
+      a.stream.localeCompare(b.stream) ||
+      a.term.localeCompare(b.term)
+    );
+
+    tbody.innerHTML = trends.length
+      ? trends.map(t => `
         <tr>
           <td>${t.subject}</td>
           <td>${t.grade}</td>
@@ -428,11 +467,11 @@ if (r.examType.includes('End')) groups[key].end = r.mean;
           <td style="text-align:center;font-weight:600;">${t.mid}%</td>
           <td style="text-align:center;font-weight:600;">${t.end}%</td>
           <td style="font-weight:bold;color:${t.color}">${t.trend}</td>
-          <td><span class="rubric-badge" style="background:${t.color};">${t.status} (${t.rub})</span></td>
+          <td><span class="rubric-badge" style="background:${t.color};color:#fff;padding:4px 8px;border-radius:6px;">${t.status} (${t.rub})</span></td>
         </tr>
       `).join('')
-    : '<tr><td colspan="9" style="text-align:center;padding:20px;color:#666;">Not enough data (need 2+ exams).</td></tr>';
-};
+      : '<tr><td colspan="9" style="text-align:center;padding:20px;color:#666;">Not enough data (need 2+ exams).</td></tr>';
+  };
 
   const renderProgressChart = () => {
     const canvas = el('progressChart');
@@ -443,11 +482,11 @@ if (r.examType.includes('End')) groups[key].end = r.mean;
     records.forEach(r => {
       const key = `${r.term} ${r.year}`;
       if (!termData[key]) termData[key] = { sum: 0, count: 0 };
-      termData[key].sum += r.mean;
+      termData[key].sum += Number(r.mean);
       termData[key].count++;
     });
     const labels = Object.keys(termData).sort();
-    const data = labels.map(k => (termData[k].sum / termData[k].count).toFixed(1));
+    const data = labels.map(k => Number((termData[k].sum / termData[k].count).toFixed(1)));
     if (window.progressChartInstance) window.progressChartInstance.destroy();
     window.progressChartInstance = new Chart(canvas, {
       type: 'line',
@@ -459,17 +498,17 @@ if (r.examType.includes('End')) groups[key].end = r.mean;
   const updateDashboardStats = () => {
     const records = loadRecords();
     if (!records.length) return;
-    const totalAvg = records.reduce((sum, r) => sum + r.mean, 0) / records.length;
-    const totalRub = rubric(totalAvg);
+    const totalAvg = records.reduce((sum, r) => sum + Number(r.mean), 0) / records.length;
+    const totalRub = getRubric(totalAvg);
     const avgCard = el('totalAvgCard');
     if (avgCard) {
-      avgCard.innerHTML = `<h2 style="margin:0;font-size:3rem;color:#fff;font-weight:bold;">${totalAvg.toFixed(1)}%</h2><p style="margin:8px 0;font-size:1.3rem;color:#fff;">${totalRub.emoji} ${totalRub.text}</p><small style="color:#e0f2fe;">Overall Performance</small>`;
+      avgCard.innerHTML = `<h2 style="margin:0;font-size:3rem;color:#fff;font-weight:bold;">${totalAvg.toFixed(1)}%</h2><p style="margin:8px 0;font-size:1.3rem;color:#fff;">${totalRub.code} ${totalRub.text}</p><small style="color:#e0f2fe;">Overall Performance</small>`;
     }
     const subjectStats = {};
     records.forEach(r => {
       const key = `${r.subject}|${r.grade}|${r.stream}`;
       if (!subjectStats[key]) subjectStats[key] = { sum: 0, count: 0, subject: r.subject, grade: r.grade, stream: r.stream };
-      subjectStats[key].sum += r.mean;
+      subjectStats[key].sum += Number(r.mean);
       subjectStats[key].count++;
     });
     let best = { avg: -1 }, worst = { avg: 101 };
@@ -490,159 +529,105 @@ if (r.examType.includes('End')) groups[key].end = r.mean;
 
   // === PDF, EXCEL, BACKUP, CLEAR ===
   window.downloadPDF = () => {
-  const { jsPDF } = window.jspdf;
-  if (!jsPDF) return showAlert('jsPDF not loaded.');
-  const doc = new jsPDF('p', 'mm', 'a4');
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const teacherName = localStorage.getItem('teacherFullName') || 'Teacher';
-  let y = 15;
+    const { jsPDF } = window.jspdf || {};
+    if (!jsPDF) return showAlert('jsPDF not loaded.');
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const teacherName = localStorage.getItem('teacherFullName') || 'Teacher';
+    let y = 15;
 
-  // === HEADER ===
-  doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(37, 99, 235);
-  doc.text(`SmartScores Report – ${teacherName}`, 14, y);
-  y += 6;
-  doc.setFontSize(9); doc.setTextColor(100, 100, 100);
-  doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, y);
-  y += 8;
+    // HEADER
+    doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(37, 99, 235);
+    doc.text(`SmartScores Report – ${teacherName}`, 14, y);
+    y += 6;
+    doc.setFontSize(9); doc.setTextColor(100, 100, 100);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, y);
+    y += 8;
 
-  const records = loadRecords();
-  if (!records.length) {
-    doc.setFontSize(10); doc.text('No data.', 14, y);
-    doc.save(`SmartScores_${teacherName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
-    return;
-  }
+    const records = loadRecords();
+    if (!records.length) {
+      doc.setFontSize(10); doc.text('No data.', 14, y);
+      doc.save(`SmartScores_${teacherName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+      return;
+    }
 
-  // === RECORDS TABLE ===
-  doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
-  doc.setFillColor(37, 99, 235);
-  let x = 10;
-  const colWidths = [28, 15, 15, 18, 20, 18, 15, 15, 15, 20];
-  const headers = ['Subject', 'Grade', 'Stream', 'Term', 'Exam', 'Year', 'Mean', 'Target', 'Dev', 'Rubric'];
-  headers.forEach((h, i) => {
-    doc.rect(x, y, colWidths[i], 6, 'F');
-    doc.text(h, x + 1, y + 4);
-    x += colWidths[i];
-  });
-  y += 6;
-
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(0, 0, 0);
-  const targets = loadTargets();
-  const targetMap = {};
-  targets.forEach(t => { const k = `${t.subject}|${t.grade}|${t.stream}|${t.term}|${t.examType}`; targetMap[k] = t.score; });
-
-  records.forEach(r => {
-    if (y > pageHeight - 15) { doc.addPage(); y = 20; }
-    const key = `${r.subject}|${r.grade}|${r.stream}|${r.term}|${r.examType}`;
-    const target = targetMap[key] || 0;
-    const dev = (r.mean - target).toFixed(1);
-    const rub = rubric(r.mean);
-    const row = [
-      r.subject.substring(0, 12),
-      `G${r.grade}`,
-      r.stream,
-      r.term,
-      r.examType.replace(' Exam', ''),
-      r.year,
-      `${r.mean.toFixed(0)}%`,
-      `${target}%`,
-      dev >= 0 ? `+${dev}` : dev,
-      rub.emoji
-    ];
-    x = 10;
-    row.forEach((cell, i) => {
-      if (i === 9) {
-        doc.setFillColor(...hexToRgb(rub.color));
-        doc.rect(x, y, colWidths[i], 5, 'F');
-        doc.setTextColor(255, 255, 255);
-      } else doc.setTextColor(0, 0, 0);
-      doc.text(cell, x + 1, y + 4);
+    // RECORDS TABLE
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
+    doc.setFillColor(37, 99, 235);
+    let x = 10;
+    const colWidths = [20, 30, 30, 30, 25, 18, 18]; // Date, Teacher, Class, Subject, Student, Score, Rubric
+    const headers = ['Year', 'Teacher', 'Class', 'Subject', 'Student', 'Score', 'Rubric'];
+    headers.forEach((h, i) => {
+      doc.rect(x, y, colWidths[i], 6, 'F');
+      doc.text(h, x + 1, y + 4);
       x += colWidths[i];
     });
-    y += 5;
-  });
+    y += 6;
 
-  // === CUMULATIVE AVERAGES ===
-  // === CUMULATIVE AVERAGES ===
-if (y > pageHeight - 40) { doc.addPage(); y = 20; } else y += 8;
-doc.setFontSize(10); doc.setTextColor(37, 99, 235); doc.setFont('helvetica', 'bold');
-doc.text('Cumulative Averages', 10, y); y += 6;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(0, 0, 0);
 
-doc.setFontSize(8); doc.setTextColor(255, 255, 255); doc.setFillColor(37, 99, 235);
-x = 10;
-const cumWidths = [40, 15, 20, 25, 18, 18, 18, 25];  // ← WIDER AVG COLUMN
-const cumHeaders = ['Subject', 'Grade', 'Stream', 'Term', 'Opener', 'Mid', 'End', 'Avg'];
-cumHeaders.forEach((h, i) => {
-  doc.rect(x, y, cumWidths[i], 6, 'F');
-  doc.text(h, x + 1, y + 4);
-  x += cumWidths[i];
-});
-y += 6;
+    records.forEach(r => {
+      if (y > pageHeight - 25) { doc.addPage(); y = 20; }
+      const rub = getRubric(r.mean);
+      x = 10;
+      const cells = [
+        `${r.year || ''}`,
+        `${r.teacher || ''}`.substring(0, 28),
+        `G${r.grade || ''} • ${r.stream || ''}`.substring(0, 28),
+        `${r.subject || ''}`.substring(0, 28),
+        '-', // student placeholder
+        `${Number(r.mean).toFixed(1)}%`,
+        rub.code
+      ];
+      cells.forEach((cell, i) => {
+        if (i === 6) {
+          // draw colored pill for rubric
+          const bg = rub.color;
+          doc.setFillColor(...hexToRgb(bg));
+          doc.rect(x, y, colWidths[i], 6, 'F');
+          // text color: white except for AE2 (use black)
+          const textColor = (rub.code === 'AE2') ? [0,0,0] : [255,255,255];
+          doc.setTextColor(...textColor);
+        } else {
+          doc.setTextColor(0,0,0);
+        }
+        doc.text(String(cell), x + 1, y + 4);
+        x += colWidths[i];
+      });
+      y += 7;
+    });
 
-doc.setFontSize(7); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal');
-const cumGroups = {};
-records.forEach(r => {
-  const k = `${r.subject}|${r.grade}|${r.stream}|${r.term}`;
-  if (!cumGroups[k]) cumGroups[k] = { opener: null, mid: null, end: null, ...r };
-  if (r.examType === 'Opener Exam') cumGroups[k].opener = r.mean;
-  if (r.examType === 'Mid Term Exam') cumGroups[k].mid = r.mean;
-  if (r.examType === 'End Term Exam') cumGroups[k].end = r.mean;
-});
+    // PDF Legend (always include)
+    if (y > pageHeight - 60) { doc.addPage(); y = 20; } else y += 8;
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(37, 99, 235);
+    doc.text('Rubric Key', 14, y); y += 6;
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    // print legend as single or multiple lines
+    let legendLine = '';
+    rubricMap.forEach((r, idx) => {
+      legendLine += `${r.code} ${r.min}-${r.max}`;
+      if (idx < rubricMap.length - 1) legendLine += ', ';
+    });
+    // wrap text if necessary
+    const maxWidth = pageWidth - 28;
+    const split = doc.splitTextToSize(legendLine, maxWidth);
+    doc.setTextColor(0,0,0);
+    split.forEach(line => { doc.text(line, 14, y); y += 6; });
 
-Object.values(cumGroups).forEach(g => {
-  if (y > pageHeight - 15) { doc.addPage(); y = 20; }
-  const scores = [g.opener, g.mid, g.end].filter(s => s !== null);
-  const avgNum = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-  const avg = avgNum.toFixed(1);
-  const rub = rubric(avgNum);
-  const row = [
-    g.subject.substring(0, 14),
-    `G${g.grade}`,
-    g.stream,
-    g.term,
-    g.opener ? `${g.opener.toFixed(0)}%` : '–',
-    g.mid ? `${g.mid.toFixed(0)}%` : '–',
-    g.end ? `${g.end.toFixed(0)}%` : '–',
-    `${avg}% (${rub.short})`
-  ];
-  x = 10;
-  row.forEach((cell, i) => {
-    if (i === 7) {
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(
-        avgNum >= 75 ? 22 : avgNum >= 50 ? 37 : avgNum >= 30 ? 245 : 239,
-        avgNum >= 75 ? 163 : avgNum >= 50 ? 99 : avgNum >= 30 ? 158 : 68,
-        avgNum >= 75 ? 74 : avgNum >= 50 ? 235 : avgNum >= 30 ? 11 : 68
-      );
-    } else {
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-    }
-    doc.text(cell, x + 1, y + 4);
-    x += cumWidths[i];
-  });
-  y += 5;
-});
+    // FOOTER
+    doc.setFontSize(7); doc.setTextColor(150, 150, 150);
+    doc.text('SmartScores © 2025 | Generated by PWA', 10, pageHeight - 8);
 
-  // === FOOTER ===
-  doc.setFontSize(7); doc.setTextColor(150, 150, 150);
-  doc.text('SmartScores © 2025 | Generated by PWA', 10, pageHeight - 8);
-
-  const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
-  doc.save(`SmartScores_${safeName}_${new Date().toISOString().slice(0,10)}.pdf`);
-};
-
-// Helper: #16a34a → [22, 163, 74]
-const hexToRgb = (hex) => {
-  const v = hex.replace('#', '');
-  return [parseInt(v.substr(0,2),16), parseInt(v.substr(2,2),16), parseInt(v.substr(4,2),16)];
-};
+    const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
+    doc.save(`SmartScores_${safeName}_${new Date().toISOString().slice(0,10)}.pdf`);
+  };
 
   window.exportToExcel = () => {
     if (typeof XLSX === 'undefined') return showAlert('XLSX not loaded.');
     const records = loadRecords();
     if (!records.length) return showAlert('No data.');
-    const data = records.map(r => ({ Teacher: r.teacher, Subject: r.subject, Grade: r.grade, Stream: r.stream, Term: r.term, Exam: r.examType, Year: r.year, Mean: r.mean }));
+    const data = records.map(r => ({ Year: r.year, Teacher: r.teacher, Class: `G${r.grade} • ${r.stream}`, Subject: r.subject, Score: r.mean, Rubric: getRubric(r.mean).code }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Scores');
@@ -671,7 +656,7 @@ const hexToRgb = (hex) => {
     }
   };
 
-  // === SORT RECORDS ===
+  // Sorting kept but only used by pages with #recordsTable and ths
   let currentRecordSort = { col: 1, dir: 'asc' };
   window.sortRecords = (colIndex) => {
     const tbody = document.querySelector('#recordsTable tbody');
@@ -696,31 +681,31 @@ const hexToRgb = (hex) => {
         A = parseFloat(A.replace(/[+%]/g, '')) || 0;
         B = parseFloat(B.replace(/[+%]/g, '')) || 0;
       }
-      let result = typeof A === 'number' ? A - B : A.localeCompare(B);
+      let result = (typeof A === 'number' && typeof B === 'number') ? A - B : String(A).localeCompare(String(B));
       return currentRecordSort.dir === 'asc' ? result : -result;
     });
     rows.forEach(row => tbody.appendChild(row));
-    document.querySelectorAll('#recordsTable th').forEach((th, i) => {
+    const ths = document.querySelectorAll('#recordsTable th');
+    ths.forEach((th, i) => {
       th.style.fontWeight = i === colIndex ? 'bold' : 'normal';
-      th.textContent = th.textContent.replace(/[down arrow][up arrow]/g, '');
-      if (i === colIndex) th.textContent += currentRecordSort.dir === 'asc' ? ' down arrow' : ' up arrow';
+      th.textContent = th.textContent.replace(/ ↑| ↓/g, '');
+      if (i === colIndex) th.textContent += currentRecordSort.dir === 'asc' ? ' ↓' : ' ↑';
     });
   };
 
   // === RENDER ALL ===
   const renderDashboard = () => { renderRecords(); renderTargets(); updateDashboardStats(); renderProgressChart(); };
   const renderInsights = () => {
-  renderAIInsights();
-  renderRecords();
-  renderCumulativeAverages();
-  renderTrendAnalysis();
-  
-  // FORCE REFRESH TABLES
-  setTimeout(() => {
+    renderAIInsights();
+    renderRecords();
     renderCumulativeAverages();
     renderTrendAnalysis();
-  }, 100);
-};
+
+    setTimeout(() => {
+      renderCumulativeAverages();
+      renderTrendAnalysis();
+    }, 100);
+  };
   const renderAll = () => {
     if (location.pathname.includes('averages-insights')) renderInsights();
     else renderDashboard();
@@ -742,6 +727,15 @@ const hexToRgb = (hex) => {
     const searchInput = el('searchInput');
     if (searchInput) searchInput.addEventListener('input', filterRecords);
 
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js');
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js').catch(()=>{/*sw register failed*/});
+
+    // Attach rubric key toggle if present on page
+    const rubricBtn = document.getElementById('rubricBtn');
+    const rubricPanel = document.getElementById('rubricPanel');
+    if (rubricBtn && rubricPanel) {
+      rubricBtn.addEventListener('click', () => {
+        rubricPanel.style.display = rubricPanel.style.display === 'block' ? 'none' : 'block';
+      });
+    }
   });
 })();
