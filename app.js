@@ -45,6 +45,17 @@ function logout() {
   localStorage.removeItem(TEACHER_KEY);
   window.location.href = "login.html";
 }
+// === SIDEBAR TOGGLE ===
+document.addEventListener("DOMContentLoaded", () => {
+  const sidebarToggle = document.getElementById("sidebarToggle");
+  const sidebarMenu = document.getElementById("sidebarMenu");
+
+  if (sidebarToggle && sidebarMenu) {
+    sidebarToggle.addEventListener("click", () => {
+      sidebarMenu.classList.toggle("closed");
+    });
+  }
+});
 
 // Block access without login
 (function authGuard() {
