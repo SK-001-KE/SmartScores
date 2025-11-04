@@ -1,74 +1,54 @@
-<body>
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SmartScores - Dashboard</title>
 
-<!-- Mobile Menu Toggle -->
-<button class="menu-toggle" onclick="document.getElementById('sidebarMenu').classList.toggle('open')">☰</button>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
 
-<!-- Sidebar Navigation -->
+<script src="auth.js" defer></script>
+<script src="app.js" defer></script>
+</head>
+
+<body onload="loadTheme()">
+
+<button id="sidebarToggle" class="menu-toggle">☰</button>
+
 <aside id="sidebarMenu" class="sidebar closed">
   <a href="index.html" class="active">Dashboard</a>
   <a href="data-entry.html">Data Entry</a>
   <a href="recorded-scores.html">Recorded Scores</a>
   <a href="averages-insights.html">Averages & Insights</a>
   <a href="set-targets.html">Set Targets</a>
-  <a href="#" onclick="logout()">🚪 Logout</a>
+  <button onclick="logout()" class="logout-btn">Logout</button>
 </aside>
 
-<!-- Header -->
+<button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
+
 <header>
-  <img src="icon-192x192.png" class="logo-small" alt="SmartScores">
   <h1>SmartScores</h1>
-  <p>Set targets. Track performance. Improve.</p>
+  <p>Dashboard</p>
 </header>
 
-<!-- Dark Mode Floating Button -->
-<button class="floating-top-btn" onclick="toggleDarkMode()">🌙</button>
+<div class="content content-with-sidebar">
 
-<div class="content">
-  <h2>Dashboard</h2>
+<h2>Welcome</h2>
+<p>Track your class performance and monitor growth over time.</p>
 
-  <div class="dashboard-cards">
+<div class="form-box">
+  <p><strong>Teacher:</strong> <span id="teacherName"></span></p>
+</div>
 
-    <div class="dash-card blue" id="totalAvgCard">
-      <h2>— %</h2>
-      <p>—</p>
-      <small>Overall Performance</small>
-    </div>
-
-    <div class="dash-card green" id="bestSubjectCard">
-      <h2>— %</h2>
-      <p>—</p>
-      <small>Best Subject</small>
-    </div>
-
-    <div class="dash-card red" id="worstSubjectCard">
-      <h2>— %</h2>
-      <p>—</p>
-      <small>Needs Attention</small>
-    </div>
-
-  </div>
-
-  <div class="chart-box">
-    <h3>Progress Over Time</h3>
-    <canvas id="progressChart"></canvas>
-    <p><small>Mean score trend across terms</small></p>
-  </div>
-
-  <div class="center-btn">
-    <button id="printBtn" onclick="downloadPDF()" class="btn">Download PDF</button>
-  </div>
-
-  <div class="center-btn">
-    <button onclick="exportBackup()" class="btn">Backup Data</button>
-  </div>
-
-  <div id="backupReminder" class="backup-reminder">
-    Backup overdue! 
-    <a href="#" onclick="exportBackup();this.parentElement.style.display='none';return false;">Backup now</a>
-  </div>
+<script>
+document.getElementById("teacherName").textContent =
+  localStorage.getItem("teacherFullName") ?? "";
+</script>
 
 </div>
 
-<footer>SmartScores v2.9.6 © Kariuki 2025</footer>
+<footer>SmartScores © 2025</footer>
 
 </body>
+</html>
