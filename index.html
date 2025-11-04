@@ -20,13 +20,10 @@
 
 <body>
 
-<!-- TOP RIGHT CONTROLS -->
-<div class="top-buttons">
-  <button onclick="toggleDarkMode()" class="btn-blue small">Dark Mode</button>
-  <button onclick="logout()" class="btn-red small">Logout</button>
-</div>
+<!-- Sidebar Toggle (Mobile) -->
+<button id="sidebarToggle" class="sidebar-toggle">☰</button>
 
-
+<!-- Header -->
 <header>
   <h1>
     <img src="icon-192x192.png" class="logo-small" alt="SmartScores">
@@ -35,15 +32,20 @@
   <p>Set targets. Track performance. Improve. Easy.</p>
 </header>
 
-<nav>
+<!-- Sidebar Navigation -->
+<aside id="sidebarMenu" class="sidebar">
   <a href="index.html" class="active">Dashboard</a>
   <a href="data-entry.html">Data Entry</a>
   <a href="recorded-scores.html">Recorded Scores</a>
   <a href="averages-insights.html">Averages & Insights</a>
   <a href="set-targets.html">Set Targets</a>
-</nav>
+  <button onclick="logout()" class="logout-btn">Logout</button>
+</aside>
 
-<div class="content">
+<!-- Floating Dark Mode Button -->
+<button class="floating-btn darkmode-float" onclick="toggleDarkMode()">🌙</button>
+
+<div class="content content-with-sidebar">
   <h2>Dashboard</h2>
 
   <div class="dashboard-cards">
