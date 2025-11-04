@@ -17,10 +17,23 @@
 </head>
 
 <body>
-<!-- TOP RIGHT BUTTONS -->
-<div class="top-buttons">
-  <button onclick="toggleDarkMode()" class="btn-blue small">Dark Mode</button>
-  <button onclick="logout()" class="btn-red small">Logout</button>
+
+<!-- MOBILE MENU BUTTON -->
+<button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<!-- SIDEBAR NAVIGATION -->
+<aside class="sidebar closed">
+  <a href="index.html">Dashboard</a>
+  <a href="data-entry.html" class="active">Data Entry</a>
+  <a href="recorded-scores.html">Recorded Scores</a>
+  <a href="averages-insights.html">Averages & Insights</a>
+  <a href="set-targets.html">Set Targets</a>
+  <a href="#" onclick="logout()">Logout</a>
+</aside>
+
+<!-- DARK MODE BUTTON -->
+<div style="position:fixed;top:10px;right:10px;z-index:1000;">
+  <button onclick="toggleDarkMode()" class="btn-darkmode">Dark Mode</button>
 </div>
 
 <header>
@@ -31,15 +44,8 @@
   <p>Data Entry</p>
 </header>
 
-<nav>
-  <a href="index.html">Dashboard</a>
-  <a href="data-entry.html" class="active">Data Entry</a>
-  <a href="recorded-scores.html">Recorded Scores</a>
-  <a href="averages-insights.html">Averages & Insights</a>
-  <a href="set-targets.html">Set Targets</a>
-</nav>
-
-<div class="content">
+<!-- CONTENT WITH SIDEBAR -->
+<div class="content content-with-sidebar">
   <h2>Enter Teacher Mean Scores</h2>
   <form id="dataEntryForm">
 
