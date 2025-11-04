@@ -11,21 +11,34 @@
 
   <link rel="stylesheet" href="style.css" />
 
-  <script src="app.js"></script>
-  <script src="auth.js"></script>
+  <script src="app.js" defer></script>
+  <script src="auth.js" defer></script>
 </head>
 
 <body>
 
-<!-- DARK MODE -->
+<!-- ✅ Floating Dark Mode -->
 <div class="floating-top-btn">
   <button onclick="toggleDarkMode()" class="btn-dark">Dark Mode</button>
 </div>
 
-<!-- LOGOUT -->
+<!-- ✅ Floating Logout -->
 <div class="floating-top-btn logout-btn">
   <button onclick="logout()" class="btn-logout">Logout</button>
 </div>
+
+<!-- ✅ Sidebar -->
+<aside class="sidebar">
+  <h2 class="sidebar-title">☰ SmartScores</h2>
+  <a href="index.html">Dashboard</a>
+  <a href="data-entry.html">Data Entry</a>
+  <a href="recorded-scores.html">Recorded Scores</a>
+  <a href="averages-insights.html">Averages & Insights</a>
+  <a href="set-targets.html" class="active">Set Targets</a>
+</aside>
+
+<!-- ✅ Main Content Wrapper -->
+<main class="main-content">
 
 <header>
   <h1>
@@ -34,14 +47,6 @@
   </h1>
   <p>Set Exam Targets</p>
 </header>
-
-<nav>
-  <a href="index.html">Dashboard</a>
-  <a href="data-entry.html">Data Entry</a>
-  <a href="recorded-scores.html">Recorded Scores</a>
-  <a href="averages-insights.html">Averages & Insights</a>
-  <a href="set-targets.html" class="active">Set Targets</a>
-</nav>
 
 <div class="content">
 
@@ -141,6 +146,8 @@
 </div>
 
 <footer>SmartScores v2.9.60 © Kariuki 2025</footer>
+
+</main>
 
 </body>
 </html>
