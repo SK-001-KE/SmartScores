@@ -1,23 +1,21 @@
-// === SmartScores Service Worker v2.9.18 ===
-
-const CACHE_NAME = "smartscores-cache-v2.9.18";
+// === SmartScores Service Worker v2.9.21 ===
+const CACHE_NAME = "smartscores-cache-v2.9.21";
 const ASSETS = [
-  "/",                  // root
+  "/", 
   "/index.html",
   "/data-entry.html",
   "/recorded-scores.html",
   "/averages-insights.html",
   "/set-targets.html",
+  "/login.html",
   "/style.css",
   "/app.js",
-  "/auth.js",
   "/manifest.json",
   "/favicon.ico",
   "/icon-192x192.png",
   "/icon-512x512.png"
 ];
 
-// Install SW and cache assets
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
@@ -25,7 +23,6 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-// Activate SW and clear old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -37,10 +34,8 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch from cache first, fallback to network
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
-
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       return (
