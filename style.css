@@ -183,6 +183,38 @@ button, .btn {
   margin-left: 0;
   transition: 0.2s;
 }
+.sidebar {
+  width: 240px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: var(--maroon);
+  color: white;
+  padding-top: 60px;
+  transform: translateX(0);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+}
+
+.sidebar.closed {
+  transform: translateX(-100%);
+}
+
+.menu-toggle {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  padding: 10px 15px;
+  font-size: 22px;
+  background: var(--maroon);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  z-index: 1100;
+  cursor: pointer;
+}
+
 
 /* desktop sidebar visible */
 @media (min-width: 800px) {
