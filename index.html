@@ -1,54 +1,47 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>SmartScores - Dashboard</title>
-
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css">
-
-<script src="auth.js" defer></script>
-<script src="app.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartScores - Dashboard</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="auth.js" defer></script>
+  <script src="app.js" defer></script>
 </head>
+<body>
+  <!-- MOBILE MENU -->
+  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">Menu</button>
 
-<body onload="loadTheme()">
+  <!-- SIDEBAR -->
+  <aside id="sidebarMenu" class="sidebar closed">
+    <a href="index.html" class="active">Dashboard</a>
+    <a href="data-entry.html">Data Entry</a>
+    <a href="recorded-scores.html">Recorded Scores</a>
+    <a href="averages-insights.html">Averages & Insights</a>
+    <a href="set-targets.html">Set Targets</a>
+    <button onclick="logout()" class="logout-btn">Logout</button>
+  </aside>
 
-<button id="sidebarToggle" class="menu-toggle">☰</button>
+  <!-- DARK MODE -->
+  <button onclick="toggleDarkMode()" class="floating-top-btn">Dark Mode</button>
 
-<aside id="sidebarMenu" class="sidebar closed">
-  <a href="index.html" class="active">Dashboard</a>
-  <a href="data-entry.html">Data Entry</a>
-  <a href="recorded-scores.html">Recorded Scores</a>
-  <a href="averages-insights.html">Averages & Insights</a>
-  <a href="set-targets.html">Set Targets</a>
-  <button onclick="logout()" class="logout-btn">Logout</button>
-</aside>
+  <header>
+    <h1>SmartScores</h1>
+    <p>Dashboard</p>
+  </header>
 
-<button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
+  <main class="content content-with-sidebar">
+    <section>
+      <h2>Welcome</h2>
+      <p>Track your class performance and monitor growth over time.</p>
+     
+      <div class="form-box teacher-card">
+        <p><strong>Teacher:</strong> <span id="teacherName">Guest Teacher</span></p>
+      </div>
+    </section>
+  </main>
 
-<header>
-  <h1>SmartScores</h1>
-  <p>Dashboard</p>
-</header>
-
-<div class="content content-with-sidebar">
-
-<h2>Welcome</h2>
-<p>Track your class performance and monitor growth over time.</p>
-
-<div class="form-box">
-  <p><strong>Teacher:</strong> <span id="teacherName"></span></p>
-</div>
-
-<script>
-document.getElementById("teacherName").textContent =
-  localStorage.getItem("teacherFullName") ?? "";
-</script>
-
-</div>
-
-<footer>SmartScores © 2025</footer>
-
+  <footer>SmartScores v2.9.21 © Kariuki 2025</footer>
 </body>
 </html>
