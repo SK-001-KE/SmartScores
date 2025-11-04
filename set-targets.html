@@ -1,153 +1,47 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores - Set Targets</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SmartScores - Set Targets</title>
 
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.ico" />
-  <link rel="apple-touch-icon" href="icon-192x192.png" />
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
 
-  <link rel="stylesheet" href="style.css" />
-
-  <script src="app.js" defer></script>
-  <script src="auth.js" defer></script>
+<script src="auth.js" defer></script>
+<script src="app.js" defer></script>
 </head>
 
-<body>
+<body onload="loadTheme()">
 
-<!-- ✅ Floating Dark Mode -->
-<div class="floating-top-btn">
-  <button onclick="toggleDarkMode()" class="btn-dark">Dark Mode</button>
-</div>
+<button id="sidebarToggle" class="menu-toggle">☰</button>
 
-<!-- ✅ Floating Logout -->
-<div class="floating-top-btn logout-btn">
-  <button onclick="logout()" class="btn-logout">Logout</button>
-</div>
-
-<!-- ✅ Sidebar -->
-<aside class="sidebar">
-  <h2 class="sidebar-title">☰ SmartScores</h2>
+<aside id="sidebarMenu" class="sidebar closed">
   <a href="index.html">Dashboard</a>
   <a href="data-entry.html">Data Entry</a>
   <a href="recorded-scores.html">Recorded Scores</a>
   <a href="averages-insights.html">Averages & Insights</a>
   <a href="set-targets.html" class="active">Set Targets</a>
+  <button onclick="logout()" class="logout-btn">Logout</button>
 </aside>
 
-<!-- ✅ Main Content Wrapper -->
-<main class="main-content">
+<button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
 <header>
-  <h1>
-    <img src="icon-192x192.png" alt="SmartScores" class="logo">
-    SmartScores
-  </h1>
-  <p>Set Exam Targets</p>
+<h1>SmartScores</h1>
+<p>Set Teacher Targets</p>
 </header>
 
-<div class="content">
+<div class="content content-with-sidebar">
 
-  <h2>Set Target Mean Score</h2>
+<form id="targetsForm" class="form-box">
+<label>Target Score</label>
+<input type="number" id="targetScore" required>
 
-  <form id="setTargetsForm">
-    
-    <div class="form-group">
-      <label for="targetSubject">Subject</label>
-      <select id="targetSubject" required>
-        <option value="">--Select Subject--</option>
-        <option>Mathematics</option>
-        <option>English</option>
-        <option>Kiswahili</option>
-        <option>Science</option>
-        <option>Agriculture and Nutrition</option>
-        <option>Creative Arts</option>
-        <option>Social Studies</option>
-        <option>CRE</option>
-        <option>Pre-Technical Studies</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="targetGrade">Grade</label>
-      <select id="targetGrade" required>
-        <option value="">--Select Grade--</option>
-        <option>4</option>
-        <option>5</option>
-        <option>6</option>
-        <option>7</option>
-        <option>8</option>
-        <option>9</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="targetStream">Stream</label>
-      <select id="targetStream" required>
-        <option value="">--Select Stream--</option>
-        <option>Faith</option>
-        <option>Glory</option>
-        <option>Joy</option>
-        <option>Love</option>
-        <option>Peace</option>
-        <option>Unity</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="targetTerm">Term</label>
-      <select id="targetTerm" required>
-        <option value="">--Select Term--</option>
-        <option>Term 1</option>
-        <option>Term 2</option>
-        <option>Term 3</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="targetExamType">Exam Type</label>
-      <select id="targetExamType" required>
-        <option value="">--Select Exam Type--</option>
-        <option>Opener Exam</option>
-        <option>Mid Term Exam</option>
-        <option>End Term Exam</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="targetScore">Target Mean Score (%)</label>
-      <input type="number" id="targetScore" min="0" max="100" step="0.1" placeholder="e.g. 75" required>
-    </div>
-
-    <button type="submit" class="btn">Save Target</button>
-  </form>
-
-  <h2 style="margin-top:40px;">Current Targets</h2>
-
-  <div class="table-wrapper">
-    <table id="targetsTable" class="styled-table">
-      <thead>
-        <tr>
-          <th>Subject</th>
-          <th>Grade</th>
-          <th>Stream</th>
-          <th>Term</th>
-          <th>Exam Type</th>
-          <th>Target</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+<button class="btn-maroon full">Save Target</button>
+</form>
 
 </div>
-
-<footer>SmartScores v2.9.60 © Kariuki 2025</footer>
-
-</main>
-
+<footer>SmartScores © 2025</footer>
 </body>
 </html>
