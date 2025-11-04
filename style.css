@@ -18,6 +18,22 @@
   --nav-bg: #ffffff;
 }
 
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+nav, header, footer {
+  background: var(--nav-bg);
+  color: var(--text);
+}
+
+.card, .content, .table-responsive {
+  background: var(--card-bg);
+  color: var(--card-text);
+}
+
+
 /* 🌙 Dark Theme */
 html[data-theme="dark"] {
   --bg: #1c1c1e;
