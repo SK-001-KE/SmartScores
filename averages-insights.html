@@ -8,34 +8,30 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.ico" />
 
-  <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
   <link rel="stylesheet" href="style.css" />
 
   <script src="auth.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 
-<body id="insights-page">
+<body id="insights-page" onload="loadTheme()">
 
 <!-- MOBILE MENU BUTTON -->
-<button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+<button id="sidebarToggle" class="menu-toggle">☰</button>
 
 <!-- SIDEBAR NAVIGATION -->
-<aside class="sidebar closed">
+<aside id="sidebarMenu" class="sidebar closed">
   <a href="index.html">Dashboard</a>
   <a href="data-entry.html">Data Entry</a>
   <a href="recorded-scores.html">Recorded Scores</a>
   <a href="averages-insights.html" class="active">Averages & Insights</a>
   <a href="set-targets.html">Set Targets</a>
-  <a href="#" onclick="logout()">Logout</a>
+  <button onclick="logout()" class="logout-btn">Logout</button>
 </aside>
 
 <!-- DARK MODE BUTTON -->
-<div style="position:fixed;top:10px;right:10px;z-index:1000;">
-  <button onclick="toggleDarkMode()" class="btn-darkmode">Dark Mode</button>
-</div>
+<button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
 <header>
   <h1>
@@ -45,7 +41,6 @@
   <p>Averages & Insights</p>
 </header>
 
-<!-- CONTENT WRAPPER WITH SIDEBAR -->
 <div class="content content-with-sidebar">
 
   <h2>AI Insights</h2>
@@ -101,8 +96,7 @@
     <tbody></tbody>
   </table>
 
-  <!-- RUBRIC KEY -->
-  <div class="rubric-key">
+  <div class="rubric-key" style="margin-top:25px;">
     <span class="badge ee1">EE1</span> 90–99 |
     <span class="badge ee2">EE2</span> 75–89 |
     <span class="badge me1">ME1</span> 58–74 |
