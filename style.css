@@ -289,6 +289,75 @@ tr:nth-child(even) {
   font-size: 0.8rem;
 }
 
+/* ===== SIDEBAR NAVIGATION ===== */
+.sidebar {
+  width: 240px;
+  background: var(--maroon);
+  color: var(--white);
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  padding-top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.3s ease;
+  z-index: 900;
+}
+
+.sidebar a {
+  color: var(--white);
+  padding: 14px 20px;
+  text-decoration: none;
+  display: block;
+  font-weight: 500;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+  background: var(--blue);
+}
+
+/* Hide on mobile until opened */
+.sidebar.closed {
+  transform: translateX(-260px);
+}
+
+/* Content shifted when sidebar open */
+.content-with-sidebar {
+  margin-left: 250px;
+  padding: 20px;
+}
+
+/* ===== MOBILE NAV BUTTON ===== */
+.menu-toggle {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  background: var(--blue);
+  color: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 1001;
+}
+
+/* ===== DARK MODE SIDEBAR ===== */
+html[data-theme="dark"] .sidebar {
+  background: var(--maroon-dark);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .content-with-sidebar {
+    margin-left: 0 !important;
+  }
+}
+
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
   nav {
@@ -303,4 +372,4 @@ tr:nth-child(even) {
   input, select, button {
     font-size: 0.9rem;
   }
-}
+  }
