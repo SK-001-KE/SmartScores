@@ -725,7 +725,7 @@ document.addEventListener("click", (e) => {
     else renderDashboard();
   };
 
-  // === DARK MODE TOGGLE ===
+ // === DARK MODE TOGGLE ===
 function toggleDarkMode() {
   const current = localStorage.getItem("theme") || "light";
   const next = current === "light" ? "dark" : "light";
@@ -738,6 +738,9 @@ function loadTheme() {
   const theme = localStorage.getItem("theme") || "light";
   document.documentElement.setAttribute("data-theme", theme);
 }
+
+document.addEventListener("DOMContentLoaded", loadTheme);
+
 
 
   // === INIT ===
