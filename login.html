@@ -10,22 +10,24 @@
   <link rel="apple-touch-icon" href="icon-192x192.png" />
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Load app.js first (handles auto-login check) -->
-  <script src="app.js"></script>
+  <!-- Auto-login + theme loader -->
+  <script src="app.js" defer></script>
 </head>
 
-<body>
+<body onload="loadTheme()">
+
+<!-- MOBILE MENU BUTTON (hidden on login, keeps consistency with CSS layout) -->
+<button class="menu-toggle" style="display:none;">☰</button>
+
+<!-- SIDEBAR (hidden on login, prevents layout shift) -->
+<aside class="sidebar closed" style="display:none;"></aside>
 
 <!-- DARK MODE BUTTON -->
-<div class="top-buttons">
-  <button onclick="toggleDarkMode()" class="btn-blue small">Dark Mode</button>
-</div>
+<button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
 <header>
-  <h1>
-    <img src="icon-192x192.png" class="logo-small" alt="SmartScores">
-    SmartScores
-  </h1>
+  <img src="icon-192x192.png" class="logo-small" alt="SmartScores">
+  <h1>SmartScores</h1>
   <p>Teacher Performance Tracker</p>
 </header>
 
@@ -51,7 +53,6 @@
 
 <footer>SmartScores v2.9.6 © Kariuki 2025</footer>
 
-<!-- LOGIN SCRIPT -->
 <script>
 const form = document.getElementById('loginForm');
 const firstNameInput = document.getElementById('firstName');
@@ -62,7 +63,7 @@ if (localStorage.getItem('teacherFullName')) {
   window.location.href = "index.html";
 }
 
-// Restore name if typed before log in
+// Restore typed name if page refreshes
 const savedName = localStorage.getItem('teacherFullName');
 if (savedName) {
   const [first, ...last] = savedName.split(' ');
