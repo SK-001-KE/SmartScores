@@ -4,116 +4,84 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartScores - Averages & Insights</title>
-
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.ico" />
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link rel="stylesheet" href="style.css" />
-
   <script src="auth.js" defer></script>
   <script src="app.js" defer></script>
 </head>
+<body>
+  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">Menu</button>
 
-<body id="insights-page" onload="loadTheme()">
+  <aside id="sidebarMenu" class="sidebar closed">
+    <a href="index.html">Dashboard</a>
+    <a href="data-entry.html">Data Entry</a>
+    <a href="recorded-scores.html">Recorded Scores</a>
+    <a href="averages-insights.html" class="active">Averages & Insights</a>
+    <a href="set-targets.html">Set Targets</a>
+    <button onclick="logout()" class="logout-btn">Logout</button>
+  </aside>
 
-<!-- MOBILE MENU BUTTON -->
-<button id="sidebarToggle" class="menu-toggle">☰</button>
+  <button onclick="toggleDarkMode()" class="floating-top-btn">Dark Mode</button>
 
-<!-- SIDEBAR NAVIGATION -->
-<aside id="sidebarMenu" class="sidebar closed">
-  <a href="index.html">Dashboard</a>
-  <a href="data-entry.html">Data Entry</a>
-  <a href="recorded-scores.html">Recorded Scores</a>
-  <a href="averages-insights.html" class="active">Averages & Insights</a>
-  <a href="set-targets.html">Set Targets</a>
-  <button onclick="logout()" class="logout-btn">Logout</button>
-</aside>
+  <header>
+    <h1>
+      <img src="icon-192x192.png" alt="" style="height:40px;vertical-align:middle;margin-right:10px;border-radius:8px;">
+      SmartScores
+    </h1>
+    <p>Averages & Insights</p>
+  </header>
 
-<!-- DARK MODE BUTTON -->
-<button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
-
-<header>
-  <h1>
-    <img src="icon-192x192.png" alt="" style="height:40px;vertical-align:middle;margin-right:10px;border-radius:8px;">
-    SmartScores
-  </h1>
-  <p>Averages & Insights</p>
-</header>
-
-<div class="content content-with-sidebar">
-
-  <h2>AI Insights</h2>
-  <div id="insights"></div>
-
-  <h2 style="margin-top:40px;">All Records</h2>
-  <table id="recordsTable">
-    <thead>
-      <tr>
-        <th>Subject</th>
-        <th>Grade</th>
-        <th>Stream</th>
-        <th>Term</th>
-        <th>Opener</th>
-        <th>Mid Term</th>
-        <th>End Term</th>
-        <th>Average</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <h2 style="margin-top:40px;">Cumulative Averages by Subject / Grade / Stream / Term</h2>
-  <table id="cumulativeTable">
-    <thead>
-      <tr>
-        <th>Subject</th>
-        <th>Grade</th>
-        <th>Stream</th>
-        <th>Term</th>
-        <th>Means</th>
-        <th>Average</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <h2 style="margin-top:40px;">Trend Analysis (Opener → Mid → End)</h2>
-  <table id="trendTable">
-    <thead>
-      <tr>
-        <th>Subject</th>
-        <th>Grade</th>
-        <th>Stream</th>
-        <th>Term</th>
-        <th>Opener</th>
-        <th>Mid Term</th>
-        <th>End Term</th>
-        <th>Trend</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <div class="rubric-key" style="margin-top:25px;">
-    <span class="badge ee1">EE1</span> 90–99 |
-    <span class="badge ee2">EE2</span> 75–89 |
-    <span class="badge me1">ME1</span> 58–74 |
-    <span class="badge me2">ME2</span> 41–57 |
-    <span class="badge ae1">AE1</span> 31–40 |
-    <span class="badge ae2">AE2</span> 21–30 |
-    <span class="badge be1">BE1</span> 11–20 |
-    <span class="badge be2">BE2</span> 0–10
+  <div class="content content-with-sidebar">
+    <h2>AI Insights</h2>
+    <div id="insights"></div>
+    <h2 style="margin-top:40px;">All Records</h2>
+    <table id="recordsTable">
+      <thead>
+        <tr>
+          <th>Subject</th><th>Grade</th><th>Stream</th><th>Term</th>
+          <th>Opener</th><th>Mid Term</th><th>End Term</th><th>Average</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <h2 style="margin-top:40px;">Cumulative Averages by Subject / Grade / Stream / Term</h2>
+    <table id="cumulativeTable">
+      <thead>
+        <tr>
+          <th>Subject</th><th>Grade</th><th>Stream</th><th>Term</th>
+          <th>Means</th><th>Average</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <h2 style="margin-top:40px;">Trend Analysis (Opener to Mid to End)</h2>
+    <table id="trendTable">
+      <thead>
+        <tr>
+          <th>Subject</th><th>Grade</th><th>Stream</th><th>Term</th>
+          <th>Opener</th><th>Mid Term</th><th>End Term</th>
+          <th>Trend</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="rubric-key" style="margin-top:25px;">
+      <span class="badge ee1">EE1</span> 90–99 |
+      <span class="badge ee2">EE2</span> 75–89 |
+      <span class="badge me1">ME1</span> 58–74 |
+      <span class="badge me2">ME2</span> 41–57 |
+      <span class="badge ae1">AE1</span> 31–40 |
+      <span class="badge ae2">AE2</span> 21–30 |
+      <span class="badge be1">BE1</span> 11–20 |
+      <span class="badge be2">BE2</span> 0–10
+    </div>
+    <div style="text-align:center;margin:30px 0;">
+      <button id="printBtn" onclick="downloadPDF()" class="btn">Download PDF</button>
+    </div>
   </div>
 
-  <div style="text-align:center;margin:30px 0;">
-    <button id="printBtn" onclick="downloadPDF()" class="btn">Download PDF</button>
-  </div>
-
-</div>
-
-<footer>SmartScores v2.9.18 © Kariuki 2025</footer>
-
+  <footer>SmartScores v2.9.21 © Kariuki 2025</footer>
 </body>
 </html>
