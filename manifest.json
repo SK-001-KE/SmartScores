@@ -3,9 +3,11 @@
   "short_name": "SmartScores",
   "description": "Set targets. Track performance. Improve. Easy.",
   "start_url": "/index.html",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#800000",
   "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "icon-192x192.png",
@@ -16,6 +18,26 @@
       "src": "icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Record Scores",
+      "short_name": "Record",
+      "url": "/data-entry.html",
+      "icons": [{ "src": "icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "View Records",
+      "short_name": "Records",
+      "url": "/recorded-scores.html",
+      "icons": [{ "src": "icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Insights",
+      "short_name": "Insights",
+      "url": "/averages-insights.html",
+      "icons": [{ "src": "icon-192x192.png", "sizes": "192x192" }]
     }
   ]
 }
