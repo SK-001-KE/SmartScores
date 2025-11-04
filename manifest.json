@@ -2,22 +2,24 @@
   "name": "SmartScores",
   "short_name": "SmartScores",
   "description": "Set targets. Track performance. Improve. Easy.",
-  "start_url": "/index.html",
-  "scope": "/",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
-  "background_color": "#800000",
-  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "theme_color": "#880e4f",
   "orientation": "portrait-primary",
   "icons": [
     {
       "src": "icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "shortcuts": [
