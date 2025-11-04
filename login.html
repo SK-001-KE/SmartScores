@@ -1,89 +1,53 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartScores - Login</title>
 
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.ico" />
-  <link rel="apple-touch-icon" href="icon-192x192.png" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="icon-192x192.png">
+  <link rel="stylesheet" href="style.css">
 
-  <!-- Auto-login + theme loader -->
-  <script src="app.js" defer></script>
+  <script src="app.js"></script>
 </head>
 
 <body onload="loadTheme()">
 
-<!-- MOBILE MENU BUTTON (hidden on login, keeps consistency with CSS layout) -->
-<button class="menu-toggle" style="display:none;">☰</button>
-
-<!-- SIDEBAR (hidden on login, prevents layout shift) -->
-<aside class="sidebar closed" style="display:none;"></aside>
-
-<!-- DARK MODE BUTTON -->
 <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
 <header>
-  <img src="icon-192x192.png" class="logo-small" alt="SmartScores">
-  <h1>SmartScores</h1>
+  <h1><img src="icon-192x192.png" class="logo-small" style="height:40px;margin-right:10px;border-radius:8px;">SmartScores</h1>
   <p>Teacher Performance Tracker</p>
 </header>
 
 <div class="content centered">
   <h2>Teacher Login</h2>
-
   <form id="loginForm" class="form-box">
-    <div class="form-group">
-      <label for="firstName">First Name</label>
-      <input type="text" id="firstName" placeholder="e.g. John" required>
-    </div>
+    <label>First Name</label>
+    <input type="text" id="firstName" required placeholder="e.g. John">
+    <label>Last Name</label>
+    <input type="text" id="lastName" required placeholder="e.g. Kariuki">
 
-    <div class="form-group">
-      <label for="lastName">Last Name</label>
-      <input type="text" id="lastName" placeholder="e.g. Kariuki" required>
-    </div>
-
-    <button type="submit" class="btn full">Login</button>
+    <button type="submit" class="btn-maroon full">Login</button>
   </form>
-
-  <p class="hint">Enter your full name to begin tracking performance.</p>
+  <p class="hint">Enter your name to begin.</p>
 </div>
 
-<footer>SmartScores v2.9.6 © Kariuki 2025</footer>
+<footer>SmartScores © 2025</footer>
 
 <script>
-const form = document.getElementById('loginForm');
-const firstNameInput = document.getElementById('firstName');
-const lastNameInput = document.getElementById('lastName');
+if(localStorage.getItem("teacherFullName")) location.href="index.html";
 
-// Auto-redirect if already logged in
-if (localStorage.getItem('teacherFullName')) {
-  window.location.href = "index.html";
-}
-
-// Restore typed name if page refreshes
-const savedName = localStorage.getItem('teacherFullName');
-if (savedName) {
-  const [first, ...last] = savedName.split(' ');
-  firstNameInput.value = first || '';
-  lastNameInput.value = last ? last.join(' ') : '';
-}
-
-form.addEventListener('submit', e => {
+document.getElementById("loginForm").addEventListener("submit",e=>{
   e.preventDefault();
-
-  const first = firstNameInput.value.trim();
-  const last = lastNameInput.value.trim();
-  if (!first || !last) return alert("Enter both First & Last Name");
-
-  localStorage.setItem('teacherFullName', `${first} ${last}`);
-  window.location.href = "index.html";
+  let first = firstName.value.trim();
+  let last = lastName.value.trim();
+  if(!first||!last) return alert("Enter full name");
+  localStorage.setItem("teacherFullName", `${first} ${last}`);
+  location.href="index.html";
 });
-
-firstNameInput.focus();
 </script>
-
 </body>
 </html>
