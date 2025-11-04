@@ -207,3 +207,50 @@ footer {
     margin-left: 0;
   }
 }
+/* --- Layout Fix Patch --- */
+
+/* Ensure sidebar stays left on desktop */
+@media (min-width: 901px) {
+  nav {
+    width: 230px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    padding-top: 20px;
+  }
+
+  .content, header, footer {
+    margin-left: 240px !important;
+  }
+}
+
+/* Mobile: sidebar turns into top nav bar */
+@media (max-width: 900px) {
+  nav {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 2px solid var(--border);
+  }
+
+  nav a {
+    display: inline-block;
+    width: auto;
+    padding: 8px 12px;
+  }
+
+  .content, header, footer {
+    margin-left: 0 !important;
+  }
+}
+
+/* Floating Buttons — move below nav on mobile */
+@media (max-width: 900px) {
+  .floating-top-btn {
+    top: 70px;
+    right: 10px;
+  }
+}
+
