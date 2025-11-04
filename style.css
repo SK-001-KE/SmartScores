@@ -1,9 +1,12 @@
-/* ===================== ROOT COLORS ===================== */
+/* ===================== COLOR VARIABLES ===================== */
 :root {
   --maroon: #800000;
   --maroon-dark: #5c0000;
   --blue: #1e3a8a;
   --blue-light: #3b82f6;
+
+  --primary: var(--maroon);
+  --nav-bg: var(--card-bg);
 
   --background: #f4f4f4;
   --text: #222;
@@ -12,7 +15,6 @@
   --border: #ccc;
 }
 
-/* ===================== DARK MODE ===================== */
 html[data-theme="dark"] {
   --background: #121212;
   --text: #f2f2f2;
@@ -29,121 +31,106 @@ body {
   background: var(--background);
   color: var(--text);
   display: flex;
+  min-height: 100vh;
 }
 
-/* ===================== SIDEBAR NAVIGATION ===================== */
-nav {
+/* ===================== SIDEBAR ===================== */
+.sidebar {
   width: 240px;
-  background: var(--card-bg);
-  padding: 20px;
+  background: var(--nav-bg);
   border-right: 2px solid var(--border);
-  height: 100vh;
   position: fixed;
   top: 0;
   left: 0;
+  height: 100vh;
+  padding-top: 20px;
+  overflow-y: auto;
+  transition: transform 0.3s ease;
+  z-index: 1000;
 }
 
-nav a {
+.sidebar a {
   display: block;
-  padding: 12px;
-  margin: 8px 0;
+  padding: 12px 18px;
   color: var(--text);
-  background: var(--card-bg);
   text-decoration: none;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  transition: 0.25s;
+  border-bottom: 1px solid var(--border);
+  font-weight: 500;
 }
 
-nav a:hover {
+.sidebar a:hover {
   background: var(--blue-light);
-  color: white;
+  color: #fff;
 }
 
-nav a.active {
+.sidebar a.active {
   background: var(--maroon);
-  color: white;
+  color: #fff;
 }
 
-/* RESPONSIVE NAV */
-@media (max-width: 900px) {
-  nav {
-    width: 100%;
-    position: relative;
-    height: auto;
-  }
-
-  body {
-    display: block;
-  }
+/* Hide on mobile default */
+.sidebar.closed {
+  transform: translateX(-100%);
 }
 
-/* ===================== PAGE CONTENT ===================== */
-.content {
-  margin-left: 260px;
+/* ===================== MENU BUTTON (MOBILE) ===================== */
+.menu-toggle {
+  display: none;
+  background: var(--maroon);
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  font-size: 20px;
+  border-radius: 6px;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1200;
+}
+
+/* ===================== MAIN LAYOUT ===================== */
+header, .content, footer {
+  margin-left: 250px;
   padding: 20px;
+  width: calc(100% - 250px);
+  transition: .3s;
 }
 
 header {
-  margin-left: 260px;
   background: var(--card-bg);
-  padding: 15px;
   border-bottom: 2px solid var(--border);
   display: flex;
-  align-items: center;
   gap: 10px;
-  font-weight: bold;
+  align-items: center;
 }
 
 header img {
   width: 40px;
 }
 
-/* Mobile adjust */
+/* ===================== MOBILE ===================== */
 @media (max-width: 900px) {
-  header {
-    margin-left: 0;
+  .menu-toggle {
+    display: block;
   }
-  .content {
-    margin-left: 0;
+
+  .sidebar {
+    transform: translateX(-100%);
   }
-}
 
-/* ===================== BUTTONS ===================== */
-button {
-  background: var(--maroon);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 15px;
-  cursor: pointer;
-  transition: 0.25s;
-}
+  .sidebar.open {
+    transform: translateX(0);
+  }
 
-button:hover {
-  background: var(--maroon-dark);
-}
+  header, .content, footer {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
 
-/* Floating dark mode + logout buttons */
-.floating-top-btn {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-}
-
-.logout-btn {
-  top: 60px;
-}
-
-/* ===================== SEARCH BAR ===================== */
-.search-bar {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  margin: 10px 0 20px;
-  background: var(--card-bg);
-  color: var(--card-text);
+  .floating-top-btn {
+    top: 65px;
+    right: 10px;
+  }
 }
 
 /* ===================== TABLE ===================== */
@@ -173,181 +160,51 @@ html[data-theme="dark"] .styled-table th {
   background: var(--blue-light);
 }
 
-/* ===================== RUBRIC BADGES ===================== */
-.badge {
-  display: inline-block;
-  padding: 5px 8px;
+/* ===================== INPUTS ===================== */
+.search-bar, input, select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
   border-radius: 6px;
-  color: white;
-  font-size: 12px;
-  margin-right: 5px;
+  margin: 10px 0 15px;
+  background: var(--card-bg);
+  color: var(--card-text);
 }
 
-.ee1 { background: #008000; }
-.ee2 { background: #4CAF50; }
-.me1 { background: #0ba8e0; }
-.me2 { background: #01b4c6; }
-.ae1 { background: #ff9800; }
-.ae2 { background: #ff6a00; }
-.be1 { background: #e91e63; }
-.be2 { background: #9c27b0; }
+/* ===================== BUTTONS ===================== */
+button {
+  background: var(--maroon);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: .2s;
+}
+
+button:hover {
+  background: var(--maroon-dark);
+}
+
+/* Floating buttons */
+.floating-top-btn {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+}
+
+.logout-btn { top: 60px; }
+
+/* ===================== RUBRIC ===================== */
+.badge { padding: 5px 8px; border-radius: 6px; color: white; font-size: 12px; }
+.ee1 { background: #008000; } .ee2 { background: #4CAF50; }
+.me1 { background: #0ba8e0; } .me2 { background: #01b4c6; }
+.ae1 { background: #ff9800; } .ae2 { background: #ff6a00; }
+.be1 { background: #e91e63; } .be2 { background: #9c27b0; }
 
 /* ===================== FOOTER ===================== */
 footer {
   text-align: center;
-  padding: 15px;
-  margin-left: 260px;
-  color: var(--text);
-  background: var(--card-bg);
   border-top: 2px solid var(--border);
+  background: var(--card-bg);
 }
-
-@media (max-width: 900px) {
-  footer {
-    margin-left: 0;
-  }
-}
-/* --- Layout Fix Patch --- */
-
-/* Ensure sidebar stays left on desktop */
-@media (min-width: 901px) {
-  nav {
-    width: 230px;
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100vh;
-    padding-top: 20px;
-  }
-
-  .content, header, footer {
-    margin-left: 240px !important;
-  }
-}
-
-/* Mobile: sidebar turns into top nav bar */
-@media (max-width: 900px) {
-  nav {
-    width: 100%;
-    height: auto;
-    position: relative;
-    border-right: none;
-    border-bottom: 2px solid var(--border);
-  }
-
-  nav a {
-    display: inline-block;
-    width: auto;
-    padding: 8px 12px;
-  }
-
-  .content, header, footer {
-    margin-left: 0 !important;
-  }
-}
-
-/* Floating Buttons — move below nav on mobile */
-@media (max-width: 900px) {
-  .floating-top-btn {
-    top: 70px;
-    right: 10px;
-  }
-}
-/* ================= SIDEBAR LAYOUT FIX ================ */
-
-body {
-  display: flex;
-  min-height: 100vh;
-}
-
-/* Sidebar base */
-.sidebar {
-  width: 240px;
-  background: var(--nav-bg);
-  border-right: 2px solid var(--border);
-  padding: 20px 0;
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  z-index: 1000;
-  overflow-y: auto;
-  transition: transform 0.3s ease;
-}
-
-.sidebar a {
-  display: block;
-  padding: 12px 18px;
-  color: var(--text);
-  text-decoration: none;
-  font-weight: 500;
-  border-bottom: 1px solid var(--border);
-}
-
-.sidebar a.active {
-  background: var(--primary);
-  color: #fff;
-}
-
-/* Page content shift for desktop when sidebar visible */
-.content,
-header,
-footer {
-  margin-left: 250px;
-  width: calc(100% - 250px);
-  transition: margin-left 0.3s ease;
-}
-
-/* ======= MOBILE MODE ========= */
-.menu-toggle {
-  display: none;
-  background: var(--primary);
-  color: white;
-  border: none;
-  padding: 10px 14px;
-  font-size: 20px;
-  border-radius: 6px;
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  z-index: 1100;
-}
-
-/* Sidebar hidden state (mobile) */
-.sidebar.closed {
-  transform: translateX(-100%);
-}
-
-@media (max-width: 900px) {
-  .menu-toggle {
-    display: block;
-  }
-
-  .sidebar {
-    transform: translateX(-100%);
-  }
-
-  .sidebar.open {
-    transform: translateX(0);
-  }
-
-  .content,
-  header,
-  footer {
-    margin-left: 0 !important;
-    width: 100% !important;
-  }
-
-  /* Fix floating buttons */
-  .btn-darkmode,
-  .btn-logout {
-    top: 55px !important;
-    right: 10px !important;
-  }
-}
-
-/* Ensures top right buttons don't overlap sidebar button */
-.btn-darkmode {
-  z-index: 1200;
-}
-
