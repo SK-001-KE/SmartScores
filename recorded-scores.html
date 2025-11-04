@@ -1,96 +1,46 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores - Recorded Scores</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.ico" />
-  <link rel="stylesheet" href="style.css" />
-  <script src="app.js" defer></script>
-  <script src="auth.js" defer></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SmartScores - Recorded Scores</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
+
+<script src="auth.js" defer></script>
+<script src="app.js" defer></script>
 </head>
 
-<body id="records-page">
+<body onload="loadTheme()">
 
-<!-- ✅ Floating Buttons -->
-<div class="floating-top-btn">
-  <button onclick="toggleDarkMode()" class="btn-dark">Dark Mode</button>
-</div>
+<button id="sidebarToggle" class="menu-toggle">☰</button>
 
-<div class="floating-top-btn logout-btn">
-  <button onclick="logout()" class="btn-logout">Logout</button>
-</div>
-
-<!-- ✅ Sidebar Navigation -->
-<aside class="sidebar">
-  <h2 class="sidebar-title">☰ SmartScores</h2>
+<aside id="sidebarMenu" class="sidebar closed">
   <a href="index.html">Dashboard</a>
   <a href="data-entry.html">Data Entry</a>
   <a href="recorded-scores.html" class="active">Recorded Scores</a>
   <a href="averages-insights.html">Averages & Insights</a>
   <a href="set-targets.html">Set Targets</a>
+  <button onclick="logout()" class="logout-btn">Logout</button>
 </aside>
 
-<!-- ✅ Main Content -->
-<main class="main-content">
+<button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
 <header>
-  <h1>
-    <img src="icon-192x192.png" alt="SmartScores" class="logo">
-    SmartScores
-  </h1>
-  <p>Recorded Scores</p>
+<h1>SmartScores</h1>
+<p>Recorded Scores</p>
 </header>
 
-<div class="content">
-
-  <!-- SEARCH -->
-  <input 
-    type="text"
-    id="searchInput"
-    placeholder="Search student, subject, class, teacher..."
-    class="search-bar"
-  />
-
-  <!-- DATA TABLE -->
-  <div class="table-wrapper">
-    <table id="recordsTable" class="styled-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Teacher</th>
-          <th>Class</th>
-          <th>Subject</th>
-          <th>Student</th>
-          <th>Score</th>
-          <th>Rubric</th>
-        </tr>
-      </thead>
-      <tbody id="recordsBody"></tbody>
-    </table>
-  </div>
-
-  <!-- RUBRIC KEY -->
-  <div class="rubric-key">
-    <strong>Rubric Key</strong>  
-    <div class="rubric-row">
-      <span class="badge ee1">EE1</span> 90–99  
-      <span class="badge ee2">EE2</span> 75–89  
-      <span class="badge me1">ME1</span> 58–74  
-      <span class="badge me2">ME2</span> 41–57  
-      <span class="badge ae1">AE1</span> 31–40  
-      <span class="badge ae2">AE2</span> 21–30  
-      <span class="badge be1">BE1</span> 11–20  
-      <span class="badge be2">BE2</span> 0–10  
-    </div>
-  </div>
+<div class="content content-with-sidebar">
+<table id="recordedTable">
+<thead>
+<tr><th>Subject</th><th>Grade</th><th>Stream</th><th>Term</th><th>Opener</th><th>Mid</th><th>End</th></tr>
+</thead>
+<tbody></tbody>
+</table>
 
 </div>
-
-<footer>SmartScores v2.9.60 © Kariuki 2025</footer>
-
-</main>
-
+<footer>SmartScores © 2025</footer>
 </body>
 </html>
