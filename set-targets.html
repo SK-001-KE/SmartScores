@@ -1,47 +1,41 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>SmartScores - Set Targets</title>
-
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css">
-
-<script src="auth.js" defer></script>
-<script src="app.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartScores - Set Targets</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="auth.js" defer></script>
+  <script src="app.js" defer></script>
 </head>
+<body>
+  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">Menu</button>
 
-<body onload="loadTheme()">
+  <aside id="sidebarMenu" class="sidebar closed">
+    <a href="index.html">Dashboard</a>
+    <a href="data-entry.html">Data Entry</a>
+    <a href="recorded-scores.html">Recorded Scores</a>
+    <a href="averages-insights.html">Averages & Insights</a>
+    <a href="set-targets.html" class="active">Set Targets</a>
+    <button onclick="logout()" class="logout-btn">Logout</button>
+  </aside>
 
-<button id="sidebarToggle" class="menu-toggle">☰</button>
+  <button onclick="toggleDarkMode()" class="floating-top-btn">Dark Mode</button>
 
-<aside id="sidebarMenu" class="sidebar closed">
-  <a href="index.html">Dashboard</a>
-  <a href="data-entry.html">Data Entry</a>
-  <a href="recorded-scores.html">Recorded Scores</a>
-  <a href="averages-insights.html">Averages & Insights</a>
-  <a href="set-targets.html" class="active">Set Targets</a>
-  <button onclick="logout()" class="logout-btn">Logout</button>
-</aside>
+  <header>
+    <h1>SmartScores</h1>
+    <p>Set Teacher Targets</p>
+  </header>
 
-<button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
+  <main class="content content-with-sidebar">
+    <form id="targetsForm" class="form-box">
+      <label>Target Score</label>
+      <input type="number" id="targetScore" required>
+      <button type="submit" class="btn-maroon full">Save Target</button>
+    </form>
+  </main>
 
-<header>
-<h1>SmartScores</h1>
-<p>Set Teacher Targets</p>
-</header>
-
-<div class="content content-with-sidebar">
-
-<form id="targetsForm" class="form-box">
-<label>Target Score</label>
-<input type="number" id="targetScore" required>
-
-<button class="btn-maroon full">Save Target</button>
-</form>
-
-</div>
-<footer>SmartScores © 2025</footer>
+  <footer>SmartScores v2.9.21 © Kariuki 2025</footer>
 </body>
 </html>
