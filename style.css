@@ -97,6 +97,42 @@ button:hover, .btn:hover {
   background: var(--maroon-dark);
 }
 
+/* Floating Buttons */
+.floating-darkmode,
+.floating-logout {
+  position: fixed;
+  top: 10px;
+  z-index: 1000;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  transition: 0.18s ease-in-out;
+}
+
+/* Individual positions */
+.floating-darkmode {
+  right: 10px;
+  background: #0d6efd; /* blue */
+  color: white;
+}
+
+.floating-logout {
+  right: 110px;
+  background: maroon;
+  color: white;
+}
+
+/* Hover effect */
+.floating-darkmode:hover,
+.floating-logout:hover {
+  opacity: 0.85;
+  transform: translateY(-2px);
+}
+
+
 /* ========== INPUTS & FORMS ========== */
 input, select {
   width: 100%;
