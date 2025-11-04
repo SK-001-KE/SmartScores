@@ -104,6 +104,20 @@
     }
   };
 
+  // === SIDEBAR TOGGLE ===
+function toggleSidebar() {
+  const sidebar = document.querySelector(".sidebar");
+  sidebar.classList.toggle("closed");
+}
+
+// Close sidebar on mobile when clicking a page link
+document.addEventListener("click", (e) => {
+  if (window.innerWidth <= 900 && e.target.tagName === "A" && e.target.closest(".sidebar")) {
+    document.querySelector(".sidebar").classList.add("closed");
+  }
+});
+
+
   // === LOADERS ===
   const loadTheme = () => {
     const theme = localStorage.getItem('theme') || 'light';
