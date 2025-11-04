@@ -139,6 +139,30 @@ button:hover, .btn:hover {
   transform: translateY(-2px);
 }
 
+.dashboard-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center; /* centers horizontally */
+  align-items: center;     /* centers vertically */
+  padding-top: 20px;
+}
+
+.dashboard-cards .card {
+  width: 250px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  transition: .2s;
+}
+
+.dashboard-cards .card:hover {
+  transform: translateY(-4px);
+}
+
+
 
 /* ========== INPUTS & FORMS ========== */
 input, select {
