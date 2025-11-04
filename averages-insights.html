@@ -19,10 +19,22 @@
 
 <body id="insights-page">
 
-<!-- FIXED ACTION BUTTONS -->
-<div style="position:fixed;top:10px;right:10px;z-index:1000;display:flex;gap:10px;">
-  <button onclick="toggleDarkMode()" class="btn" style="border-radius:20px;padding:6px 12px;">Dark Mode</button>
-  <button onclick="logout()" class="btn-danger" style="border-radius:20px;padding:6px 12px;font-size:0.8rem;">Logout</button>
+<!-- MOBILE MENU BUTTON -->
+<button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<!-- SIDEBAR NAVIGATION -->
+<aside class="sidebar closed">
+  <a href="index.html">Dashboard</a>
+  <a href="data-entry.html">Data Entry</a>
+  <a href="recorded-scores.html">Recorded Scores</a>
+  <a href="averages-insights.html" class="active">Averages & Insights</a>
+  <a href="set-targets.html">Set Targets</a>
+  <a href="#" onclick="logout()">Logout</a>
+</aside>
+
+<!-- DARK MODE BUTTON -->
+<div style="position:fixed;top:10px;right:10px;z-index:1000;">
+  <button onclick="toggleDarkMode()" class="btn-darkmode">Dark Mode</button>
 </div>
 
 <header>
@@ -33,15 +45,8 @@
   <p>Averages & Insights</p>
 </header>
 
-<nav>
-  <a href="index.html">Dashboard</a>
-  <a href="data-entry.html">Data Entry</a>
-  <a href="recorded-scores.html">Recorded Scores</a>
-  <a href="averages-insights.html" class="active">Averages & Insights</a>
-  <a href="set-targets.html">Set Targets</a>
-</nav>
-
-<div class="content">
+<!-- CONTENT WRAPPER WITH SIDEBAR -->
+<div class="content content-with-sidebar">
 
   <h2>AI Insights</h2>
   <div id="insights"></div>
