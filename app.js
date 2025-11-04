@@ -711,6 +711,21 @@
     else renderDashboard();
   };
 
+  // === DARK MODE TOGGLE ===
+function toggleDarkMode() {
+  const current = localStorage.getItem("theme") || "light";
+  const next = current === "light" ? "dark" : "light";
+  localStorage.setItem("theme", next);
+  document.documentElement.setAttribute("data-theme", next);
+}
+
+// Apply theme on load
+function loadTheme() {
+  const theme = localStorage.getItem("theme") || "light";
+  document.documentElement.setAttribute("data-theme", theme);
+}
+
+
   // === INIT ===
 document.addEventListener('DOMContentLoaded', () => {
   loadTheme();
