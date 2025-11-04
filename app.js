@@ -712,24 +712,33 @@
   };
 
   // === INIT ===
-  document.addEventListener('DOMContentLoaded', () => {
-    loadTheme();
-    loadTeacherName();
-    autoFillYear();
-    renderAll();
+document.addEventListener('DOMContentLoaded', () => {
+  loadTheme();
+  loadTeacherName();
+  autoFillYear();
+  renderAll();
 
-    const dataForm = el('dataEntryForm');
-    if (dataForm) dataForm.addEventListener('submit', e => { e.preventDefault(); handleSaveRecord(); });
+  const dataForm = el('dataEntryForm');
+  if (dataForm) dataForm.addEventListener('submit', e => { 
+    e.preventDefault(); 
+    handleSaveRecord(); 
+  });
 
-    const targetForm = el('setTargetsForm');
-    if (targetForm) targetForm.addEventListener('submit', e => { e.preventDefault(); handleSaveTarget(); });
+  const targetForm = el('setTargetsForm');
+  if (targetForm) targetForm.addEventListener('submit', e => { 
+    e.preventDefault(); 
+    handleSaveTarget(); 
+  });
 
-    const searchInput = el('searchInput');
-    if (searchInput) searchInput.addEventListener('input', filterRecords);
+  const searchInput = el('searchInput');
+  if (searchInput) searchInput.addEventListener('input', filterRecords);
 
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js').catch(()=>{/*sw register failed*/});
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js').catch(()=>{/*sw register failed*/});
+  }
 
-      // Attach rubric key toggle if present on page
+  // Rubric toggle
   const rubricBtn = document.getElementById('rubricBtn');
   const rubricPanel = document.getElementById('rubricPanel');
   if (rubricBtn && rubricPanel) {
@@ -750,4 +759,13 @@
     });
   }
 
-})();
+  // === LOGOUT BUTTON HANDLER ===
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('teacherFullName');
+      localStorage.removeItem('lastTeacherName'); // optional if you use auto-fill name
+      window.location.href = 'login.html';
+    });
+  }
+});
