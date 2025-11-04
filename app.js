@@ -16,7 +16,6 @@ function loadTheme() {
   const mode = localStorage.getItem(THEME_KEY) || "light";
   document.documentElement.setAttribute("data-theme", mode);
 }
-
 function toggleDarkMode() {
   const mode = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
   document.documentElement.setAttribute("data-theme", mode);
@@ -30,13 +29,16 @@ function attachSidebarToggle() {
   const btn = document.getElementById("sidebarToggle");
   const menu = document.getElementById("sidebarMenu");
   if (!btn || !menu) return;
-
   btn.addEventListener("click", () => {
     menu.classList.toggle("closed");
   });
 }
 
-document.addEventListener("DOMContentLoaded", attachSidebarToggle);
+// Run once DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
+  loadTheme();               // Load saved theme
+  attachSidebarToggle();     // Attach sidebar toggle
+});
 
 /* ------------------------------
    AUTH
@@ -45,25 +47,19 @@ function logout() {
   localStorage.removeItem(TEACHER_KEY);
   window.location.href = "login.html";
 }
-// === SIDEBAR TOGGLE ===
-document.addEventListener("DOMContentLoaded", () => {
-  const sidebarToggle = document.getElementById("sidebarToggle");
-  const sidebarMenu = document.getElementById("sidebarMenu");
 
-  if (sidebarToggle && sidebarMenu) {
-    sidebarToggle.addEventListener("click", () => {
-      sidebarMenu.classList.toggle("closed");
-    });
-  }
-});
-
-// Block access without login
+// === AUTH GUARD (run on every protected page) ===
 (function authGuard() {
-  const protectedPages = ["index.html","data-entry.html","recorded-scores.html","averages-insights.html","set-targets.html"];
+  const protectedPages = [
+    "index.html",
+    "data-entry.html",
+    "recorded-scores.html",
+    "averages-insights.html",
+    "set-targets.html"
+  ];
   const current = location.pathname.split("/").pop();
-
   if (protectedPages.includes(current) && !localStorage.getItem(TEACHER_KEY)) {
-    window.location.href = "login.html";
+    window.location.replace("login.html"); // replace = no back loop
   }
 })();
 
@@ -71,9 +67,9 @@ document.addEventListener("DOMContentLoaded", () => {
    DATA STORAGE HELPERS
 --------------------------------*/
 function getRecords() {
-  return JSON.parse(localStorage.getItem(DATA_KEY) || "[]");
+  const raw = localStorage.getItem(DATA_KEY);
+  return raw ? JSON.parse(raw) : [];
 }
-
 function saveRecords(data) {
   localStorage.setItem(DATA_KEY, JSON.stringify(data));
 }
@@ -81,44 +77,50 @@ function saveRecords(data) {
 /* ------------------------------
    SAVE NEW RECORD
 --------------------------------*/
-async function saveRecord(e) {
+function saveRecord(e) {
   if (e) e.preventDefault();
 
-  const record = {
-    subject: document.getElementById("subject").value,
-    grade: document.getElementById("grade").value,
-    stream: document.getElementById("stream").value.trim(),
-    term: document.getElementById("term").value,
-    opener: parseFloat(document.getElementById("opener").value),
-    midterm: parseFloat(document.getElementById("midterm").value),
-    endterm: parseFloat(document.getElementById("endterm").value),
-    average: 0
-  };
+  const subject = document.getElementById("subject")?.value;
+  const grade = document.getElementById("grade")?.value;
+  const stream = document.getElementById("stream")?.value.trim();
+  const term = document.getElementById("term")?.value;
+  const opener = parseFloat(document.getElementById("opener")?.value);
+  const midterm = parseFloat(document.getElementById("midterm")?.value);
+  const endterm = parseFloat(document.getElementById("endterm")?.value);
 
-  record.average = ((record.opener + record.midterm + record.endterm) / 3).toFixed(1);
+  if (!subject || !grade || !term || isNaN(opener) || isNaN(midterm) || isNaN(endterm)) {
+    alert("Please fill all fields with valid numbers.");
+    return;
+  }
 
-  if (!record.subject || !record.grade || !record.term) return alert("Fill all fields");
+  const average = ((opener + midterm + endterm) / 3).toFixed(1);
+
+  const record = { subject, grade, stream, term, opener, midterm, endterm, average: Number(average) };
 
   const data = getRecords();
   data.push(record);
   saveRecords(data);
-
-  alert("✅ Record saved!");
-  document.getElementById("dataEntryForm").reset();
+  alert("Record saved!");
+  document.getElementById("dataEntryForm")?.reset();
 }
 
-// Attach listener only if form exists
-document.getElementById("dataEntryForm")?.addEventListener("submit", saveRecord);
+// Attach only if form exists
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("dataEntryForm");
+  if (form) {
+    form.addEventListener("submit", saveRecord);
+  }
+});
 
 /* ------------------------------
    SHOW RECORDED TABLE
 --------------------------------*/
 function showRecorded() {
-  const container = document.querySelector("#recordedTable tbody");
-  if (!container) return;
+  const tbody = document.querySelector("#recordedTable tbody");
+  if (!tbody) return;
 
   const data = getRecords();
-  container.innerHTML = data.map(r => `
+  tbody.innerHTML = data.map(r => `
     <tr>
       <td>${r.subject}</td>
       <td>${r.grade}</td>
@@ -130,26 +132,24 @@ function showRecorded() {
     </tr>
   `).join("");
 }
-
 document.addEventListener("DOMContentLoaded", showRecorded);
 
 /* ------------------------------
    INSIGHTS + TABLES (AI-ish)
 --------------------------------*/
 function computeInsights() {
-  const data = getRecords();
   const insightsBox = document.getElementById("insights");
-
   if (!insightsBox) return;
+
+  const data = getRecords();
   if (data.length === 0) {
     insightsBox.innerHTML = "<p>No data yet. Enter scores to generate insights.</p>";
     return;
   }
 
-  let overall = (data.reduce((t,r)=>t+parseFloat(r.average),0) / data.length).toFixed(1);
-
-  const best = data.reduce((a,b)=> a.average > b.average ? a : b);
-  const worst = data.reduce((a,b)=> a.average < b.average ? a : b);
+  const overall = (data.reduce((t, r) => t + parseFloat(r.average), 0) / data.length).toFixed(1);
+  const best = data.reduce((a, b) => (a.average > b.average ? a : b));
+  const worst = data.reduce((a, b) => (a.average < b.average ? a : b));
 
   insightsBox.innerHTML = `
     <div class="form-box">
@@ -159,64 +159,71 @@ function computeInsights() {
     </div>
   `;
 }
-
 document.addEventListener("DOMContentLoaded", computeInsights);
 
 /* ------------------------------
    FILL TABLES ON INSIGHTS PAGE
 --------------------------------*/
 function populateInsightsTables() {
-  const data = getRecords();
   const recBody = document.querySelector("#recordsTable tbody");
   const cumBody = document.querySelector("#cumulativeTable tbody");
   const trendBody = document.querySelector("#trendTable tbody");
+  if (!recBody && !cumBody && !trendBody) return;
 
-  if (!recBody) return;
+  const data = getRecords();
 
   // Raw table
-  recBody.innerHTML = data.map(r=>`
-    <tr>
-      <td>${r.subject}</td><td>${r.grade}</td><td>${r.stream}</td><td>${r.term}</td>
-      <td>${r.opener}</td><td>${r.midterm}</td><td>${r.endterm}</td><td>${r.average}</td>
-    </tr>
-  `).join("");
+  if (recBody) {
+    recBody.innerHTML = data.map(r => `
+      <tr>
+        <td>${r.subject}</td><td>${r.grade}</td><td>${r.stream}</td><td>${r.term}</td>
+        <td>${r.opener}</td><td>${r.midterm}</td><td>${r.endterm}</td><td>${r.average}</td>
+      </tr>
+    `).join("");
+  }
 
-  // Group cumulative
-  let groups = {};
-  data.forEach(r=>{
-    const key = `${r.subject}-${r.grade}-${r.stream}-${r.term}`;
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(parseFloat(r.average));
-  });
+  // Cumulative averages
+  if (cumBody) {
+    const groups = {};
+    data.forEach(r => {
+      const key = `${r.subject}-${r.grade}-${r.stream}-${r.term}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(parseFloat(r.average));
+    });
 
-  cumBody.innerHTML = Object.entries(groups).map(([k,arr])=>{
-    const [s,g,st,t] = k.split("-");
-    const avg = (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1);
-    return `<tr><td>${s}</td><td>${g}</td><td>${st}</td><td>${t}</td><td>${arr.join(", ")}</td><td>${avg}</td></tr>`;
-  }).join("");
+    cumBody.innerHTML = Object.entries(groups).map(([k, arr]) => {
+      const [s, g, st, t] = k.split("-");
+      const avg = (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1);
+      return `<tr><td>${s}</td><td>${g}</td><td>${st}</td><td>${t}</td><td>${arr.join(", ")}</td><td>${avg}</td></tr>`;
+    }).join("");
+  }
 
   // Trend table
-  trendBody.innerHTML = data.map(r=>{
-    const trend = r.endterm>r.opener ? "↑ Improving" :
-                  r.endterm<r.opener ? "↓ Drop" : "→ Steady";
-    const status = r.average>=75 ? "Excellent" :
-                   r.average>=50 ? "Fair" : "Needs Support";
-
-    return `
-    <tr>
-      <td>${r.subject}</td><td>${r.grade}</td><td>${r.stream}</td><td>${r.term}</td>
-      <td>${r.opener}</td><td>${r.midterm}</td><td>${r.endterm}</td>
-      <td>${trend}</td><td>${status}</td>
-    </tr>`;
-  }).join("");
+  if (trendBody) {
+    trendBody.innerHTML = data.map(r => {
+      const trend = r.endterm > r.opener ? "Improving" :
+                    r.endterm < r.opener ? "Drop" : "Steady";
+      const status = r.average >= 75 ? "Excellent" :
+                     r.average >= 50 ? "Fair" : "Needs Support";
+      return `
+        <tr>
+          <td>${r.subject}</td><td>${r.grade}</td><td>${r.stream}</td><td>${r.term}</td>
+          <td>${r.opener}</td><td>${r.midterm}</td><td>${r.endterm}</td>
+          <td>${trend}</td><td>${status}</td>
+        </tr>`;
+    }).join("");
+  }
 }
-
 document.addEventListener("DOMContentLoaded", populateInsightsTables);
 
 /* ------------------------------
    PDF EXPORT (Simple text summary)
 --------------------------------*/
-async function downloadPDF() {
+function downloadPDF() {
+  if (!window.jspdf) {
+    alert("jsPDF not loaded. Check internet or CDN.");
+    return;
+  }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const data = getRecords();
@@ -230,7 +237,6 @@ async function downloadPDF() {
     );
     y += 8;
   });
-
   doc.save("SmartScores_Report.pdf");
 }
 
@@ -239,24 +245,31 @@ async function downloadPDF() {
 --------------------------------*/
 function exportBackup() {
   const data = getRecords();
-  const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
-
   const a = document.createElement("a");
   a.href = url;
   a.download = "SmartScoresBackup.json";
   a.click();
   URL.revokeObjectURL(url);
-
-  alert("✅ Backup downloaded");
+  alert("Backup downloaded");
 }
 
 /* ------------------------------
    TARGET SCORE SAVE
 --------------------------------*/
-document.getElementById("targetsForm")?.addEventListener("submit", e=>{
-  e.preventDefault();
-  const v = document.getElementById("targetScore").value;
-  localStorage.setItem(TARGET_KEY, v);
-  alert("🎯 Target saved!");
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("targetsForm");
+  if (form) {
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const v = document.getElementById("targetScore")?.value.trim();
+      if (!v || isNaN(v) || v < 0 || v > 100) {
+        alert("Enter a valid target (0–100)");
+        return;
+      }
+      localStorage.setItem(TARGET_KEY, v);
+      alert("Target saved!");
+    });
+  }
 });
