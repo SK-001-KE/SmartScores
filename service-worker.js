@@ -1,62 +1,52 @@
-// SmartScores PWA Service Worker — v3.0
-const CACHE_NAME = "smartscores-v3";
+// === SmartScores Service Worker v2.9.18 ===
+
+const CACHE_NAME = "smartscores-cache-v2.9.18";
 const ASSETS = [
-  "/",
+  "/",                  // root
   "/index.html",
   "/data-entry.html",
   "/recorded-scores.html",
   "/averages-insights.html",
   "/set-targets.html",
-  "/styles.css",
+  "/style.css",
   "/app.js",
+  "/auth.js",
   "/manifest.json",
-  "/icon-192x192.png",
-  "/icon-512x512.png",
   "/favicon.ico",
+  "/icon-192x192.png",
+  "/icon-512x512.png"
 ];
 
-self.addEventListener("install", (e) => {
-  e.waitUntil(
+// Install SW and cache assets
+self.addEventListener("install", (event) => {
+  event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
   self.skipWaiting();
 });
 
-self.addEventListener("activate", (e) => {
-  e.waitUntil(
+// Activate SW and clear old caches
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      Promise.all(keys.map((key) => {
+        if (key !== CACHE_NAME) return caches.delete(key);
+      }))
     )
   );
   self.clients.claim();
 });
 
-// Network-First strategy
-self.addEventListener("fetch", (e) => {
-  if (e.request.method !== "GET") return;
+// Fetch from cache first, fallback to network
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return;
 
-  e.respondWith(
-    fetch(e.request)
-      .then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
-        return response;
-      })
-      .catch(() => caches.match(e.request))
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      return (
+        cachedResponse ||
+        fetch(event.request).catch(() => caches.match("/index.html"))
+      );
+    })
   );
-});
-
-// Auto-Update + Prompt Client
-self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SKIP_WAITING") {
-    self.skipWaiting();
-  }
-});
-
-self.addEventListener("install", () => {
-  self.clients.matchAll().then((clients) => {
-    clients.forEach((client) =>
-      client.postMessage({ type: "NEW_VERSION_AVAILABLE" })
-    );
-  });
 });
