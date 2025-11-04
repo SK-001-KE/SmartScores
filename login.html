@@ -1,53 +1,51 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartScores - Login</title>
-
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="favicon.ico">
-  <link rel="apple-touch-icon" href="icon-192x192.png">
-  <link rel="stylesheet" href="style.css">
-
-  <script src="app.js"></script>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="icon-192x192.png" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="app.js" defer></script>
 </head>
+<body>
+  <button onclick="toggleDarkMode()" class="floating-top-btn">Dark Mode</button>
 
-<body onload="loadTheme()">
+  <header>
+    <h1>
+      <img src="icon-192x192.png" class="logo-small" style="height:40px;margin-right:10px;border-radius:8px;">
+      SmartScores
+    </h1>
+    <p>Teacher Performance Tracker</p>
+  </header>
 
-<button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
+  <main class="content centered">
+    <h2>Teacher Login</h2>
+    <form id="loginForm" class="form-box">
+      <label>First Name</label>
+      <input type="text" id="firstName" required placeholder="e.g. John">
+      <label>Last Name</label>
+      <input type="text" id="lastName" required placeholder="e.g. Kariuki">
+      <button type="submit" class="btn-maroon full">Login</button>
+    </form>
+    <p class="hint">Enter your name to begin.</p>
+  </main>
 
-<header>
-  <h1><img src="icon-192x192.png" class="logo-small" style="height:40px;margin-right:10px;border-radius:8px;">SmartScores</h1>
-  <p>Teacher Performance Tracker</p>
-</header>
+  <footer>SmartScores v2.9.21 © Kariuki 2025</footer>
 
-<div class="content centered">
-  <h2>Teacher Login</h2>
-  <form id="loginForm" class="form-box">
-    <label>First Name</label>
-    <input type="text" id="firstName" required placeholder="e.g. John">
-    <label>Last Name</label>
-    <input type="text" id="lastName" required placeholder="e.g. Kariuki">
+  <script>
+    if (localStorage.getItem("teacherFullName")) location.href = "index.html";
 
-    <button type="submit" class="btn-maroon full">Login</button>
-  </form>
-  <p class="hint">Enter your name to begin.</p>
-</div>
-
-<footer>SmartScores © 2025</footer>
-
-<script>
-if(localStorage.getItem("teacherFullName")) location.href="index.html";
-
-document.getElementById("loginForm").addEventListener("submit",e=>{
-  e.preventDefault();
-  let first = firstName.value.trim();
-  let last = lastName.value.trim();
-  if(!first||!last) return alert("Enter full name");
-  localStorage.setItem("teacherFullName", `${first} ${last}`);
-  location.href="index.html";
-});
-</script>
+    document.getElementById("loginForm").addEventListener("submit", e => {
+      e.preventDefault();
+      let first = document.getElementById("firstName").value.trim();
+      let last = document.getElementById("lastName").value.trim();
+      if (!first || !last) return alert("Enter full name");
+      localStorage.setItem("teacherFullName", `${first} ${last}`);
+      location.href = "index.html";
+    });
+  </script>
 </body>
 </html>
