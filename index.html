@@ -4,44 +4,76 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartScores - Dashboard</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css" />
-  <script src="auth.js" defer></script>
-  <script src="app.js" defer></script>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="stylesheet" href="./style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="./app.js" defer></script>
 </head>
 <body>
-  <!-- MOBILE MENU -->
-  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">Menu</button>
+  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰ Menu</button>
 
-  <!-- SIDEBAR -->
-  <aside id="sidebarMenu" class="sidebar closed">
-    <a href="index.html" class="active">Dashboard</a>
-    <a href="data-entry.html">Data Entry</a>
-    <a href="recorded-scores.html">Recorded Scores</a>
-    <a href="averages-insights.html">Averages & Insights</a>
-    <a href="set-targets.html">Set Targets</a>
-    <button onclick="logout()" class="logout-btn">Logout</button>
+  <aside id="sidebarMenu" class="sidebar">
+    <a href="./index.html" class="active">📊 Dashboard</a>
+    <a href="./data-entry.html">📝 Data Entry</a>
+    <a href="./recorded-scores.html">📋 Recorded Scores</a>
+    <a href="./averages-insights.html">🤖 Averages & Insights</a>
+    <a href="./set-targets.html">🎯 Set Targets</a>
+    <button onclick="logout()" class="logout-btn">🚪 Logout</button>
   </aside>
 
-  <!-- DARK MODE -->
-  <button onclick="toggleDarkMode()" class="floating-top-btn">Dark Mode</button>
+  <button onclick="toggleDarkMode()" class="floating-top-btn">🌙 Dark Mode</button>
 
   <header>
     <h1>SmartScores</h1>
-    <p>Dashboard</p>
+    <p>Teacher Performance Dashboard</p>
   </header>
 
   <main class="content content-with-sidebar">
-    <section>
-      <h2>Welcome</h2>
-      <p>Track your class performance and monitor growth over time.</p>
-     
-      <div class="form-box teacher-card">
-        <p><strong>Teacher:</strong> <span id="teacherName">Guest Teacher</span></p>
+    <div class="dashboard-cards">
+      <div class="dashboard-card total-avg-card" id="totalAvgCard">
+        <h3>Overall Average</h3>
+        <div class="card-loading">Loading...</div>
       </div>
-    </section>
+      <div class="dashboard-card best-card" id="bestSubjectCard">
+        <h3>Best Performance</h3>
+        <div class="card-loading">Loading...</div>
+      </div>
+      <div class="dashboard-card worst-card" id="worstSubjectCard">
+        <h3>Needs Support</h3>
+        <div class="card-loading">Loading...</div>
+      </div>
+    </div>
+
+    <div class="quick-actions">
+      <button onclick="location.href='./data-entry.html'" class="btn-action">➕ Add New Scores</button>
+      <button onclick="location.href='./set-targets.html'" class="btn-action">🎯 Set Targets</button>
+      <button onclick="downloadPDF()" class="btn-action">📄 Export PDF</button>
+      <button onclick="exportToExcel()" class="btn-action">📊 Export Excel</button>
+    </div>
+
+    <div class="chart-container">
+      <h3>Performance Trend</h3>
+      <canvas id="progressChart"></canvas>
+    </div>
+
+    <div class="recent-records">
+      <h3>Recent Scores</h3>
+      <div id="recentRecordsTable">
+        <div class="loading">Loading recent records...</div>
+      </div>
+    </div>
   </main>
 
-  <footer>SmartScores v2.9.21 © Kariuki 2025</footer>
+  <footer>SmartScores v3.0 © 2025</footer>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(registration => console.log('SW registered: ', registration))
+          .catch(error => console.log('SW registration failed: ', error));
+      });
+    }
+  </script>
 </body>
 </html>
