@@ -4,38 +4,176 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartScores - Set Targets</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css" />
-  <script src="auth.js" defer></script>
-  <script src="app.js" defer></script>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="stylesheet" href="./style.css" />
+  <script src="./app.js" defer></script>
 </head>
 <body>
-  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">Menu</button>
+  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰ Menu</button>
 
-  <aside id="sidebarMenu" class="sidebar closed">
-    <a href="index.html">Dashboard</a>
-    <a href="data-entry.html">Data Entry</a>
-    <a href="recorded-scores.html">Recorded Scores</a>
-    <a href="averages-insights.html">Averages & Insights</a>
-    <a href="set-targets.html" class="active">Set Targets</a>
-    <button onclick="logout()" class="logout-btn">Logout</button>
+  <aside id="sidebarMenu" class="sidebar">
+    <a href="./index.html">📊 Dashboard</a>
+    <a href="./data-entry.html">📝 Data Entry</a>
+    <a href="./recorded-scores.html">📋 Recorded Scores</a>
+    <a href="./averages-insights.html">🤖 Averages & Insights</a>
+    <a href="./set-targets.html" class="active">🎯 Set Targets</a>
+    <button onclick="logout()" class="logout-btn">🚪 Logout</button>
   </aside>
 
-  <button onclick="toggleDarkMode()" class="floating-top-btn">Dark Mode</button>
+  <button onclick="toggleDarkMode()" class="floating-top-btn">🌙 Dark Mode</button>
 
   <header>
     <h1>SmartScores</h1>
-    <p>Set Teacher Targets</p>
+    <p>Set Performance Targets</p>
   </header>
 
   <main class="content content-with-sidebar">
-    <form id="targetsForm" class="form-box">
-      <label>Target Score</label>
-      <input type="number" id="targetScore" required>
-      <button type="submit" class="btn-maroon full">Save Target</button>
-    </form>
+    <section class="form-section">
+      <h2>🎯 Set New Target</h2>
+      <form id="targetsForm" class="form-box">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Subject *</label>
+            <select id="targetSubject" required>
+              <option value="">Select Subject</option>
+              <option>Mathematics</option>
+              <option>English</option>
+              <option>Kiswahili</option>
+              <option>Science</option>
+              <option>Social Studies</option>
+              <option>CRE</option>
+              <option>IRE</option>
+              <option>Home Science</option>
+              <option>Agriculture</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Grade *</label>
+            <select id="targetGrade" required>
+              <option value="">Select Grade</option>
+              <option>4</option>
+              <option>5</option>
+              <option>6</option>
+              <option>7</option>
+              <option>8</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Stream *</label>
+            <input type="text" id="targetStream" placeholder="e.g. North, Red, A" required>
+          </div>
+
+          <div class="form-group">
+            <label>Term *</label>
+            <select id="targetTerm" required>
+              <option value="">Select Term</option>
+              <option>Term 1</option>
+              <option>Term 2</option>
+              <option>Term 3</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Exam Type *</label>
+            <select id="targetExamType" required>
+              <option value="">Select Exam Type</option>
+              <option>Opener Exam</option>
+              <option>Mid Term Exam</option>
+              <option>End Term Exam</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Target Score *</label>
+            <input type="number" id="targetScore" min="0" max="100" step="0.1" placeholder="Target % (0-100)" required>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary full">💾 Save Target</button>
+          <button type="reset" class="btn btn-secondary">🔄 Clear Form</button>
+        </div>
+
+        <div class="form-info">
+          <p>✅ Set specific targets for each subject/grade/stream/term/exam combination</p>
+          <p>📊 Compare actual performance against targets in insights</p>
+          <p>🎯 Targets help track progress and identify areas needing support</p>
+        </div>
+      </form>
+    </section>
+
+    <section class="targets-section">
+      <h2>📋 Current Targets</h2>
+      
+      <div class="search-box">
+        <input type="text" id="targetSearch" placeholder="🔍 Search targets..." oninput="filterTargets()">
+      </div>
+
+      <div class="table-container">
+        <table id="targetsTable">
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Grade</th>
+              <th>Stream</th>
+              <th>Term</th>
+              <th>Exam Type</th>
+              <th>Target Score</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Targets will be loaded here -->
+          </tbody>
+        </table>
+      </div>
+
+      <div id="emptyTargets" class="empty-state" style="display: none;">
+        <div class="empty-icon">🎯</div>
+        <h3>No targets set yet</h3>
+        <p>Set your first target using the form above to start tracking performance against goals.</p>
+      </div>
+
+      <div class="targets-summary">
+        <div class="summary-item">
+          <span class="summary-label">Total Targets:</span>
+          <span class="summary-value" id="totalTargets">0</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Average Target:</span>
+          <span class="summary-value" id="averageTarget">0%</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Active Targets:</span>
+          <span class="summary-value" id="activeTargets">0</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="comparison-section">
+      <h2>📊 Target vs Actual Performance</h2>
+      <div id="targetComparison">
+        <div class="loading">Loading performance comparison...</div>
+      </div>
+    </section>
   </main>
 
-  <footer>SmartScores v2.9.21 © Kariuki 2025</footer>
+  <footer>SmartScores v3.0 © 2025</footer>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(registration => console.log('SW registered: ', registration))
+          .catch(error => console.log('SW registration failed: ', error));
+      });
+    }
+  </script>
 </body>
 </html>
