@@ -239,6 +239,17 @@ function downloadPDF() {
   });
   doc.save("SmartScores_Report.pdf");
 }
+// === SIDEBAR TOGGLE (for onclick="toggleSidebar()") ===
+window.toggleSidebar = () => {
+  const sidebar = document.getElementById('sidebarMenu');
+  const toggleBtn = document.getElementById('sidebarToggle');
+  if (!sidebar) return;
+  sidebar.classList.toggle('closed');
+  if (toggleBtn) {
+    const isClosed = sidebar.classList.contains('closed');
+    toggleBtn.setAttribute('aria-expanded', !isClosed);
+  }
+};
 
 /* ------------------------------
    BACKUP EXPORT / IMPORT
