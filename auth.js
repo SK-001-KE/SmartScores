@@ -1,42 +1,55 @@
-// auth.js — Global login enforcement + sidebar helper
+// auth.js — Global login enforcement + sidebar helper - FIXED VERSION
 (function () {
     "use strict";
 
     // Wait for DOM to be ready
     document.addEventListener('DOMContentLoaded', function () {
+        console.log('Auth.js: Initializing...');
+        
         // Auth guard: Redirect if not logged in and not on login page
         const currentPage = window.location.pathname.split("/").pop();
         const allowedPage = currentPage === "login.html";
         const teacher = localStorage.getItem("teacherFullName");
 
+        console.log('Current page:', currentPage, 'Teacher:', teacher);
+
         if (!teacher && !allowedPage) {
+            console.log('Redirecting to login...');
             window.location.replace("./login.html");
             return;
         }
 
         // If user is on login page but already logged in, redirect to dashboard
         if (teacher && allowedPage) {
+            console.log('Already logged in, redirecting to dashboard...');
             window.location.replace("./index.html");
             return;
         }
 
         // Initialize sidebar toggle if it exists
         initializeSidebar();
+        
+        // Initialize logout buttons
+        initializeLogoutButtons();
     });
 
     // Global sidebar toggle function
     window.toggleSidebar = function () {
+        console.log('Toggle sidebar called');
         const sidebar = document.getElementById('sidebarMenu');
         const toggleBtn = document.getElementById('sidebarToggle');
         
         if (sidebar) {
             sidebar.classList.toggle('closed');
+            console.log('Sidebar closed:', sidebar.classList.contains('closed'));
             
             // Update ARIA attributes for accessibility
             if (toggleBtn) {
                 const isClosed = sidebar.classList.contains('closed');
                 toggleBtn.setAttribute('aria-expanded', !isClosed);
             }
+        } else {
+            console.log('Sidebar element not found');
         }
     };
 
@@ -45,6 +58,8 @@
         const sidebar = document.getElementById('sidebarMenu');
         const toggleBtn = document.getElementById('sidebarToggle');
         
+        console.log('Initializing sidebar:', { sidebar: !!sidebar, toggleBtn: !!toggleBtn });
+
         if (!sidebar || !toggleBtn) return;
 
         // Set initial ARIA state
@@ -76,12 +91,35 @@
         });
     }
 
-    // Global logout function
+    // Initialize logout buttons
+    function initializeLogoutButtons() {
+        const logoutButtons = document.querySelectorAll('.logout-btn');
+        console.log('Found logout buttons:', logoutButtons.length);
+        
+        logoutButtons.forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.preventDefault();
+                console.log('Logout button clicked');
+                window.logout();
+            });
+        });
+    }
+
+    // Global logout function - FIXED
     window.logout = function () {
+        console.log('Logout function called');
         if (confirm('Are you sure you want to logout?')) {
+            console.log('User confirmed logout');
             localStorage.removeItem('teacherFullName');
-            window.location.href = './login.html';
+            // Also clear other user-specific data if needed
+            localStorage.removeItem('smartScoresRecords');
+            localStorage.removeItem('smartScoresTargets');
+            window.location.href = "./login.html";
+        } else {
+            console.log('User cancelled logout');
         }
     };
+
+    console.log('Auth.js loaded successfully');
 
 })();
