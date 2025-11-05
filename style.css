@@ -1,5 +1,5 @@
 /* =========================================================
-   SMARTSCORES GLOBAL STYLES v3.0 - COMPLETE EDITION
+   SMARTSCORES GLOBAL STYLES v3.0 - FIXED SIDEBAR
 ========================================================= */
 
 /* --- Light / Dark Theme Variables --- */
@@ -58,6 +58,8 @@ header {
   background: linear-gradient(135deg, var(--primary), #6a0000);
   color: white;
   box-shadow: var(--shadow);
+  position: relative;
+  z-index: 100;
 }
 
 header h1 {
@@ -81,6 +83,8 @@ header p {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .centered {
@@ -91,6 +95,108 @@ header p {
 .content-with-sidebar {
   margin-left: 0;
   transition: margin-left 0.3s ease;
+}
+
+/* =========================================================
+   SIDEBAR NAVIGATION - FIXED VERSION
+========================================================= */
+.menu-toggle {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  z-index: 1000;
+  cursor: pointer;
+  font-size: 1.1em;
+  box-shadow: var(--shadow);
+}
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 280px;
+  height: 100vh;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  padding-top: 70px;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 999;
+  overflow-y: auto;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+/* Sidebar when open */
+.sidebar:not(.closed) {
+  transform: translateX(0);
+}
+
+.sidebar.closed {
+  transform: translateX(-100%);
+}
+
+.sidebar a, .sidebar button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+  background: none;
+  text-align: left;
+  width: 100%;
+  transition: all 0.3s ease;
+  font-size: 1em;
+  border: none;
+  cursor: pointer;
+}
+
+.sidebar a:hover, .sidebar button:hover {
+  background: rgba(139, 0, 0, 0.1);
+}
+
+.sidebar a.active {
+  background: var(--primary);
+  color: white;
+}
+
+.sidebar button.logout-btn {
+  background: var(--danger);
+  color: white;
+  margin-top: auto;
+  border: none;
+  cursor: pointer;
+}
+
+.sidebar button.logout-btn:hover {
+  background: #c82333;
+}
+
+/* Desktop sidebar - always visible */
+@media (min-width: 1024px) {
+  .menu-toggle {
+    display: none;
+  }
+  
+  .sidebar {
+    transform: translateX(0);
+    width: 280px;
+  }
+  
+  .sidebar.closed {
+    transform: translateX(-100%);
+  }
+  
+  .content-with-sidebar {
+    margin-left: 280px;
+  }
 }
 
 /* =========================================================
@@ -208,94 +314,6 @@ button, .btn {
   padding: 15px 25px;
   font-size: 1.1em;
   margin: 5px;
-}
-
-/* =========================================================
-   SIDEBAR NAVIGATION
-========================================================= */
-.menu-toggle {
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 8px;
-  z-index: 1000;
-  cursor: pointer;
-  font-size: 1.1em;
-  box-shadow: var(--shadow);
-}
-
-.sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 280px;
-  height: 100vh;
-  background: var(--card);
-  border-right: 1px solid var(--border);
-  padding-top: 70px;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: 999;
-  overflow-y: auto;
-}
-
-.sidebar:not(.closed) {
-  transform: translateX(0);
-}
-
-.sidebar a, .sidebar button {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 15px 20px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text);
-  text-decoration: none;
-  font-weight: 600;
-  background: none;
-  text-align: left;
-  width: 100%;
-  transition: all 0.3s ease;
-  font-size: 1em;
-}
-
-.sidebar a:hover, .sidebar button:hover {
-  background: rgba(139, 0, 0, 0.1);
-}
-
-.sidebar a.active {
-  background: var(--primary);
-  color: white;
-}
-
-.sidebar button.logout-btn {
-  background: var(--danger);
-  color: white;
-  margin-top: auto;
-}
-
-.sidebar button.logout-btn:hover {
-  background: #c82333;
-}
-
-/* Desktop sidebar */
-@media (min-width: 1024px) {
-  .menu-toggle {
-    display: none;
-  }
-  
-  .sidebar {
-    transform: translateX(0);
-    width: 280px;
-  }
-  
-  .content-with-sidebar {
-    margin-left: 280px;
-  }
 }
 
 /* =========================================================
@@ -424,100 +442,6 @@ tbody tr:hover {
 }
 
 /* =========================================================
-   SEARCH & FILTERS
-========================================================= */
-.search-box {
-  margin: 20px 0;
-}
-
-.search-box input {
-  padding: 12px 20px;
-  border: 2px solid var(--border);
-  border-radius: 25px;
-  background: var(--card);
-  font-size: 1em;
-}
-
-.search-hint {
-  display: block;
-  margin-top: 5px;
-  font-size: 0.85em;
-  color: var(--text);
-  opacity: 0.7;
-}
-
-/* =========================================================
-   LOGIN STYLES
-========================================================= */
-.login-container {
-  text-align: center;
-}
-
-.login-subtitle {
-  margin-bottom: 20px;
-  color: var(--text);
-  opacity: 0.8;
-}
-
-.login-features {
-  background: var(--card);
-  padding: 20px;
-  border-radius: 12px;
-  margin: 20px 0;
-  text-align: left;
-}
-
-.login-features h3 {
-  margin-bottom: 15px;
-  text-align: center;
-}
-
-.login-features ul {
-  list-style: none;
-  padding: 0;
-}
-
-.login-features li {
-  padding: 8px 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* =========================================================
-   STATS & SUMMARIES
-========================================================= */
-.summary-stats, .targets-summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin: 20px 0;
-  padding: 20px;
-  background: var(--card);
-  border-radius: 12px;
-}
-
-.stat-item, .summary-item {
-  text-align: center;
-  padding: 15px;
-}
-
-.stat-label, .summary-label {
-  display: block;
-  font-size: 0.9em;
-  color: var(--text);
-  opacity: 0.8;
-  margin-bottom: 5px;
-}
-
-.stat-value, .summary-value {
-  display: block;
-  font-size: 1.5em;
-  font-weight: bold;
-  color: var(--primary);
-}
-
-/* =========================================================
    FLOATING BUTTONS
 ========================================================= */
 .floating-top-btn {
@@ -549,6 +473,7 @@ footer {
   font-size: 0.9em;
   color: var(--text);
   opacity: 0.8;
+  z-index: 100;
 }
 
 /* =========================================================
