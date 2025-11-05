@@ -8,26 +8,30 @@
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="./app.js" defer></script>
+  <script src="./auth.js" defer></script>
 </head>
 <body>
-  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰ Menu</button>
+  <!-- MOBILE MENU TOGGLE - ADDED -->
+  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰</button>
 
-  <!-- SIDEBAR - FIXED VERSION -->
-<aside id="sidebarMenu" class="sidebar closed">
-  <a href="./index.html">📊 Dashboard</a>
-  <a href="./data-entry.html">📝 Data Entry</a>
-  <a href="./recorded-scores.html">📋 Recorded Scores</a>
-  <a href="./averages-insights.html">🤖 Averages & Insights</a>
-  <a href="./set-targets.html">🎯 Set Targets</a>
-  <button class="logout-btn">🚪 Logout</button>
-</aside>
+  <!-- SIDEBAR -->
+  <aside id="sidebarMenu" class="sidebar closed">
+    <a href="./index.html" class="active">📊 Dashboard</a>
+    <a href="./data-entry.html">📝 Data Entry</a>
+    <a href="./recorded-scores.html">📋 Recorded Scores</a>
+    <a href="./averages-insights.html">🤖 Averages & Insights</a>
+    <a href="./set-targets.html">🎯 Set Targets</a>
+    <button class="logout-btn">🚪 Logout</button>
+  </aside>
 
-  <button onclick="toggleDarkMode()" class="floating-top-btn">🌙 Dark Mode</button>
+  <!-- DARK MODE -->
+  <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
   <header>
     <h1>SmartScores</h1>
     <p>Teacher Performance Dashboard</p>
   </header>
+
 
   <main class="content content-with-sidebar">
     <div class="dashboard-cards">
