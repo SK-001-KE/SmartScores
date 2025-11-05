@@ -1,4 +1,3 @@
-html
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -11,7 +10,7 @@ html
   <script src="./auth.js" defer></script>
 </head>
 <body>
-  <!-- MOBILE MENU TOGGLE - ADDED -->
+  <!-- MOBILE MENU TOGGLE -->
   <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰</button>
 
   <aside id="sidebarMenu" class="sidebar closed">
@@ -29,6 +28,7 @@ html
     <h1>SmartScores</h1>
     <p>Record Student Mean Scores</p>
   </header>
+
   <div class="content content-with-sidebar">
     <div class="form-header">
       <h2>Enter Score Data</h2>
@@ -69,7 +69,15 @@ html
       <div class="form-row">
         <div class="form-group">
           <label>Stream *</label>
-          <input type="text" id="stream" placeholder="e.g. North, Red, A" required>
+          <select id="stream" required>
+            <option value="">Select Stream</option>
+            <option>Faith</option>
+            <option>Glory</option>
+            <option>Joy</option>
+            <option>Love</option>
+            <option>Peace</option>
+            <option>Unity</option>
+          </select>
         </div>
 
         <div class="form-group">
