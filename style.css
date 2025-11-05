@@ -8,14 +8,14 @@
   --text: #2d3748;
   --card: #f7fafc;
   --border: #e2e8f0;
-  --primary: #8B0000;        /* Maroon - used sparingly */
-  --primary-light: #a83232;  /* Lighter maroon */
-  --secondary: #4a5568;      /* Dark gray for secondary elements */
-  --accent: #2b6cb0;         /* Blue for accents */
-  --success: #38a169;        /* Green */
-  --warning: #d69e2e;        /* Amber */
-  --danger: #e53e3e;         /* Red */
-  --info: #3182ce;           /* Blue */
+  --primary: #8B0000;
+  --primary-light: #a83232;
+  --secondary: #4a5568;
+  --accent: #2b6cb0;
+  --success: #38a169;
+  --warning: #d69e2e;
+  --danger: #e53e3e;
+  --info: #3182ce;
   --button-text: white;
   --shadow: 0 2px 12px rgba(0,0,0,0.08);
   --gradient-primary: linear-gradient(135deg, #8B0000, #a83232);
@@ -27,7 +27,7 @@
   --text: #e2e8f0;
   --card: #2d3748;
   --border: #4a5568;
-  --primary: #c53030;        /* Brighter maroon for dark mode */
+  --primary: #c53030;
   --primary-light: #e53e3e;
   --secondary: #a0aec0;
   --accent: #63b3ed;
@@ -41,7 +41,9 @@
   --gradient-header: linear-gradient(135deg, #2d3748, #4a5568);
 }
 
-/* --- Reset & Base Styles --- */
+/* =========================================================
+   RESET & BASE STYLES
+========================================================= */
 * {
   margin: 0;
   padding: 0;
@@ -58,7 +60,41 @@ body {
 }
 
 /* =========================================================
-   HEADER - More Professional
+   LAYOUT & CONTAINERS
+========================================================= */
+.content {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.content-with-sidebar {
+  margin-left: 0;
+  transition: margin-left 0.3s ease;
+}
+
+/* Desktop sidebar layout */
+@media (min-width: 1024px) {
+  .menu-toggle {
+    display: none;
+  }
+  
+  .sidebar {
+    transform: translateX(0);
+    width: 280px;
+  }
+  
+  .sidebar.closed {
+    transform: translateX(-100%);
+  }
+  
+  .content-with-sidebar {
+    margin-left: 280px;
+  }
+}
+
+/* =========================================================
+   HEADER
 ========================================================= */
 header {
   text-align: center;
@@ -88,7 +124,98 @@ header p {
 }
 
 /* =========================================================
-   CLEAN DASHBOARD STYLES WITH SIDEBAR
+   SIDEBAR NAVIGATION
+========================================================= */
+.menu-toggle {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 10px;
+  z-index: 1000;
+  cursor: pointer;
+  font-size: 1.2em;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+}
+
+.menu-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(139, 0, 0, 0.3);
+}
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 280px;
+  height: 100vh;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  padding-top: 80px;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 999;
+  overflow-y: auto;
+  box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+}
+
+.sidebar:not(.closed) {
+  transform: translateX(0);
+}
+
+.sidebar.closed {
+  transform: translateX(-100%);
+}
+
+.sidebar a, .sidebar button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+  background: none;
+  text-align: left;
+  width: 100%;
+  transition: all 0.3s ease;
+  font-size: 1em;
+  border: none;
+  cursor: pointer;
+}
+
+.sidebar a:hover, .sidebar button:hover {
+  background: rgba(139, 0, 0, 0.08);
+  color: var(--primary);
+}
+
+.sidebar a.active {
+  background: var(--gradient-primary);
+  color: white;
+  border-left: 4px solid var(--accent);
+}
+
+.sidebar button.logout-btn {
+  background: linear-gradient(135deg, #e53e3e, #c53030);
+  color: white;
+  margin-top: auto;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.sidebar button.logout-btn:hover {
+  background: linear-gradient(135deg, #f56565, #e53e3e);
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   DASHBOARD STYLES
 ========================================================= */
 
 /* Welcome Section */
@@ -114,7 +241,7 @@ header p {
   line-height: 1.6;
 }
 
-/* Dashboard Cards - Enhanced */
+/* Dashboard Cards - SINGLE DEFINITION */
 .dashboard-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -262,156 +389,181 @@ header p {
   font-size: 1.1em;
 }
 
-/* Loading State */
-.loading {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--secondary);
-  font-style: italic;
-}
-
-/* Content with sidebar */
-.content-with-sidebar {
-  margin-left: 0;
-  transition: margin-left 0.3s ease;
-}
-
-/* Desktop sidebar */
-@media (min-width: 1024px) {
-  .menu-toggle {
-    display: none;
-  }
-  
-  .sidebar {
-    transform: translateX(0);
-    width: 280px;
-  }
-  
-  .sidebar.closed {
-    transform: translateX(-100%);
-  }
-  
-  .content-with-sidebar {
-    margin-left: 280px;
-  }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .welcome-section {
-    padding: 20px;
-  }
-  
-  .welcome-section h2 {
-    font-size: 1.5em;
-  }
-  
-  .dashboard-cards {
-    grid-template-columns: 1fr;
-  }
-  
-  .activity-item {
-    flex-direction: column;
-    gap: 10px;
-    text-align: center;
-  }
-  
-  .chart-container {
-    padding: 20px;
-  }
-}
 /* =========================================================
-   SIDEBAR - Subtle Colors
+   BUTTONS
 ========================================================= */
-.menu-toggle {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  background: var(--gradient-primary);
-  color: white;
+button, .btn {
+  padding: 14px 24px;
   border: none;
-  padding: 12px 16px;
   border-radius: 10px;
-  z-index: 1000;
-  cursor: pointer;
-  font-size: 1.2em;
-  box-shadow: var(--shadow);
-  transition: all 0.3s ease;
-}
-
-.menu-toggle:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(139, 0, 0, 0.3);
-}
-
-.sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 280px;
-  height: 100vh;
-  background: var(--card);
-  border-right: 1px solid var(--border);
-  padding-top: 80px;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: 999;
-  overflow-y: auto;
-  box-shadow: 2px 0 20px rgba(0,0,0,0.1);
-}
-
-.sidebar:not(.closed) {
-  transform: translateX(0);
-}
-
-.sidebar.closed {
-  transform: translateX(-100%);
-}
-
-.sidebar a, .sidebar button {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text);
-  text-decoration: none;
-  font-weight: 600;
-  background: none;
-  text-align: left;
-  width: 100%;
-  transition: all 0.3s ease;
   font-size: 1em;
-  border: none;
-  cursor: pointer;
-}
-
-.sidebar a:hover, .sidebar button:hover {
-  background: rgba(139, 0, 0, 0.08);
-  color: var(--primary);
-}
-
-.sidebar a.active {
-  background: var(--gradient-primary);
-  color: white;
-  border-left: 4px solid var(--accent);
-}
-
-.sidebar button.logout-btn {
-  background: linear-gradient(135deg, #e53e3e, #c53030);
-  color: white;
-  margin-top: auto;
-  border: none;
-  cursor: pointer;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.sidebar button.logout-btn:hover {
-  background: linear-gradient(135deg, #f56565, #e53e3e);
-  transform: translateY(-1px);
+.btn-primary {
+  background: var(--gradient-primary);
+  color: var(--button-text);
+  box-shadow: 0 2px 8px rgba(139, 0, 0, 0.2);
 }
+
+.btn-secondary {
+  background: linear-gradient(135deg, var(--secondary), #718096);
+  color: var(--button-text);
+  box-shadow: 0 2px 8px rgba(74, 85, 104, 0.2);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--success), #48bb78);
+  color: white;
+  box-shadow: 0 2px 8px rgba(56, 161, 105, 0.2);
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, var(--warning), #ed8936);
+  color: #000;
+  box-shadow: 0 2px 8px rgba(214, 158, 46, 0.2);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--danger), #fc8181);
+  color: white;
+  box-shadow: 0 2px 8px rgba(229, 62, 62, 0.2);
+}
+
+.btn-info {
+  background: linear-gradient(135deg, var(--info), #4299e1);
+  color: white;
+  box-shadow: 0 2px 8px rgba(49, 130, 206, 0.2);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-small {
+  padding: 10px 16px;
+  font-size: 0.9em;
+}
+
+.full {
+  width: 100%;
+}
+
 /* =========================================================
-   NEW PAGES STYLES
+   FORM ELEMENTS
+========================================================= */
+.form-box {
+  background: var(--card);
+  padding: 30px;
+  margin: 25px 0;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: var(--text);
+  font-size: 1em;
+}
+
+input, select {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1em;
+  transition: all 0.3s ease;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+}
+
+/* =========================================================
+   TABLES
+========================================================= */
+.table-container {
+  overflow-x: auto;
+  margin: 25px 0;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  background: var(--card);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+thead {
+  background: var(--gradient-header);
+  color: white;
+}
+
+th {
+  padding: 18px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.95em;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+th:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+td {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9em;
+}
+
+tbody tr {
+  transition: background-color 0.3s ease;
+}
+
+tbody tr:hover {
+  background: rgba(139, 0, 0, 0.04);
+}
+
+/* =========================================================
+   NEW PAGES STYLES (AI Insights, Averages, Trends)
 ========================================================= */
 
 /* Executive Summary */
@@ -636,11 +788,6 @@ header p {
   align-items: end;
 }
 
-.btn-small {
-  padding: 10px 16px;
-  font-size: 0.9em;
-}
-
 /* Progress Cards */
 .progress-cards {
   display: grid;
@@ -813,287 +960,8 @@ header p {
   font-weight: 600;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .summary-cards,
-  .progress-cards {
-    grid-template-columns: 1fr;
-  }
-  
-  .charts-grid,
-  .visualization-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .filter-controls {
-    grid-template-columns: 1fr;
-  }
-  
-  .section-header {
-    flex-direction: column;
-    gap: 15px;
-    align-items: flex-start;
-  }
-  
-  .alert-item {
-    flex-direction: column;
-    text-align: center;
-    gap: 10px;
-  }
-}
-
 /* =========================================================
-   BUTTONS - Balanced Colors
-========================================================= */
-button, .btn {
-  padding: 14px 24px;
-  border: none;
-  border-radius: 10px;
-  font-size: 1em;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.btn-primary {
-  background: var(--gradient-primary);
-  color: var(--button-text);
-  box-shadow: 0 2px 8px rgba(139, 0, 0, 0.2);
-}
-
-.btn-secondary {
-  background: linear-gradient(135deg, var(--secondary), #718096);
-  color: var(--button-text);
-  box-shadow: 0 2px 8px rgba(74, 85, 104, 0.2);
-}
-
-.btn-success {
-  background: linear-gradient(135deg, var(--success), #48bb78);
-  color: white;
-  box-shadow: 0 2px 8px rgba(56, 161, 105, 0.2);
-}
-
-.btn-warning {
-  background: linear-gradient(135deg, var(--warning), #ed8936);
-  color: #000;
-  box-shadow: 0 2px 8px rgba(214, 158, 46, 0.2);
-}
-
-.btn-danger {
-  background: linear-gradient(135deg, var(--danger), #fc8181);
-  color: white;
-  box-shadow: 0 2px 8px rgba(229, 62, 62, 0.2);
-}
-
-.btn-info {
-  background: linear-gradient(135deg, var(--info), #4299e1);
-  color: white;
-  box-shadow: 0 2px 8px rgba(49, 130, 206, 0.2);
-}
-
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-.btn:active {
-  transform: translateY(0);
-}
-
-/* Action buttons with accent color */
-.btn-action {
-  background: linear-gradient(135deg, var(--accent), #3182ce);
-  color: white;
-  padding: 16px 28px;
-  font-size: 1.1em;
-  margin: 8px;
-  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.3);
-}
-
-.btn-action:hover {
-  background: linear-gradient(135deg, #3182ce, #2b6cb0);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(43, 108, 176, 0.4);
-}
-
-/* =========================================================
-   DASHBOARD CARDS - Professional Look
-========================================================= */
-.dashboard-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 24px;
-  margin: 30px 0;
-}
-
-.dashboard-card {
-  background: var(--card);
-  padding: 30px;
-  border-radius: 16px;
-  box-shadow: var(--shadow);
-  text-align: center;
-  border-top: 4px solid;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.dashboard-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--gradient-primary);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.dashboard-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-
-.dashboard-card:hover::before {
-  opacity: 1;
-}
-
-.dashboard-card h3 {
-  margin-bottom: 20px;
-  color: var(--text);
-  font-size: 1.2em;
-  font-weight: 600;
-}
-
-.dashboard-card .card-value {
-  font-size: 3em;
-  font-weight: bold;
-  margin: 15px 0;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.total-avg-card { border-top-color: var(--primary); }
-.best-card { border-top-color: var(--success); }
-.worst-card { border-top-color: var(--warning); }
-
-.card-subtitle {
-  color: var(--secondary);
-  font-size: 0.9em;
-  margin-top: 10px;
-}
-
-/* =========================================================
-   TABLES - Clean Design
-========================================================= */
-.table-container {
-  overflow-x: auto;
-  margin: 25px 0;
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  background: var(--card);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--card);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-thead {
-  background: var(--gradient-header);
-  color: white;
-}
-
-th {
-  padding: 18px 16px;
-  text-align: left;
-  font-weight: 600;
-  font-size: 0.95em;
-  cursor: pointer;
-  user-select: none;
-  transition: background-color 0.3s ease;
-  letter-spacing: 0.5px;
-}
-
-th:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-td {
-  padding: 16px;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.9em;
-}
-
-tbody tr {
-  transition: background-color 0.3s ease;
-}
-
-tbody tr:hover {
-  background: rgba(139, 0, 0, 0.04);
-}
-
-/* =========================================================
-   FORM ELEMENTS - Modern Style
-========================================================= */
-.form-box {
-  background: var(--card);
-  padding: 30px;
-  margin: 25px 0;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-}
-
-.form-group {
-  margin-bottom: 24px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-label {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: 600;
-  color: var(--text);
-  font-size: 1em;
-}
-
-input, select {
-  width: 100%;
-  padding: 14px 18px;
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 1em;
-  transition: all 0.3s ease;
-}
-
-input:focus, select:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
-}
-
-/* =========================================================
-   RUBRIC BADGES - Enhanced Colors
+   RUBRIC BADGES
 ========================================================= */
 .rubric-badge {
   padding: 8px 16px;
@@ -1176,8 +1044,6 @@ footer {
   z-index: 100;
 }
 
-/* Rest of your existing CSS remains the same... */
-
 /* =========================================================
    UTILITY CLASSES
 ========================================================= */
@@ -1215,7 +1081,9 @@ footer {
   margin-bottom: 20px;
 }
 
-/* Responsive */
+/* =========================================================
+   RESPONSIVE DESIGN
+========================================================= */
 @media (max-width: 768px) {
   .content {
     padding: 15px;
@@ -1225,12 +1093,44 @@ footer {
     grid-template-columns: 1fr;
   }
   
-  .quick-actions {
+  .summary-cards,
+  .progress-cards {
     grid-template-columns: 1fr;
+  }
+  
+  .charts-grid,
+  .visualization-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .filter-controls {
+    grid-template-columns: 1fr;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .alert-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  .activity-item {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
   }
   
   th, td {
     padding: 8px 6px;
     font-size: 0.8em;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
   }
 }
