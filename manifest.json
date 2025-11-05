@@ -2,21 +2,24 @@
   "name": "SmartScores",
   "short_name": "SmartScores",
   "description": "Set targets. Track performance. Improve. Easy.",
-  "start_url": ".",
-  "scope": ".",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#880e4f",
+  "theme_color": "#8B0000",
   "orientation": "portrait-primary",
+  "categories": ["education", "productivity"],
+  "lang": "en",
+  "dir": "ltr",
   "icons": [
     {
-      "src": "icon-192x192.png",
+      "src": "./icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-512x512.png",
+      "src": "./icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -26,20 +29,30 @@
     {
       "name": "Record Scores",
       "short_name": "Record",
-      "url": "/data-entry.html",
-      "icons": [{ "src": "icon-192x192.png", "sizes": "192x192" }]
+      "url": "./data-entry.html",
+      "icons": [{ "src": "./icon-192x192.png", "sizes": "192x192" }],
+      "description": "Enter new student scores"
     },
     {
-      "name": "View Records",
+      "name": "View Records", 
       "short_name": "Records",
-      "url": "/recorded-scores.html",
-      "icons": [{ "src": "icon-192x192.png", "sizes": "192x192" }]
+      "url": "./recorded-scores.html",
+      "icons": [{ "src": "./icon-192x192.png", "sizes": "192x192" }],
+      "description": "Browse all recorded scores"
     },
     {
-      "name": "Insights",
-      "short_name": "Insights",
-      "url": "/averages-insights.html",
-      "icons": [{ "src": "icon-192x192.png", "sizes": "192x192" }]
+      "name": "AI Insights",
+      "short_name": "Insights", 
+      "url": "./averages-insights.html",
+      "icons": [{ "src": "./icon-192x192.png", "sizes": "192x192" }],
+      "description": "View performance analytics"
+    },
+    {
+      "name": "Set Targets",
+      "short_name": "Targets",
+      "url": "./set-targets.html", 
+      "icons": [{ "src": "./icon-192x192.png", "sizes": "192x192" }],
+      "description": "Manage performance targets"
     }
   ]
 }
