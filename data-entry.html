@@ -1,78 +1,147 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>SmartScores - Data Entry</title>
-
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css">
-
-<script src="auth.js" defer></script>
-<script src="app.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>SmartScores - Data Entry</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
 </head>
+<body>
+  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰ Menu</button>
 
-<body onload="loadTheme()">
+  <aside id="sidebarMenu" class="sidebar">
+    <a href="./index.html">📊 Dashboard</a>
+    <a href="./data-entry.html" class="active">📝 Data Entry</a>
+    <a href="./recorded-scores.html">📋 Recorded Scores</a>
+    <a href="./averages-insights.html">🤖 Averages & Insights</a>
+    <a href="./set-targets.html">🎯 Set Targets</a>
+    <button onclick="logout()" class="logout-btn">🚪 Logout</button>
+  </aside>
 
-<button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">Menu</button>
+  <button onclick="toggleDarkMode()" class="floating-top-btn">🌙 Dark Mode</button>
 
-<aside id="sidebarMenu" class="sidebar closed">
-  <a href="index.html">Dashboard</a>
-  <a href="data-entry.html" class="active">Data Entry</a>
-  <a href="recorded-scores.html">Recorded Scores</a>
-  <a href="averages-insights.html">Averages & Insights</a>
-  <a href="set-targets.html">Set Targets</a>
-  <button onclick="logout()" class="logout-btn">Logout</button>
-</aside>
+  <header>
+    <h1>SmartScores</h1>
+    <p>Record Student Mean Scores</p>
+  </header>
 
-<button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
+  <div class="content content-with-sidebar">
+    <div class="form-header">
+      <h2>Enter Score Data</h2>
+      <p class="teacher-info">Teacher: <span id="currentTeacher">Loading...</span></p>
+    </div>
 
-<header>
-<h1>SmartScores</h1>
-<p>Record Student Mean Scores</p>
-</header>
+    <form id="dataEntryForm" class="form-box">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Subject *</label>
+          <select id="subject" required>
+            <option value="">Select Subject</option>
+            <option>Mathematics</option>
+            <option>English</option>
+            <option>Kiswahili</option>
+            <option>Science</option>
+            <option>Social Studies</option>
+            <option>CRE</option>
+            <option>IRE</option>
+            <option>Home Science</option>
+            <option>Agriculture</option>
+          </select>
+        </div>
 
-<div class="content content-with-sidebar">
+        <div class="form-group">
+          <label>Grade *</label>
+          <select id="grade" required>
+            <option value="">Select Grade</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+          </select>
+        </div>
+      </div>
 
-<form id="dataEntryForm" class="form-box">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Stream *</label>
+          <input type="text" id="stream" placeholder="e.g. North, Red, A" required>
+        </div>
 
-<label>Subject</label>
-<select id="subject" required>
-  <option value="">Select Subject</option>
-  <option>Math</option><option>English</option>
-  <option>Kiswahili</option><option>Science</option>
-  <option>Social Studies</option>
-</select>
+        <div class="form-group">
+          <label>Term *</label>
+          <select id="term" required>
+            <option value="">Select Term</option>
+            <option>Term 1</option>
+            <option>Term 2</option>
+            <option>Term 3</option>
+          </select>
+        </div>
+      </div>
 
-<label>Grade</label>
-<select id="grade" required>
-  <option value="">Select Grade</option>
-  <option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
-</select>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Exam Type *</label>
+          <select id="examType" required>
+            <option value="">Select Exam Type</option>
+            <option>Opener Exam</option>
+            <option>Mid Term Exam</option>
+            <option>End Term Exam</option>
+          </select>
+        </div>
 
-<label>Stream</label>
-<input id="stream" placeholder="e.g. North" required>
+        <div class="form-group">
+          <label>Year *</label>
+          <input type="number" id="year" min="2000" max="2100" placeholder="e.g. 2025" required>
+        </div>
+      </div>
 
-<label>Term</label>
-<select id="term" required>
-  <option value="">Select Term</option>
-  <option>Term 1</option><option>Term 2</option><option>Term 3</option>
-</select>
+      <div class="form-group">
+        <label>Mean Score *</label>
+        <input type="number" id="meanScore" min="0" max="100" step="0.1" placeholder="Enter mean score (0-100)" required>
+        <small class="hint">Enter the average score for the class</small>
+      </div>
 
-<label>Opener Mean</label>
-<input type="number" id="opener" required>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary full">💾 Save Record</button>
+        <button type="reset" class="btn btn-secondary">🔄 Clear Form</button>
+      </div>
 
-<label>Mid Term Mean</label>
-input type="number" id="midterm" required>
+      <div class="form-info">
+        <p>✅ Auto-fill: Year defaults to current year</p>
+        <p>🛡️ Protection: Duplicate records are prevented</p>
+        <p>✓ Validation: Scores (0-100), Year (2000-2100)</p>
+      </div>
+    </form>
 
-<label>End Term Mean</label>
-<input type="number" id="endterm" required>
+    <div class="quick-stats">
+      <div class="stat-card">
+        <h4>Total Records</h4>
+        <span id="totalRecords">0</span>
+      </div>
+      <div class="stat-card">
+        <h4>This Term</h4>
+        <span id="termRecords">0</span>
+      </div>
+      <div class="stat-card">
+        <h4>This Year</h4>
+        <span id="yearRecords">0</span>
+      </div>
+    </div>
+  </div>
 
-<button class="btn-maroon full">Save Record</button>
+  <footer>SmartScores v3.0 © 2025</footer>
 
-</form>
-
-</div>
-<footer>SmartScores © 2025</footer>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(registration => console.log('SW registered: ', registration))
+          .catch(error => console.log('SW registration failed: ', error));
+      });
+    }
+  </script>
 </body>
 </html>
