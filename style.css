@@ -214,6 +214,13 @@ button, .btn {
   z-index: 1100;
   cursor: pointer;
 }
+.sidebar {
+  transition: transform 0.3s ease;
+  transform: translateX(-100%);
+}
+.sidebar:not(.closed) {
+  transform: translateX(0);
+}
 
 
 /* desktop sidebar visible */
