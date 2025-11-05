@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartScores - Trend Analysis</title>
+  <meta name="description" content="Track performance trends and progress over time">
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="stylesheet" href="./style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="./app.js" defer></script>
+  <script src="./auth.js" defer></script>
+</head>
+<body>
+  <!-- MOBILE MENU TOGGLE -->
+  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+  <!-- SIDEBAR -->
+  <aside id="sidebarMenu" class="sidebar closed">
+    <a href="./index.html">📊 Dashboard</a>
+    <a href="./data-entry.html">📝 Data Entry</a>
+    <a href="./recorded-scores.html">📋 All Records</a>
+    <a href="./ai-insights.html">🤖 AI Insights</a>
+    <a href="./averages.html">📈 Averages</a>
+    <a href="./trends.html" class="active">📊 Trends</a>
+    <a href="./set-targets.html">🎯 Set Targets</a>
+    <button class="logout-btn">🚪 Logout</button>
+  </aside>
+
+  <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
+
+  <header>
+    <h1>📊 Trend Analysis</h1>
+    <p>Track Performance Progress Over Time</p>
+  </header>
+
+  <main class="content content-with-sidebar">
+    <!-- PROGRESS OVERVIEW -->
+    <section class="progress-overview">
+      <h2>📈 Progress Overview</h2>
+      <div class="progress-cards">
+        <div class="progress-card improving">
+          <div class="progress-icon">📈</div>
+          <div class="progress-value" id="improvingCount">--</div>
+          <div class="progress-label">Improving</div>
+          <div class="progress-subtext">Subjects showing growth</div>
+        </div>
+        <div class="progress-card stable">
+          <div class="progress-icon">➡️</div>
+          <div class="progress-value" id="stableCount">--</div>
+          <div class="progress-label">Stable</div>
+          <div class="progress-subtext">Consistent performance</div>
+        </div>
+        <div class="progress-card declining">
+          <div class="progress-icon">📉</div>
+          <div class="progress-value" id="decliningCount">--</div>
+          <div class="progress-label">Declining</div>
+          <div class="progress-subtext">Need intervention</div>
+        </div>
+        <div class="progress-card insufficient">
+          <div class="progress-icon">📝</div>
+          <div class="progress-value" id="insufficientData">--</div>
+          <div class="progress-label">Insufficient Data</div>
+          <div class="progress-subtext">Need more exams</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TREND FILTERS -->
+    <section class="filter-section">
+      <h3>Filter Trends</h3>
+      <div class="filter-controls">
+        <div class="filter-group">
+          <label>Trend Status</label>
+          <select id="trendFilter">
+            <option value="">All Trends</option>
+            <option value="improving">📈 Improving</option>
+            <option value="declining">📉 Declining</option>
+            <option value="stable">➡️ Stable</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Subject</label>
+          <select id="subjectFilter">
+            <option value="">All Subjects</option>
+            <!-- Subjects will be populated dynamically -->
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Grade</label>
+          <select id="trendGradeFilter">
+            <option value="">All Grades</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button onclick="applyTrendFilters()" class="btn btn-primary">Apply Filters</button>
+          <button onclick="resetTrendFilters()" class="btn btn-secondary">Reset</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRENDS TABLE -->
+    <section class="table-section">
+      <div class="section-header">
+        <h2>Detailed Trend Analysis</h2>
+        <div class="table-info">
+          <span class="info-badge" id="trendsCount">0 trends analyzed</span>
+        </div>
+      </div>
+      <div class="table-container">
+        <table id="trendsTable">
+          <thead>
+            <tr>
+              <th onclick="sortTrendsTable(0)">Subject ▾</th>
+              <th onclick="sortTrendsTable(1)">Grade ▾</th>
+              <th onclick="sortTrendsTable(2)">Stream ▾</th>
+              <th onclick="sortTrendsTable(3)">Term ▾</th>
+              <th onclick="sortTrendsTable(4)">Opener ▾</th>
+              <th onclick="sortTrendsTable(5)">Mid Term ▾</th>
+              <th onclick="sortTrendsTable(6)">End Term ▾</th>
+              <th onclick="sortTrendsTable(7)">Trend ▾</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="9" class="text-center loading-cell">Loading trend analysis...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TREND VISUALIZATIONS -->
+    <section class="trend-visualizations">
+      <h2>📊 Trend Visualizations</h2>
+      <div class="visualization-grid">
+        <div class="viz-card">
+          <h3>Progress Timeline</h3>
+          <canvas id="progressTimelineChart"></canvas>
+          <p class="viz-description">Overall performance trend across terms</p>
+        </div>
+        <div class="viz-card">
+          <h3>Subject Progress</h3>
+          <canvas id="subjectProgressChart"></canvas>
+          <p class="viz-description">Individual subject performance trends</p>
+        </div>
+        <div class="viz-card">
+          <h3>Stream Comparison</h3>
+          <canvas id="streamTrendsChart"></canvas>
+          <p class="viz-description">Performance trends by stream</p>
+        </div>
+        <div class="viz-card">
+          <h3>Improvement Heatmap</h3>
+          <div id="improvementHeatmap" class="heatmap-container">
+            <!-- Heatmap will be generated dynamically -->
+          </div>
+          <p class="viz-description">Subject improvement intensity</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- KEY INSIGHTS -->
+    <section class="key-insights">
+      <h2>💡 Key Insights</h2>
+      <div id="trendInsights" class="insights-list">
+        <div class="insight-item">
+          <div class="insight-icon">📊</div>
+          <div class="insight-content">
+            <h4>Add More Data</h4>
+            <p>Enter exam scores for multiple terms to see trend analysis.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>SmartScores v3.0 © 2025</footer>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(registration => console.log('SW registered: ', registration))
+          .catch(error => console.log('SW registration failed: ', error));
+      });
+    }
+  </script>
+</body>
+</html>
