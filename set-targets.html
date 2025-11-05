@@ -7,26 +7,28 @@
   <link rel="manifest" href="./manifest.json" />
   <link rel="stylesheet" href="./style.css" />
   <script src="./app.js" defer></script>
+  <script src="./auth.js" defer></script>
 </head>
 <body>
-  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰ Menu</button>
+  <!-- MOBILE MENU TOGGLE - ADDED -->
+  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰</button>
 
-  <!-- SIDEBAR - FIXED VERSION -->
-<aside id="sidebarMenu" class="sidebar closed">
-  <a href="./index.html">📊 Dashboard</a>
-  <a href="./data-entry.html">📝 Data Entry</a>
-  <a href="./recorded-scores.html">📋 Recorded Scores</a>
-  <a href="./averages-insights.html">🤖 Averages & Insights</a>
-  <a href="./set-targets.html">🎯 Set Targets</a>
-  <button class="logout-btn">🚪 Logout</button>
-</aside>
+  <aside id="sidebarMenu" class="sidebar closed">
+    <a href="./index.html">📊 Dashboard</a>
+    <a href="./data-entry.html">📝 Data Entry</a>
+    <a href="./recorded-scores.html">📋 Recorded Scores</a>
+    <a href="./averages-insights.html">🤖 Averages & Insights</a>
+    <a href="./set-targets.html" class="active">🎯 Set Targets</a>
+    <button class="logout-btn">🚪 Logout</button>
+  </aside>
 
-  <button onclick="toggleDarkMode()" class="floating-top-btn">🌙 Dark Mode</button>
+  <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
   <header>
     <h1>SmartScores</h1>
     <p>Set Performance Targets</p>
   </header>
+
 
   <main class="content content-with-sidebar">
     <section class="form-section">
