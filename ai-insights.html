@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartScores - AI Insights</title>
+  <meta name="description" content="AI-powered performance analysis and recommendations for teachers">
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="stylesheet" href="./style.css" />
+  <script src="./app.js" defer></script>
+  <script src="./auth.js" defer></script>
+</head>
+<body>
+  <!-- MOBILE MENU TOGGLE -->
+  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+  <!-- SIDEBAR -->
+  <aside id="sidebarMenu" class="sidebar closed">
+    <a href="./index.html">📊 Dashboard</a>
+    <a href="./data-entry.html">📝 Data Entry</a>
+    <a href="./recorded-scores.html">📋 All Records</a>
+    <a href="./ai-insights.html" class="active">🤖 AI Insights</a>
+    <a href="./averages.html">📈 Averages</a>
+    <a href="./trends.html">📊 Trends</a>
+    <a href="./set-targets.html">🎯 Set Targets</a>
+    <button class="logout-btn">🚪 Logout</button>
+  </aside>
+
+  <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
+
+  <header>
+    <h1>🤖 AI Insights</h1>
+    <p>Smart Performance Analysis & Recommendations</p>
+  </header>
+
+  <main class="content content-with-sidebar">
+    <!-- EXECUTIVE SUMMARY -->
+    <section class="executive-summary">
+      <h2>Performance Overview</h2>
+      <div class="summary-cards">
+        <div class="summary-card">
+          <div class="summary-icon">📊</div>
+          <div class="summary-value" id="overallAverage">--</div>
+          <div class="summary-label">Overall Average</div>
+          <div class="summary-trend" id="overallTrend">--</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon">🎯</div>
+          <div class="summary-value" id="targetsMet">--</div>
+          <div class="summary-label">Targets Met</div>
+          <div class="summary-subtext" id="targetsCount">-- subjects</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon">⚠️</div>
+          <div class="summary-value" id="needsAttention">--</div>
+          <div class="summary-label">Needs Attention</div>
+          <div class="summary-subtext" id="attentionCount">-- alerts</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon">🚀</div>
+          <div class="summary-value" id="outstandingCount">--</div>
+          <div class="summary-label">Outstanding</div>
+          <div class="summary-subtext" id="outstandingText">-- subjects</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRIORITY ALERTS -->
+    <section class="alerts-section critical-section">
+      <div class="section-header">
+        <h2>🚨 Priority Attention Needed</h2>
+        <span class="alert-badge" id="criticalBadge">0 critical</span>
+      </div>
+      <div id="criticalAlerts" class="alert-list">
+        <div class="empty-alert">
+          <div class="empty-icon">✅</div>
+          <p>No critical alerts! All subjects are performing well.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- OUTSTANDING PERFORMANCE -->
+    <section class="alerts-section positive-section">
+      <div class="section-header">
+        <h2>🎉 Outstanding Performance</h2>
+        <span class="alert-badge positive" id="positiveBadge">0 outstanding</span>
+      </div>
+      <div id="positiveAlerts" class="alert-list">
+        <div class="empty-alert">
+          <div class="empty-icon">📊</div>
+          <p>No outstanding performance alerts yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ON TRACK PERFORMANCE -->
+    <section class="alerts-section info-section">
+      <div class="section-header">
+        <h2>✅ On Track Performance</h2>
+        <span class="alert-badge info" id="onTrackBadge">0 on track</span>
+      </div>
+      <div id="onTrackAlerts" class="alert-list">
+        <div class="empty-alert">
+          <div class="empty-icon">🎯</div>
+          <p>No subjects currently tracked against targets.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI RECOMMENDATIONS -->
+    <section class="recommendations-section">
+      <div class="section-header">
+        <h2>💡 AI Recommendations</h2>
+        <span class="recommendation-badge" id="recommendationBadge">0 recommendations</span>
+      </div>
+      <div id="aiRecommendations" class="recommendation-list">
+        <div class="empty-recommendation">
+          <div class="empty-icon">🤖</div>
+          <p>Add more data and set targets to get AI recommendations.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>SmartScores v3.0 © 2025</footer>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(registration => console.log('SW registered: ', registration))
+          .catch(error => console.log('SW registration failed: ', error));
+      });
+    }
+  </script>
+</body>
+</html>
