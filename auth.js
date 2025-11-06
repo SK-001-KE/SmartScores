@@ -342,15 +342,15 @@ function handleWindowResize() {
     const isDesktop = window.innerWidth >= 1024;
     
     if (isDesktop) {
-        // On desktop: ensure sidebar is visible
+        // On desktop: ensure sidebar is visible but keep toggle button
         sidebar.classList.remove('closed');
         
-        // Remove mobile event listeners
+        // Remove mobile event listeners but keep toggle button visible
         document.removeEventListener('click', closeSidebarOnClickOutside);
         
-        // Hide toggle button or change its behavior
         if (toggleBtn) {
-            toggleBtn.style.display = 'none';
+            toggleBtn.style.display = 'block'; // Changed from 'none'
+            toggleBtn.textContent = '☰'; // Reset to menu icon
         }
     } else {
         // On mobile: ensure sidebar is hidden by default
@@ -363,7 +363,6 @@ function handleWindowResize() {
         }
     }
 }
-
 // Setup sidebar auto-close on mobile when navigating
 function setupSidebarAutoClose() {
     const sidebarLinks = document.querySelectorAll('.sidebar a:not(.logout-btn)');
