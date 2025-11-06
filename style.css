@@ -607,6 +607,55 @@ button, .btn {
     align-items: center;
     gap: 0.5rem;
 }
+/* Mobile Menu Toggle Button */
+.menu-toggle {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: block !important; /* Force display */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+.menu-toggle:hover {
+    background: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+/* Ensure sidebar is properly positioned */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+.sidebar.closed {
+    transform: translateX(-100%);
+}
+
+/* Desktop: sidebar always visible, toggle functional */
+@media (min-width: 1024px) {
+    .menu-toggle {
+        display: block !important; /* Always show on desktop too */
+    }
+    
+    .sidebar:not(.closed) {
+        transform: translateX(0);
+    }
+}
 
 /* =========================================================
    FORM ELEMENTS
