@@ -2095,17 +2095,17 @@ const renderAll = () => {
     
     renderRecords();
     
-    if (currentPage === 'index.html') {
+    if (currentPage === 'index.html' || currentPage === '') {
         updateDashboardStats();
         renderProgressChart();
     } else if (currentPage === 'set-targets.html') {
         renderTargets();
     } else if (currentPage === 'ai-insights.html') {
-        renderAIAnalysis(); // NEW: Render AI insights
+        renderAIAnalysis(); // Make sure this is called
     } else if (currentPage === 'averages.html') {
-        renderAveragesAnalysis(); // NEW: Render averages analysis
+        renderAveragesAnalysis(); // Make sure this is called
     } else if (currentPage === 'trends.html') {
-        renderTrendsAnalysis(); // NEW: Render trends analysis
+        renderTrendsAnalysis(); // Make sure this is called
     } else if (currentPage === 'data-entry.html') {
         const teacherDisplay = el('currentTeacher');
         if (teacherDisplay) {
