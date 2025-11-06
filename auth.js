@@ -378,34 +378,25 @@ function handleWindowResize() {
 }
 
 // Initialize sidebar state on page load
-// Initialize sidebar state on page load
 function initializeSidebar() {
     const sidebar = document.getElementById('sidebarMenu');
     const toggleBtn = document.getElementById('sidebarToggle');
     
     if (!sidebar) return;
     
+    // Always show toggle button
+    if (toggleBtn) {
+        toggleBtn.style.display = 'block';
+        toggleBtn.textContent = '☰';
+    }
+    
     const isDesktop = window.innerWidth >= 1024;
     
     if (isDesktop) {
-        // Desktop: sidebar visible, toggle button visible but functional
         sidebar.classList.remove('closed');
-        if (toggleBtn) {
-            toggleBtn.style.display = 'block';
-            toggleBtn.textContent = '☰';
-        }
     } else {
-        // Mobile: sidebar hidden, show toggle button
         sidebar.classList.add('closed');
-        if (toggleBtn) {
-            toggleBtn.style.display = 'block';
-            toggleBtn.textContent = '☰';
-        }
     }
-    
-    // Setup auto-close for mobile navigation
-    setupSidebarAutoClose();
-}
     
     // Setup auto-close for mobile navigation
     setupSidebarAutoClose();
