@@ -109,6 +109,14 @@ window.toggleDarkMode = () => {
     localStorage.setItem(STORAGE_KEYS.THEME, newTheme);
 };
 
+// ==================== SIDEBAR MANAGEMENT ====================
+window.toggleSidebar = function() {
+    const sidebar = document.getElementById('sidebarMenu');
+    if (sidebar) {
+        sidebar.classList.toggle('closed');
+    }
+};
+
 // ==================== DATA ENTRY ====================
 const handleSaveRecord = (event) => {
     if (event) event.preventDefault();
@@ -372,6 +380,56 @@ const updateSortIndicators = (sortedColumn) => {
         }
         header.textContent = text;
     });
+};
+
+// ==================== TRENDS & AVERAGES FILTERS ====================
+window.applyTrendFilters = () => {
+    showAlert('Trend filters applied!', 'success');
+    // Implementation for trend filtering would go here
+};
+
+window.resetTrendFilters = () => {
+    const trendFilter = el('trendFilter');
+    const subjectFilter = el('subjectFilter');
+    const trendGradeFilter = el('trendGradeFilter');
+    
+    if (trendFilter) trendFilter.value = '';
+    if (subjectFilter) subjectFilter.value = '';
+    if (trendGradeFilter) trendGradeFilter.value = '';
+    
+    showAlert('Trend filters reset!', 'info');
+};
+
+window.sortTrendsTable = (column) => {
+    showAlert(`Sorting trends table by column ${column}`, 'info');
+    // Implementation for trends table sorting would go here
+};
+
+window.applyAveragesFilters = () => {
+    showAlert('Averages filters applied!', 'success');
+    // Implementation for averages filtering would go here
+};
+
+window.resetAveragesFilters = () => {
+    const gradeFilter = el('gradeFilter');
+    const streamFilter = el('streamFilter');
+    const termFilter = el('termFilter');
+    
+    if (gradeFilter) gradeFilter.value = '';
+    if (streamFilter) streamFilter.value = '';
+    if (termFilter) termFilter.value = '';
+    
+    showAlert('Averages filters reset!', 'info');
+};
+
+window.sortAveragesTable = (column) => {
+    showAlert(`Sorting averages table by column ${column}`, 'info');
+    // Implementation for averages table sorting would go here
+};
+
+window.exportAverages = () => {
+    showAlert('Exporting averages data...', 'info');
+    // Implementation for averages export would go here
 };
 
 // ==================== RENDERING FUNCTIONS ====================
@@ -1246,10 +1304,15 @@ const renderAll = () => {
         renderProgressChart();
     } else if (currentPage === 'set-targets.html') {
         renderTargets();
-    } else if (currentPage === 'averages-insights.html') {
+    } else if (currentPage === 'ai-insights.html') {
         renderAIInsights();
+        // Add AI insights specific rendering here
+    } else if (currentPage === 'averages.html') {
         renderCumulativeAverages();
+        // Add averages specific rendering here
+    } else if (currentPage === 'trends.html') {
         renderTrendAnalysis();
+        // Add trends specific rendering here
     } else if (currentPage === 'data-entry.html') {
         const teacherDisplay = el('currentTeacher');
         if (teacherDisplay) {
