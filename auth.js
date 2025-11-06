@@ -497,8 +497,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize auth system
     auth.init();
     
-    // Setup sidebar auto-close on mobile
-    setupSidebarAutoClose();
+    // Initialize sidebar state
+    initializeSidebar();
+    
+    // Setup window resize handler
+    window.addEventListener('resize', handleWindowResize);
     
     // Setup auto-save for data entry (optional)
     if (window.location.pathname.includes('data-entry.html')) {
@@ -539,7 +542,6 @@ document.addEventListener('DOMContentLoaded', function() {
         auth.checkSessionTimeout();
     }, 60000); // Check every minute
 });
-
 // ==================== GLOBAL EXPORTS ====================
 
 // Make auth functions available globally
