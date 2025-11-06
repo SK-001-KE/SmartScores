@@ -1022,6 +1022,89 @@ tbody tr:hover {
   font-size: 0.85em;
   font-weight: 600;
 }
+/* AI Insights specific styles */
+.recommendation-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.recommendation-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 20px;
+    background: var(--card);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--info);
+}
+
+.recommendation-icon {
+    font-size: 1.5em;
+    flex-shrink: 0;
+}
+
+.recommendation-content h4 {
+    margin: 0 0 8px 0;
+    font-size: 1.1em;
+}
+
+.recommendation-content p {
+    margin: 0 0 10px 0;
+    color: var(--secondary);
+    line-height: 1.5;
+}
+
+.recommendation-priority {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.recommendation-priority.high {
+    background: var(--danger);
+    color: white;
+}
+
+.recommendation-priority.medium {
+    background: var(--warning);
+    color: #000;
+}
+
+.recommendation-priority.low {
+    background: var(--info);
+    color: white;
+}
+
+.empty-recommendation {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--secondary);
+}
+
+/* Trends specific styles */
+.progress-overview {
+    margin: 25px 0;
+}
+
+.heatmap-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    padding: 20px;
+}
+
+.heatmap-item {
+    padding: 15px 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    background: var(--card);
+    border: 1px solid var(--border);
+}
 
 /* =========================================================
    RUBRIC BADGES
