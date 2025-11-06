@@ -339,55 +339,24 @@ function handleWindowResize() {
     
     if (!sidebar) return;
     
+    // Always show toggle button on all screen sizes
+    if (toggleBtn) {
+        toggleBtn.style.display = 'block';
+        toggleBtn.textContent = '☰';
+    }
+    
     const isDesktop = window.innerWidth >= 1024;
     
     if (isDesktop) {
-        // On desktop: ensure sidebar is visible but keep toggle button
+        // On desktop: sidebar always visible
         sidebar.classList.remove('closed');
-        
-        // Remove mobile event listeners but keep toggle button visible
+        // Remove mobile-specific event listeners
         document.removeEventListener('click', closeSidebarOnClickOutside);
-        
-        if (toggleBtn) {
-            toggleBtn.style.display = 'block'; // Changed from 'none'
-            toggleBtn.textContent = '☰'; // Reset to menu icon
-        }
     } else {
-        // On mobile: ensure sidebar is hidden by default
+        // On mobile: sidebar hidden by default
         sidebar.classList.add('closed');
-        
-        // Show toggle button
-        if (toggleBtn) {
-            toggleBtn.style.display = 'block';
-            toggleBtn.textContent = '☰';
-        }
     }
 }
-// Setup sidebar auto-close on mobile when navigating
-function setupSidebarAutoClose() {
-    const sidebarLinks = document.querySelectorAll('.sidebar a:not(.logout-btn)');
-    const logoutButtons = document.querySelectorAll('.logout-btn');
-    
-    sidebarLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            // Only auto-close on mobile
-            if (window.innerWidth < 1024) {
-                const sidebar = document.getElementById('sidebarMenu');
-                if (sidebar && !sidebar.classList.contains('closed')) {
-                    sidebar.classList.add('closed');
-                    
-                    // Reset toggle button
-                    const toggleBtn = document.getElementById('sidebarToggle');
-                    if (toggleBtn) {
-                        toggleBtn.textContent = '☰';
-                    }
-                    
-                    document.removeEventListener('click', closeSidebarOnClickOutside);
-                }
-            }
-        });
-    });
-    
     // Handle logout buttons separately if needed
     logoutButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
