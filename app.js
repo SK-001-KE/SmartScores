@@ -2092,21 +2092,30 @@ window.clearAllData = () => {
 
 const renderAll = () => {
     const currentPage = window.location.pathname.split('/').pop();
+    console.log('Current page:', currentPage, 'Rendering...');
     
+    // Always render records (needed for all pages)
     renderRecords();
     
-    if (currentPage === 'index.html' || currentPage === '') {
+    // Page-specific rendering
+    if (currentPage === 'index.html' || currentPage === '' || currentPage === './') {
+        console.log('Rendering dashboard...');
         updateDashboardStats();
         renderProgressChart();
     } else if (currentPage === 'set-targets.html') {
+        console.log('Rendering targets...');
         renderTargets();
     } else if (currentPage === 'ai-insights.html') {
-        renderAIAnalysis(); // Make sure this is called
+        console.log('Rendering AI insights...');
+        renderAIAnalysis();
     } else if (currentPage === 'averages.html') {
-        renderAveragesAnalysis(); // Make sure this is called
+        console.log('Rendering averages...');
+        renderAveragesAnalysis();
     } else if (currentPage === 'trends.html') {
-        renderTrendsAnalysis(); // Make sure this is called
+        console.log('Rendering trends...');
+        renderTrendsAnalysis();
     } else if (currentPage === 'data-entry.html') {
+        console.log('Rendering data entry...');
         const teacherDisplay = el('currentTeacher');
         if (teacherDisplay) {
             teacherDisplay.textContent = localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Not logged in';
@@ -2130,8 +2139,33 @@ const renderAll = () => {
             const yearCount = records.filter(r => parseInt(r.year) === currentYear).length;
             yearRecords.textContent = yearCount;
         }
+    } else if (currentPage === 'recorded-scores.html') {
+        console.log('Rendering recorded scores...');
+        // Already handled by renderRecords() above
     }
+    
+    console.log('Render complete for:', currentPage);
 };
+
+// ==================== MANUAL RENDERING TRIGGERS ====================
+// Force rendering for specific pages to ensure they load data
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPage = window.location.pathname.split('/').pop();
+    
+    // Force render for specific pages after a short delay to ensure DOM is ready
+    setTimeout(() => {
+        if (currentPage === 'ai-insights.html') {
+            console.log('Force rendering AI insights...');
+            renderAIAnalysis();
+        } else if (currentPage === 'averages.html') {
+            console.log('Force rendering averages...');
+            renderAveragesAnalysis();
+        } else if (currentPage === 'trends.html') {
+            console.log('Force rendering trends...');
+            renderTrendsAnalysis();
+        }
+    }, 100);
+});
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
