@@ -266,34 +266,57 @@ function showLoginSuccess(message) {
 
 // ==================== SIDEBAR MANAGEMENT ====================
 
-// Sidebar toggle function
+// ==================== SIDEBAR MANAGEMENT ====================
+
+// Enhanced sidebar toggle function
 window.toggleSidebar = function() {
     const sidebar = document.getElementById('sidebarMenu');
     const toggleBtn = document.getElementById('sidebarToggle');
     
-    if (sidebar) {
+    if (!sidebar) return;
+    
+    // Check if we're on desktop (1024px or wider)
+    const isDesktop = window.innerWidth >= 1024;
+    
+    if (isDesktop) {
+        // On desktop, sidebar should always be visible
+        // We can optionally implement a collapsed/expanded state instead of hiding
+        sidebar.classList.remove('closed');
+        
+        // Optional: Toggle between expanded and collapsed states on desktop
+        // sidebar.classList.toggle('collapsed');
+    } else {
+        // On mobile, toggle the sidebar visibility
         sidebar.classList.toggle('closed');
         
-        // Update toggle button text
+        // Update toggle button text for mobile
         if (toggleBtn) {
             toggleBtn.textContent = sidebar.classList.contains('closed') ? '☰' : '✕';
         }
         
-        // Close sidebar when clicking outside on mobile
-        if (!sidebar.classList.contains('closed') && window.innerWidth < 1024) {
+        // Setup click outside to close only on mobile when sidebar is open
+        if (!sidebar.classList.contains('closed')) {
             setTimeout(() => {
                 document.addEventListener('click', closeSidebarOnClickOutside);
             }, 100);
+        } else {
+            document.removeEventListener('click', closeSidebarOnClickOutside);
         }
     }
 };
 
-// Close sidebar when clicking outside (mobile)
+// Close sidebar when clicking outside (mobile only)
 function closeSidebarOnClickOutside(event) {
     const sidebar = document.getElementById('sidebarMenu');
     const toggleBtn = document.getElementById('sidebarToggle');
     
     if (!sidebar || !toggleBtn) return;
+    
+    // Don't close on desktop
+    if (window.innerWidth >= 1024) {
+        document.removeEventListener('click', closeSidebarOnClickOutside);
+        return;
+    }
     
     const isClickInsideSidebar = sidebar.contains(event.target);
     const isClickOnToggle = toggleBtn.contains(event.target);
@@ -301,24 +324,118 @@ function closeSidebarOnClickOutside(event) {
     if (!isClickInsideSidebar && !isClickOnToggle && !sidebar.classList.contains('closed')) {
         sidebar.classList.add('closed');
         document.removeEventListener('click', closeSidebarOnClickOutside);
+        
+        // Reset toggle button text
+        if (toggleBtn) {
+            toggleBtn.textContent = '☰';
+        }
     }
 }
 
-// Auto-close sidebar on mobile when navigating
+// Auto-manage sidebar on window resize
+function handleWindowResize() {
+    const sidebar = document.getElementById('sidebarMenu');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    
+    if (!sidebar) return;
+    
+    const isDesktop = window.innerWidth >= 1024;
+    
+    if (isDesktop) {
+        // On desktop: ensure sidebar is visible
+        sidebar.classList.remove('closed');
+        
+        // Remove mobile event listeners
+        document.removeEventListener('click', closeSidebarOnClickOutside);
+        
+        // Hide toggle button or change its behavior
+        if (toggleBtn) {
+            toggleBtn.style.display = 'none';
+        }
+    } else {
+        // On mobile: ensure sidebar is hidden by default
+        sidebar.classList.add('closed');
+        
+        // Show toggle button
+        if (toggleBtn) {
+            toggleBtn.style.display = 'block';
+            toggleBtn.textContent = '☰';
+        }
+    }
+}
+
+// Setup sidebar auto-close on mobile when navigating
 function setupSidebarAutoClose() {
-    if (window.innerWidth < 1024) {
-        const sidebarLinks = document.querySelectorAll('.sidebar a');
-        sidebarLinks.forEach(link => {
-            link.addEventListener('click', () => {
+    const sidebarLinks = document.querySelectorAll('.sidebar a:not(.logout-btn)');
+    const logoutButtons = document.querySelectorAll('.logout-btn');
+    
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            // Only auto-close on mobile
+            if (window.innerWidth < 1024) {
                 const sidebar = document.getElementById('sidebarMenu');
                 if (sidebar && !sidebar.classList.contains('closed')) {
                     sidebar.classList.add('closed');
+                    
+                    // Reset toggle button
+                    const toggleBtn = document.getElementById('sidebarToggle');
+                    if (toggleBtn) {
+                        toggleBtn.textContent = '☰';
+                    }
+                    
+                    document.removeEventListener('click', closeSidebarOnClickOutside);
                 }
-            });
+            }
         });
-    }
+    });
+    
+    // Handle logout buttons separately if needed
+    logoutButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // Don't prevent default for logout buttons
+            // Only handle sidebar closing
+            if (window.innerWidth < 1024) {
+                const sidebar = document.getElementById('sidebarMenu');
+                if (sidebar && !sidebar.classList.contains('closed')) {
+                    sidebar.classList.add('closed');
+                    
+                    const toggleBtn = document.getElementById('sidebarToggle');
+                    if (toggleBtn) {
+                        toggleBtn.textContent = '☰';
+                    }
+                }
+            }
+        });
+    });
 }
 
+// Initialize sidebar state on page load
+function initializeSidebar() {
+    const sidebar = document.getElementById('sidebarMenu');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    
+    if (!sidebar) return;
+    
+    const isDesktop = window.innerWidth >= 1024;
+    
+    if (isDesktop) {
+        // Desktop: sidebar visible, no toggle button needed
+        sidebar.classList.remove('closed');
+        if (toggleBtn) {
+            toggleBtn.style.display = 'none';
+        }
+    } else {
+        // Mobile: sidebar hidden, show toggle button
+        sidebar.classList.add('closed');
+        if (toggleBtn) {
+            toggleBtn.style.display = 'block';
+            toggleBtn.textContent = '☰';
+        }
+    }
+    
+    // Setup auto-close for mobile navigation
+    setupSidebarAutoClose();
+}
 // ==================== SESSION MANAGEMENT ====================
 
 // Auto-save draft data (optional enhancement)
