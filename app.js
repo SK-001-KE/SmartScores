@@ -2141,11 +2141,11 @@ const renderAll = () => {
 };
 
 // ==================== MANUAL RENDERING TRIGGERS ====================
-// Force rendering for specific pages to ensure they load data
+// ==================== FORCE RENDERING FOR ANALYSIS PAGES ====================
 document.addEventListener('DOMContentLoaded', function() {
     const currentPage = window.location.pathname.split('/').pop();
     
-    // Force render for specific pages after a short delay to ensure DOM is ready
+    // Force render for analysis pages after DOM is fully loaded
     setTimeout(() => {
         if (currentPage === 'ai-insights.html') {
             console.log('Force rendering AI insights...');
@@ -2157,7 +2157,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Force rendering trends...');
             renderTrendsAnalysis();
         }
-    }, 100);
+    }, 200); // Increased to 200ms for better reliability
 });
 
 // ==================== INITIALIZATION ====================
