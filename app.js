@@ -2159,6 +2159,131 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 200); // Increased to 200ms for better reliability
 });
+/* =========================================================
+   SIDEBAR NAVIGATION - FIXED VERSION
+========================================================= */
+.menu-toggle {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 10px;
+    z-index: 1001;
+    cursor: pointer;
+    font-size: 1.2em;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    display: block !important;
+}
+
+.menu-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(139, 0, 0, 0.3);
+}
+
+/* Sidebar base styles */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 280px;
+    height: 100vh;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    padding-top: 80px;
+    transition: transform 0.3s ease;
+    z-index: 1000;
+    overflow-y: auto;
+    box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+}
+
+.sidebar.closed {
+    transform: translateX(-100%);
+}
+
+.sidebar:not(.closed) {
+    transform: translateX(0);
+}
+
+.sidebar a, .sidebar button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+    background: none;
+    text-align: left;
+    width: 100%;
+    transition: all 0.3s ease;
+    font-size: 1em;
+    border: none;
+    cursor: pointer;
+}
+
+.sidebar a:hover, .sidebar button:hover {
+    background: rgba(139, 0, 0, 0.08);
+    color: var(--primary);
+}
+
+.sidebar a.active {
+    background: var(--gradient-primary);
+    color: white;
+    border-left: 4px solid var(--accent);
+}
+
+.sidebar button.logout-btn {
+    background: linear-gradient(135deg, #e53e3e, #c53030);
+    color: white;
+    margin-top: auto;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.sidebar button.logout-btn:hover {
+    background: linear-gradient(135deg, #f56565, #e53e3e);
+    transform: translateY(-1px);
+}
+
+/* Desktop layout */
+@media (min-width: 1024px) {
+    .sidebar:not(.closed) {
+        transform: translateX(0);
+    }
+    
+    .content-with-sidebar {
+        margin-left: 280px;
+    }
+    
+    header {
+        margin-left: 280px;
+    }
+    
+    .floating-top-btn {
+        right: 20px;
+    }
+}
+
+/* Mobile layout */
+@media (max-width: 1023px) {
+    .content-with-sidebar {
+        margin-left: 0;
+    }
+    
+    header {
+        margin-left: 0;
+    }
+    
+    .floating-top-btn {
+        right: 20px;
+    }
+}
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
