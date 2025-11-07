@@ -264,6 +264,60 @@ function showLoginSuccess(message) {
     });
 }
 
+// ==================== SIDEBAR MANAGEMENT ====================
+
+// Sidebar toggle function
+window.toggleSidebar = function() {
+    const sidebar = document.getElementById('sidebarMenu');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    
+    if (sidebar) {
+        sidebar.classList.toggle('closed');
+        
+        // Update toggle button text
+        if (toggleBtn) {
+            toggleBtn.textContent = sidebar.classList.contains('closed') ? '☰' : '✕';
+        }
+        
+        // Close sidebar when clicking outside on mobile
+        if (!sidebar.classList.contains('closed') && window.innerWidth < 1024) {
+            setTimeout(() => {
+                document.addEventListener('click', closeSidebarOnClickOutside);
+            }, 100);
+        }
+    }
+};
+
+// Close sidebar when clicking outside (mobile)
+function closeSidebarOnClickOutside(event) {
+    const sidebar = document.getElementById('sidebarMenu');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    
+    if (!sidebar || !toggleBtn) return;
+    
+    const isClickInsideSidebar = sidebar.contains(event.target);
+    const isClickOnToggle = toggleBtn.contains(event.target);
+    
+    if (!isClickInsideSidebar && !isClickOnToggle && !sidebar.classList.contains('closed')) {
+        sidebar.classList.add('closed');
+        document.removeEventListener('click', closeSidebarOnClickOutside);
+    }
+}
+
+// Auto-close sidebar on mobile when navigating
+function setupSidebarAutoClose() {
+    if (window.innerWidth < 1024) {
+        const sidebarLinks = document.querySelectorAll('.sidebar a');
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                const sidebar = document.getElementById('sidebarMenu');
+                if (sidebar && !sidebar.classList.contains('closed')) {
+                    sidebar.classList.add('closed');
+                }
+            });
+        });
+    }
+}
 
 // ==================== SESSION MANAGEMENT ====================
 
@@ -326,11 +380,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize auth system
     auth.init();
     
-    // Initialize sidebar state
-    initializeSidebar();
-    
-    // Setup window resize handler
-    window.addEventListener('resize', handleWindowResize);
+    // Setup sidebar auto-close on mobile
+    setupSidebarAutoClose();
     
     // Setup auto-save for data entry (optional)
     if (window.location.pathname.includes('data-entry.html')) {
@@ -371,6 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
         auth.checkSessionTimeout();
     }, 60000); // Check every minute
 });
+
 // ==================== GLOBAL EXPORTS ====================
 
 // Make auth functions available globally

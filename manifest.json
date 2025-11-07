@@ -43,7 +43,7 @@
     {
       "name": "AI Insights",
       "short_name": "Insights", 
-      "url": "./averages-insights.html",
+      "url": "./ai-insights.html",
       "icons": [{ "src": "./icon-192x192.png", "sizes": "192x192" }],
       "description": "View performance analytics"
     },
