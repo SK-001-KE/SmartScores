@@ -1348,99 +1348,111 @@ const updateTargetsSummary = (targets) => {
 };
 
 // ==================== AI INSIGHTS ====================
-const renderAIInsights = () => {
-    const container = el('insights');
-    if (!container) return;
-    
+// ==================== COMPLETE AI INSIGHTS RENDERING ====================
+const renderAIAnalysis = () => {
     const records = loadRecords();
     const targets = loadTargets();
     
+    console.log('AI Insights: Processing', records.length, 'records and', targets.length, 'targets');
+    
     if (records.length === 0) {
-        container.innerHTML = `
-            <div class="insight-item">
-                <p>No data available. Start by entering scores to generate insights.</p>
-            </div>
-        `;
+        // Show empty state for all sections
+        updateEmptyAIState();
         return;
     }
     
-    const targetMap = {};
-    targets.forEach(target => {
-        const key = `${target.subject}|${target.grade}|${target.stream}|${target.term}|${target.examType}`;
-        targetMap[key] = target.score;
-    });
+    // Update executive summary
+    updateExecutiveSummary(records, targets);
     
-    const insights = [];
-    let onTrackCount = 0;
-    let aboveTargetCount = 0;
-    let belowTargetCount = 0;
+    // Generate alerts and recommendations
+    generatePriorityAlerts(records, targets);
+    generateOutstandingPerformance(records, targets);
+    generateOnTrackPerformance(records, targets);
+    generateAIRecommendations(records, targets);
+};
+
+const updateEmptyAIState = () => {
+    // Update all sections to show empty states
+    const overallAvgEl = el('overallAverage');
+    const targetsMetEl = el('targetsMet');
+    const needsAttentionEl = el('needsAttention');
+    const outstandingCountEl = el('outstandingCount');
     
-    records.forEach(record => {
-        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
-        const target = targetMap[key];
-        
-        if (target !== undefined) {
-            const deviation = ((record.mean - target) / target) * 100;
-            const absoluteDeviation = Math.abs(deviation);
-            
-            if (absoluteDeviation > 10) {
-                const insight = {
-                    subject: record.subject,
-                    grade: record.grade,
-                    stream: record.stream,
-                    term: record.term,
-                    actual: record.mean,
-                    target: target,
-                    deviation: deviation,
-                    type: deviation > 0 ? 'above' : 'below'
-                };
-                insights.push(insight);
-                
-                if (deviation > 0) aboveTargetCount++;
-                else belowTargetCount++;
-            } else {
-                onTrackCount++;
-            }
-        }
-    });
+    if (overallAvgEl) overallAvgEl.textContent = '--';
+    if (targetsMetEl) targetsMetEl.textContent = '--';
+    if (needsAttentionEl) needsAttentionEl.textContent = '--';
+    if (outstandingCountEl) outstandingCountEl.textContent = '--';
     
-    let insightsHTML = '';
+    // Keep the default empty states that are already in the HTML
+};
+
+// ==================== COMPLETE AVERAGES RENDERING ====================
+const renderAveragesAnalysis = () => {
+    const records = loadRecords();
     
-    if (insights.length === 0 && targets.length > 0) {
-        insightsHTML = `
-            <div class="insight-item positive">
-                <h4>🎉 Excellent Performance!</h4>
-                <p>All ${onTrackCount} tracked subjects are within 10% of their targets.</p>
-            </div>
-        `;
-    } else if (insights.length > 0) {
-        insightsHTML = insights.map(insight => `
-            <div class="insight-item ${insight.type === 'above' ? 'positive' : 'negative'}">
-                <h4>${insight.type === 'above' ? '🚀 Outstanding!' : '⚠️ Needs Attention'}</h4>
-                <p><strong>${insight.subject}</strong> (Grade ${insight.grade}, ${insight.stream}, ${insight.term})</p>
-                <p>Actual: <strong>${insight.actual.toFixed(1)}%</strong> | Target: ${insight.target}%</p>
-                <p>Deviation: <strong style="color: ${insight.type === 'above' ? '#10b981' : '#ef4444'}">
-                    ${insight.deviation > 0 ? '+' : ''}${insight.deviation.toFixed(1)}%
-                </strong></p>
-            </div>
-        `).join('');
-        
-        insightsHTML += `
-            <div class="insights-summary">
-                <p><strong>Summary:</strong> ${aboveTargetCount} above target, ${belowTargetCount} below target, ${onTrackCount} on track</p>
-            </div>
-        `;
-    } else {
-        insightsHTML = `
-            <div class="insight-item">
-                <h4>📊 Set Targets for Better Insights</h4>
-                <p>Set performance targets to get AI insights about your class performance.</p>
-                <a href="./set-targets.html" class="btn btn-primary">Set Targets</a>
-            </div>
-        `;
+    console.log('Averages: Processing', records.length, 'records');
+    
+    if (records.length === 0) {
+        updateEmptyAveragesState();
+        return;
     }
     
-    container.innerHTML = insightsHTML;
+    // Update quick stats
+    updateAveragesQuickStats(records);
+    
+    // Render averages table
+    renderAveragesTable(records);
+    
+    // Render charts (placeholder - would need Chart.js implementation)
+    renderAveragesCharts(records);
+};
+
+const updateEmptyAveragesState = () => {
+    const totalSubjectsEl = el('totalSubjects');
+    const bestSubjectScoreEl = el('bestSubjectScore');
+    const bestSubjectNameEl = el('bestSubjectName');
+    const improvedSubjectsEl = el('improvedSubjects');
+    
+    if (totalSubjectsEl) totalSubjectsEl.textContent = '--';
+    if (bestSubjectScoreEl) bestSubjectScoreEl.textContent = '--';
+    if (bestSubjectNameEl) bestSubjectNameEl.textContent = '--';
+    if (improvedSubjectsEl) improvedSubjectsEl.textContent = '--';
+};
+
+// ==================== COMPLETE TRENDS RENDERING ====================
+const renderTrendsAnalysis = () => {
+    const records = loadRecords();
+    
+    console.log('Trends: Processing', records.length, 'records');
+    
+    if (records.length === 0) {
+        updateEmptyTrendsState();
+        return;
+    }
+    
+    // Update progress overview
+    updateTrendsOverview(records);
+    
+    // Render trends table
+    renderTrendsTable(records);
+    
+    // Render trend visualizations (placeholder)
+    renderTrendVisualizations(records);
+    
+    // Generate insights
+    generateTrendInsights(records);
+};
+
+const updateEmptyTrendsState = () => {
+    const improvingCountEl = el('improvingCount');
+    const stableCountEl = el('stableCount');
+    const decliningCountEl = el('decliningCount');
+    const insufficientDataEl = el('insufficientData');
+    
+    if (improvingCountEl) improvingCountEl.textContent = '--';
+    if (stableCountEl) stableCountEl.textContent = '--';
+    if (decliningCountEl) decliningCountEl.textContent = '--';
+    if (insufficientDataEl) insufficientDataEl.textContent = '--';
 };
 
 // ==================== CUMULATIVE AVERAGES ====================
@@ -2097,7 +2109,7 @@ const renderAll = () => {
     // Always render records (needed for all pages)
     renderRecords();
     
-    // Page-specific rendering
+    // Page-specific rendering with proper function calls
     if (currentPage === 'index.html' || currentPage === '' || currentPage === './') {
         console.log('Rendering dashboard...');
         updateDashboardStats();
@@ -2119,25 +2131,6 @@ const renderAll = () => {
         const teacherDisplay = el('currentTeacher');
         if (teacherDisplay) {
             teacherDisplay.textContent = localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Not logged in';
-        }
-        
-        const records = loadRecords();
-        const totalRecords = el('totalRecords');
-        const termRecords = el('termRecords');
-        const yearRecords = el('yearRecords');
-        
-        if (totalRecords) totalRecords.textContent = records.length;
-        
-        if (termRecords) {
-            const currentTerm = 'Term 1';
-            const termCount = records.filter(r => r.term === currentTerm).length;
-            termRecords.textContent = termCount;
-        }
-        
-        if (yearRecords) {
-            const currentYear = new Date().getFullYear();
-            const yearCount = records.filter(r => parseInt(r.year) === currentYear).length;
-            yearRecords.textContent = yearCount;
         }
     } else if (currentPage === 'recorded-scores.html') {
         console.log('Rendering recorded scores...');
