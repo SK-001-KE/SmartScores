@@ -2286,9 +2286,116 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 // ==================== INITIALIZATION ====================
+// ==================== SIDEBAR MANAGEMENT ====================
+
+// Enhanced sidebar toggle function
+window.toggleSidebar = function() {
+    const sidebar = document.getElementById('sidebarMenu');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    
+    console.log('Toggle sidebar called'); // Debug log
+    
+    if (!sidebar) {
+        console.log('Sidebar element not found');
+        return;
+    }
+    
+    // Toggle the sidebar visibility
+    sidebar.classList.toggle('closed');
+    
+    // Update toggle button text
+    if (toggleBtn) {
+        toggleBtn.textContent = sidebar.classList.contains('closed') ? '☰' : '✕';
+    }
+    
+    console.log('Sidebar closed state:', sidebar.classList.contains('closed')); // Debug log
+};
+
+// Close sidebar when clicking outside (mobile only)
+function closeSidebarOnClickOutside(event) {
+    const sidebar = document.getElementById('sidebarMenu');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    
+    if (!sidebar || !toggleBtn) return;
+    
+    // Only close on mobile
+    if (window.innerWidth >= 1024) return;
+    
+    const isClickInsideSidebar = sidebar.contains(event.target);
+    const isClickOnToggle = toggleBtn.contains(event.target);
+    
+    if (!isClickInsideSidebar && !isClickOnToggle && !sidebar.classList.contains('closed')) {
+        sidebar.classList.add('closed');
+        if (toggleBtn) {
+            toggleBtn.textContent = '☰';
+        }
+    }
+}
+
+// Initialize sidebar
+function initializeSidebar() {
+    const sidebar = document.getElementById('sidebarMenu');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    
+    console.log('Initializing sidebar'); // Debug log
+    
+    if (!sidebar) {
+        console.log('Sidebar not found during initialization');
+        return;
+    }
+    
+    // Set initial state based on screen size
+    const isDesktop = window.innerWidth >= 1024;
+    
+    if (isDesktop) {
+        sidebar.classList.remove('closed');
+    } else {
+        sidebar.classList.add('closed');
+    }
+    
+    // Setup click outside listener for mobile
+    document.addEventListener('click', closeSidebarOnClickOutside);
+    
+    // Auto-close sidebar when clicking links on mobile
+    const sidebarLinks = document.querySelectorAll('.sidebar a, .sidebar button');
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth < 1024) {
+                sidebar.classList.add('closed');
+                if (toggleBtn) {
+                    toggleBtn.textContent = '☰';
+                }
+            }
+        });
+    });
+    
+    console.log('Sidebar initialized. Closed:', sidebar.classList.contains('closed'));
+}
+
+// Handle window resize
+function handleSidebarResize() {
+    const sidebar = document.getElementById('sidebarMenu');
+    if (!sidebar) return;
+    
+    const isDesktop = window.innerWidth >= 1024;
+    
+    if (isDesktop) {
+        sidebar.classList.remove('closed');
+    } else {
+        sidebar.classList.add('closed');
+    }
+}
+
+// ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
     loadTheme();
     autoFillYear();
+    
+    // Initialize sidebar - ADD THIS LINE
+    initializeSidebar();
+    
+    // Setup window resize handler for sidebar - ADD THIS LINE
+    window.addEventListener('resize', handleSidebarResize);
     
     const dataForm = el('dataEntryForm');
     if (dataForm) {
