@@ -194,6 +194,233 @@ const autoFillYear = () => {
     }
 };
 
+// Add these missing functions to app.js
+
+// AI Insights specific functions
+const updateAIInsights = () => {
+    const records = loadRecords();
+    const targets = loadTargets();
+    
+    // Update summary cards
+    updateSummaryCards(records, targets);
+    updateAlerts(records, targets);
+    updateRecommendations(records, targets);
+};
+
+const updateSummaryCards = (records, targets) => {
+    if (records.length === 0) return;
+    
+    // Overall Average
+    const overallAvg = records.reduce((sum, r) => sum + r.mean, 0) / records.length;
+    el('overallAverage').textContent = overallAvg.toFixed(1) + '%';
+    
+    // Targets Met
+    const targetsMet = calculateTargetsMet(records, targets);
+    el('targetsMet').textContent = targetsMet.metCount;
+    el('targetsCount').textContent = targetsMet.total + ' subjects';
+    
+    // Needs Attention
+    const attention = calculateAttentionNeeded(records, targets);
+    el('needsAttention').textContent = attention.count;
+    el('attentionCount').textContent = attention.count + ' alerts';
+    
+    // Outstanding
+    const outstanding = calculateOutstanding(records);
+    el('outstandingCount').textContent = outstanding.count;
+    el('outstandingText').textContent = outstanding.count + ' subjects';
+};
+
+const calculateTargetsMet = (records, targets) => {
+    let metCount = 0;
+    const targetMap = {};
+    
+    targets.forEach(target => {
+        const key = `${target.subject}|${target.grade}|${target.stream}|${target.term}|${target.examType}`;
+        targetMap[key] = target.score;
+    });
+    
+    records.forEach(record => {
+        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
+        const target = targetMap[key];
+        if (target && record.mean >= target) {
+            metCount++;
+        }
+    });
+    
+    return { metCount, total: targets.length };
+};
+
+const calculateAttentionNeeded = (records, targets) => {
+    const critical = [];
+    const targetMap = {};
+    
+    targets.forEach(target => {
+        const key = `${target.subject}|${target.grade}|${target.stream}|${target.term}|${target.examType}`;
+        targetMap[key] = target.score;
+    });
+    
+    records.forEach(record => {
+        const key = `${record.subject}|${target.grade}|${record.stream}|${record.term}|${record.examType}`;
+        const target = targetMap[key];
+        
+        // Critical if significantly below target or very low score
+        if ((target && record.mean < target - 10) || record.mean < 40) {
+            critical.push(record);
+        }
+    });
+    
+    return { count: critical.length, records: critical };
+};
+
+const calculateOutstanding = (records) => {
+    const outstanding = records.filter(record => record.mean >= 80);
+    return { count: outstanding.length, records: outstanding };
+};
+
+const updateAlerts = (records, targets) => {
+    const attention = calculateAttentionNeeded(records, targets);
+    const outstanding = calculateOutstanding(records);
+    
+    // Update critical alerts
+    updateAlertSection('criticalAlerts', attention.records, 'critical', 'No critical alerts! All subjects are performing well.');
+    el('criticalBadge').textContent = attention.count + ' critical';
+    
+    // Update positive alerts
+    updateAlertSection('positiveAlerts', outstanding.records, 'positive', 'No outstanding performance alerts yet.');
+    el('positiveBadge').textContent = outstanding.count + ' outstanding';
+    
+    // Update on-track alerts
+    updateOnTrackAlerts(records, targets);
+};
+
+const updateAlertSection = (containerId, records, type, emptyMessage) => {
+    const container = el(containerId);
+    
+    if (records.length === 0) {
+        container.innerHTML = `
+            <div class="empty-alert">
+                <div class="empty-icon">${type === 'critical' ? '✅' : '📊'}</div>
+                <p>${emptyMessage}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = records.map(record => `
+        <div class="alert-item ${type}">
+            <div class="alert-icon">${type === 'critical' ? '⚠️' : '🎉'}</div>
+            <div class="alert-content">
+                <h4>${record.subject} - ${type === 'critical' ? 'Needs Attention' : 'Outstanding!'}</h4>
+                <p>Grade ${record.grade}, ${record.stream} - ${record.mean.toFixed(1)}%</p>
+            </div>
+            <span class="alert-tag">${type === 'critical' ? 'Critical' : 'Excellent'}</span>
+        </div>
+    `).join('');
+};
+
+const updateOnTrackAlerts = (records, targets) => {
+    const onTrack = [];
+    const targetMap = {};
+    
+    targets.forEach(target => {
+        const key = `${target.subject}|${target.grade}|${target.stream}|${target.term}|${target.examType}`;
+        targetMap[key] = target.score;
+    });
+    
+    records.forEach(record => {
+        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
+        const target = targetMap[key];
+        
+        if (target && Math.abs(record.mean - target) <= 5) {
+            onTrack.push(record);
+        }
+    });
+    
+    updateAlertSection('onTrackAlerts', onTrack, 'info', 'No subjects currently tracked against targets.');
+    el('onTrackBadge').textContent = onTrack.length + ' on track';
+};
+
+const updateRecommendations = (records, targets) => {
+    const recommendations = generateAIRecommendations(records, targets);
+    const container = el('aiRecommendations');
+    
+    el('recommendationBadge').textContent = recommendations.length + ' recommendations';
+    
+    if (recommendations.length === 0) {
+        container.innerHTML = `
+            <div class="empty-recommendation">
+                <div class="empty-icon">🤖</div>
+                <p>Add more data and set targets to get AI recommendations.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = recommendations.map(rec => `
+        <div class="recommendation-item">
+            <div class="recommendation-icon">💡</div>
+            <div class="recommendation-content">
+                <h4>${rec.title}</h4>
+                <p>${rec.message}</p>
+                ${rec.suggestion ? `<p><strong>Suggestion:</strong> ${rec.suggestion}</p>` : ''}
+            </div>
+        </div>
+    `).join('');
+};
+
+const generateAIRecommendations = (records, targets) => {
+    const recommendations = [];
+    
+    if (records.length === 0) return recommendations;
+    
+    // Check for low performing subjects
+    const subjectAverages = {};
+    records.forEach(record => {
+        const key = record.subject;
+        if (!subjectAverages[key]) {
+            subjectAverages[key] = { sum: 0, count: 0 };
+        }
+        subjectAverages[key].sum += record.mean;
+        subjectAverages[key].count++;
+    });
+    
+    Object.entries(subjectAverages).forEach(([subject, data]) => {
+        const avg = data.sum / data.count;
+        if (avg < 50) {
+            recommendations.push({
+                title: `Low Performance in ${subject}`,
+                message: `Average score is ${avg.toFixed(1)}%, which is below the satisfactory level.`,
+                suggestion: 'Consider additional support, remedial classes, or differentiated instruction.'
+            });
+        }
+    });
+    
+    // Check target performance
+    const targetMap = {};
+    targets.forEach(target => {
+        const key = `${target.subject}|${target.grade}|${target.stream}|${target.term}|${target.examType}`;
+        targetMap[key] = target.score;
+    });
+    
+    let belowTargetCount = 0;
+    records.forEach(record => {
+        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
+        const target = targetMap[key];
+        if (target && record.mean < target - 5) {
+            belowTargetCount++;
+        }
+    });
+    
+    if (belowTargetCount > 0) {
+        recommendations.push({
+            title: 'Multiple Subjects Below Target',
+            message: `${belowTargetCount} records are significantly below their targets.`,
+            suggestion: 'Review teaching strategies and provide targeted interventions.'
+        });
+    }
+    
+    return recommendations;
+};
 // ==================== TARGET MANAGEMENT ====================
 const handleSaveTarget = (event) => {
     if (event) event.preventDefault();
