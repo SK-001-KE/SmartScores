@@ -214,6 +214,38 @@ header p {
   transform: translateY(-1px);
 }
 
+/* Add to style.css */
+.recommendation-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 20px;
+    background: var(--card);
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border-left: 4px solid var(--primary);
+}
+
+.recommendation-icon {
+    font-size: 1.5em;
+    flex-shrink: 0;
+}
+
+.recommendation-content h4 {
+    margin: 0 0 8px 0;
+    color: var(--primary);
+}
+
+.recommendation-content p {
+    margin: 5px 0;
+    color: var(--text);
+}
+
+.empty-recommendation {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--secondary);
+}
 /* =========================================================
    DASHBOARD STYLES
 ========================================================= */
