@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartScores - AI Insights</title>
   <style>
-    /* MINIMAL CSS - Just what we need */
+    /* ===== CORE STYLES ===== */
     :root {
       --bg: #ffffff;
       --text: #2d3748;
@@ -15,6 +15,8 @@
       --success: #38a169;
       --danger: #e53e3e;
       --info: #3182ce;
+      --gradient-primary: linear-gradient(135deg, #8B0000, #a83232);
+      --gradient-header: linear-gradient(135deg, #2d3748, #4a5568);
     }
 
     [data-theme="dark"] {
@@ -22,6 +24,7 @@
       --text: #e2e8f0;
       --card: #2d3748;
       --border: #4a5568;
+      --primary: #c53030;
     }
 
     * {
@@ -35,24 +38,166 @@
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
-      padding: 20px;
+      padding-bottom: 60px;
     }
 
+    /* ===== HEADER ===== */
     header {
       text-align: center;
       padding: 25px 20px;
-      background: linear-gradient(135deg, #2d3748, #4a5568);
+      background: var(--gradient-header);
       color: white;
-      border-radius: 16px;
-      margin-bottom: 25px;
+      position: relative;
+      z-index: 100;
     }
 
+    header h1 {
+      font-size: 2.2em;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .menu-toggle {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      z-index: 1000;
+      cursor: pointer;
+      font-size: 1.2em;
+      transition: all 0.3s ease;
+    }
+
+    .menu-toggle:hover {
+      transform: translateY(-2px);
+    }
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 280px;
+      height: 100vh;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      padding-top: 80px;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      z-index: 999;
+      overflow-y: auto;
+    }
+
+    .sidebar:not(.closed) {
+      transform: translateX(0);
+    }
+
+    .sidebar.closed {
+      transform: translateX(-100%);
+    }
+
+    .sidebar a, .sidebar button {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      background: none;
+      text-align: left;
+      width: 100%;
+      transition: all 0.3s ease;
+      font-size: 1em;
+      border: none;
+      cursor: pointer;
+    }
+
+    .sidebar a:hover, .sidebar button:hover {
+      background: rgba(139, 0, 0, 0.08);
+      color: var(--primary);
+    }
+
+    .sidebar a.active {
+      background: var(--gradient-primary);
+      color: white;
+      border-left: 4px solid var(--info);
+    }
+
+    .sidebar button.logout-btn {
+      background: linear-gradient(135deg, #e53e3e, #c53030);
+      color: white;
+      margin-top: auto;
+      border: none;
+    }
+
+    .sidebar button.logout-btn:hover {
+      background: linear-gradient(135deg, #f56565, #e53e3e);
+    }
+
+    /* ===== CONTENT ===== */
     .content {
+      padding: 20px;
       max-width: 1200px;
       margin: 0 auto;
+      transition: margin-left 0.3s ease;
     }
 
-    /* Summary Cards */
+    .content-with-sidebar {
+      margin-left: 0;
+    }
+
+    @media (min-width: 1024px) {
+      .menu-toggle {
+        display: none;
+      }
+      
+      .sidebar {
+        transform: translateX(0);
+        width: 280px;
+      }
+      
+      .sidebar.closed {
+        transform: translateX(-100%);
+      }
+      
+      .content-with-sidebar {
+        margin-left: 280px;
+      }
+    }
+
+    /* ===== DARK MODE BUTTON ===== */
+    .floating-top-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--info), #3182ce);
+      color: white;
+      border: none;
+      cursor: pointer;
+      z-index: 1000;
+      font-size: 1.1em;
+      transition: all 0.3s ease;
+    }
+
+    .floating-top-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    /* ===== AI INSIGHTS SPECIFIC STYLES ===== */
     .summary-cards {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -66,6 +211,11 @@
       border-radius: 12px;
       text-align: center;
       border-top: 4px solid var(--primary);
+      transition: all 0.3s ease;
+    }
+
+    .summary-card:hover {
+      transform: translateY(-3px);
     }
 
     .summary-icon { font-size: 2em; margin-bottom: 10px; }
@@ -167,14 +317,7 @@
 
     .empty-recommendation { text-align: center; padding: 40px 20px; color: #666; }
 
-    /* Navigation */
-    .nav-buttons {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-
+    /* Buttons */
     .btn {
       padding: 12px 20px;
       border: none;
@@ -184,9 +327,24 @@
       text-decoration: none;
       font-weight: 600;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .btn-secondary { background: #4a5568; }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      font-size: 0.9em;
+    }
 
     @media (max-width: 768px) {
       .summary-cards { grid-template-columns: 1fr; }
@@ -196,20 +354,30 @@
   </style>
 </head>
 <body>
+  <!-- MOBILE MENU TOGGLE -->
+  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+  <!-- SIDEBAR -->
+  <aside id="sidebarMenu" class="sidebar closed">
+    <a href="./index.html">📊 Dashboard</a>
+    <a href="./data-entry.html">📝 Data Entry</a>
+    <a href="./recorded-scores.html">📋 Recorded Scores</a>
+    <a href="./ai-insights.html" class="active">🤖 AI Insights</a>
+    <a href="./averages.html">📈 Averages</a>
+    <a href="./trends.html">📊 Trends</a>
+    <a href="./set-targets.html">🎯 Set Targets</a>
+    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+  </aside>
+
+  <!-- DARK MODE TOGGLE -->
+  <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
+
   <header>
-    <h1>🤖 AI Insights</h1>
-    <p>Smart Performance Analysis & Recommendations</p>
+    <h1>SmartScores</h1>
+    <p>AI Insights & Performance Analysis</p>
   </header>
 
-  <main class="content">
-    <!-- Navigation -->
-    <div class="nav-buttons">
-      <a href="./index.html" class="btn">📊 Dashboard</a>
-      <a href="./data-entry.html" class="btn">📝 Add Scores</a>
-      <button onclick="refreshInsights()" class="btn">🔄 Refresh</button>
-      <button onclick="toggleDarkMode()" class="btn btn-secondary">🌙 Toggle Dark</button>
-    </div>
-
+  <main class="content content-with-sidebar">
     <!-- EXECUTIVE SUMMARY -->
     <section class="executive-summary">
       <h2>Performance Overview</h2>
@@ -298,22 +466,85 @@
     </section>
 
     <!-- DEBUG INFO -->
-    <section style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin-top: 30px;">
+    <section style="background: var(--card); padding: 15px; border-radius: 8px; margin-top: 30px;">
       <h3>🔧 Debug Information</h3>
       <p><strong>Records Found:</strong> <span id="debugRecords">0</span></p>
       <p><strong>Targets Found:</strong> <span id="debugTargets">0</span></p>
       <p><strong>Last Updated:</strong> <span id="debugTime">--</span></p>
+      <button onclick="refreshInsights()" class="btn" style="margin-top: 10px;">🔄 Refresh Insights</button>
     </section>
   </main>
 
+  <footer>SmartScores v3.0 © 2025</footer>
+
   <script>
-    // ==================== STANDALONE AI INSIGHTS ====================
-    console.log('🚀 AI Insights Standalone loaded!');
+    // ==================== STANDALONE AI INSIGHTS WITH SIDEBAR ====================
+    console.log('🚀 AI Insights with Sidebar loaded!');
 
     // Simple DOM helper
     const el = id => document.getElementById(id);
 
-    // Data loading
+    // ===== SIDEBAR MANAGEMENT =====
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebarMenu');
+      const toggleBtn = document.getElementById('sidebarToggle');
+      
+      if (sidebar) {
+        sidebar.classList.toggle('closed');
+        if (toggleBtn) {
+          toggleBtn.textContent = sidebar.classList.contains('closed') ? '☰' : '✕';
+        }
+      }
+    }
+
+    // Close sidebar when clicking outside on mobile
+    function setupSidebarAutoClose() {
+      document.addEventListener('click', function(event) {
+        const sidebar = document.getElementById('sidebarMenu');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        
+        if (window.innerWidth < 1024 && sidebar && !sidebar.classList.contains('closed')) {
+          const isClickInsideSidebar = sidebar.contains(event.target);
+          const isClickOnToggle = toggleBtn && toggleBtn.contains(event.target);
+          
+          if (!isClickInsideSidebar && !isClickOnToggle) {
+            sidebar.classList.add('closed');
+          }
+        }
+      });
+    }
+
+    // ===== THEME MANAGEMENT =====
+    function toggleDarkMode() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('themeMode', newTheme);
+    }
+
+    function loadTheme() {
+      const theme = localStorage.getItem('themeMode') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+
+    // ===== AUTH MANAGEMENT =====
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('teacherFullName');
+        window.location.href = './login.html';
+      }
+    }
+
+    function checkAuth() {
+      const teacher = localStorage.getItem('teacherFullName');
+      if (!teacher) {
+        window.location.href = './login.html';
+        return false;
+      }
+      return true;
+    }
+
+    // ===== DATA MANAGEMENT =====
     function loadRecords() {
       try {
         const data = localStorage.getItem('smartScoresRecords');
@@ -334,9 +565,11 @@
       }
     }
 
-    // Main analysis function
+    // ===== AI INSIGHTS LOGIC =====
     function analyzePerformance() {
       console.log('🔍 Analyzing performance...');
+      
+      if (!checkAuth()) return;
       
       const records = loadRecords();
       const targets = loadTargets();
@@ -585,12 +818,9 @@
     }
 
     function showEmptyState() {
-      document.body.innerHTML = `
-        <header>
-          <h1>🤖 AI Insights</h1>
-          <p>Smart Performance Analysis & Recommendations</p>
-        </header>
-        <main class="content" style="text-align: center; padding: 50px 20px;">
+      const mainContent = document.querySelector('main');
+      mainContent.innerHTML = `
+        <div style="text-align: center; padding: 50px 20px;">
           <div style="font-size: 4em; margin-bottom: 20px;">📊</div>
           <h2>No Data Yet</h2>
           <p style="margin: 20px 0; color: #666;">Start by entering some student scores to get AI insights.</p>
@@ -598,26 +828,17 @@
             <a href="./data-entry.html" class="btn">📝 Add First Score</a>
             <a href="./index.html" class="btn btn-secondary">📊 Dashboard</a>
           </div>
-        </main>
+        </div>
       `;
     }
 
-    // Utility functions
     function refreshInsights() {
       console.log('🔄 Refreshing insights...');
       analyzePerformance();
       showNotification('Insights refreshed!');
     }
 
-    function toggleDarkMode() {
-      const current = document.documentElement.getAttribute('data-theme');
-      const newTheme = current === 'light' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      localStorage.setItem('themeMode', newTheme);
-    }
-
     function showNotification(message) {
-      // Simple notification
       const notification = document.createElement('div');
       notification.style.cssText = `
         position: fixed;
@@ -638,24 +859,38 @@
       }, 3000);
     }
 
-    // Initialize when page loads
+    // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('🎯 AI Insights Standalone initialized!');
+      console.log('🎯 AI Insights with Sidebar initialized!');
       
-      // Load saved theme
-      const savedTheme = localStorage.getItem('themeMode') || 'light';
-      document.documentElement.setAttribute('data-theme', savedTheme);
+      // Load theme
+      loadTheme();
+      
+      // Setup sidebar auto-close
+      setupSidebarAutoClose();
+      
+      // Auto-close sidebar on mobile when navigating
+      const sidebarLinks = document.querySelectorAll('.sidebar a');
+      sidebarLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          if (window.innerWidth < 1024) {
+            const sidebar = document.getElementById('sidebarMenu');
+            if (sidebar && !sidebar.classList.contains('closed')) {
+              sidebar.classList.add('closed');
+            }
+          }
+        });
+      });
       
       // Run analysis
       analyzePerformance();
-      
-      // Auto-refresh every 30 seconds (optional)
-      setInterval(analyzePerformance, 30000);
     });
 
     // Make functions available globally
-    window.refreshInsights = refreshInsights;
+    window.toggleSidebar = toggleSidebar;
     window.toggleDarkMode = toggleDarkMode;
+    window.logout = logout;
+    window.refreshInsights = refreshInsights;
   </script>
 </body>
 </html>
