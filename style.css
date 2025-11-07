@@ -129,10 +129,13 @@ header p {
 /* =========================================================
    SIDEBAR NAVIGATION - FIXED FOR DESKTOP
 ========================================================= */
+/* =========================================================
+   SIDEBAR NAVIGATION - FIXED VERSION
+========================================================= */
 .menu-toggle {
     position: fixed;
-    top: 20px;
-    left: 20px;
+    top: 15px;
+    left: 15px;
     background: var(--gradient-primary);
     color: white;
     border: none;
@@ -143,6 +146,7 @@ header p {
     font-size: 1.2em;
     box-shadow: var(--shadow);
     transition: all 0.3s ease;
+    display: block !important; /* Force display on all screens */
 }
 
 .menu-toggle:hover {
@@ -164,6 +168,10 @@ header p {
     z-index: 999;
     overflow-y: auto;
     box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+}
+
+.sidebar.closed {
+    transform: translateX(-100%);
 }
 
 .sidebar a, .sidebar button {
@@ -207,6 +215,76 @@ header p {
 .sidebar button.logout-btn:hover {
     background: linear-gradient(135deg, #f56565, #e53e3e);
     transform: translateY(-1px);
+}
+
+/* =========================================================
+   DESKTOP LAYOUT (1024px and up) - FIXED
+========================================================= */
+@media (min-width: 1024px) {
+    .menu-toggle {
+        display: block !important; /* Show on desktop too */
+    }
+    
+    .sidebar {
+        transform: translateX(0) !important; /* Always show sidebar on desktop */
+        width: 280px;
+    }
+    
+    .sidebar.closed {
+        transform: translateX(-100%) !important; /* Hide when closed on desktop */
+    }
+    
+    .content-with-sidebar {
+        margin-left: 280px; /* Create space for sidebar */
+        transition: margin-left 0.3s ease;
+    }
+    
+    /* Ensure header accounts for sidebar */
+    header {
+        margin-left: 280px;
+        transition: margin-left 0.3s ease;
+    }
+    
+    /* Adjust floating button position to account for sidebar */
+    .floating-top-btn {
+        right: 20px;
+        margin-left: 280px; /* Account for sidebar */
+    }
+}
+
+/* =========================================================
+   MOBILE LAYOUT (below 1024px) - FIXED
+========================================================= */
+@media (max-width: 1023px) {
+    .menu-toggle {
+        display: block; /* Show menu toggle on mobile */
+    }
+    
+    .sidebar {
+        transform: translateX(-100%); /* Hidden by default on mobile */
+        width: 280px;
+    }
+    
+    .sidebar:not(.closed) {
+        transform: translateX(0); /* Show when not closed */
+    }
+    
+    .sidebar.closed {
+        transform: translateX(-100%); /* Hide when closed */
+    }
+    
+    .content-with-sidebar {
+        margin-left: 0; /* No sidebar margin on mobile */
+    }
+    
+    header {
+        margin-left: 0; /* No sidebar margin on mobile */
+    }
+    
+    .floating-top-btn {
+        right: 20px;
+        margin-left: 0; /* No sidebar adjustment on mobile */
+    }
 }
 
 /* =========================================================
