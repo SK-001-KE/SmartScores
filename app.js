@@ -1532,8 +1532,7 @@ const renderAll = () => {
     } else if (currentPage === 'set-targets.html') {
         renderTargets();
     } else if (currentPage === 'ai-insights.html') {
-        renderAIInsights();
-        // Add AI insights specific rendering here
+        updateAIInsights(); // Add this line
     } else if (currentPage === 'averages.html') {
         renderCumulativeAverages();
         // Add averages specific rendering here
@@ -1566,7 +1565,6 @@ const renderAll = () => {
         }
     }
 };
-
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
     loadTheme();
