@@ -109,14 +109,6 @@ window.toggleDarkMode = () => {
     localStorage.setItem(STORAGE_KEYS.THEME, newTheme);
 };
 
-// ==================== SIDEBAR MANAGEMENT ====================
-window.toggleSidebar = function() {
-    const sidebar = document.getElementById('sidebarMenu');
-    if (sidebar) {
-        sidebar.classList.toggle('closed');
-    }
-};
-
 // ==================== DATA ENTRY ====================
 const handleSaveRecord = (event) => {
     if (event) event.preventDefault();
@@ -325,801 +317,6 @@ window.filterTargets = () => {
         emptyTargets.style.display = visibleCount === 0 ? 'block' : 'none';
     }
 };
-// ==================== AI INSIGHTS RENDERING ====================
-const renderAIAnalysis = () => {
-    const records = loadRecords();
-    const targets = loadTargets();
-    
-    // Update executive summary
-    updateExecutiveSummary(records, targets);
-    
-    // Generate alerts and recommendations
-    generatePriorityAlerts(records, targets);
-    generateOutstandingPerformance(records, targets);
-    generateOnTrackPerformance(records, targets);
-    generateAIRecommendations(records, targets);
-};
-
-const updateExecutiveSummary = (records, targets) => {
-    if (records.length === 0) return;
-    
-    // Overall average
-    const overallAvg = records.reduce((sum, record) => sum + record.mean, 0) / records.length;
-    const overallAvgEl = el('overallAverage');
-    if (overallAvgEl) {
-        overallAvgEl.textContent = `${overallAvg.toFixed(1)}%`;
-    }
-    
-    // Targets met
-    const targetsMetEl = el('targetsMet');
-    const targetsCountEl = el('targetsCount');
-    if (targetsMetEl && targetsCountEl) {
-        let metCount = 0;
-        let totalTracked = 0;
-        
-        records.forEach(record => {
-            const target = findMatchingTarget(record, targets);
-            if (target) {
-                totalTracked++;
-                if (record.mean >= target.score) {
-                    metCount++;
-                }
-            }
-        });
-        
-        const percentage = totalTracked > 0 ? Math.round((metCount / totalTracked) * 100) : 0;
-        targetsMetEl.textContent = `${percentage}%`;
-        targetsCountEl.textContent = `${metCount}/${totalTracked} subjects`;
-    }
-    
-    // Needs attention
-    const needsAttentionEl = el('needsAttention');
-    const attentionCountEl = el('attentionCount');
-    if (needsAttentionEl && attentionCountEl) {
-        const criticalCount = countCriticalAlerts(records, targets);
-        needsAttentionEl.textContent = criticalCount;
-        attentionCountEl.textContent = `${criticalCount} alerts`;
-    }
-    
-    // Outstanding performance
-    const outstandingCountEl = el('outstandingCount');
-    const outstandingTextEl = el('outstandingText');
-    if (outstandingCountEl && outstandingTextEl) {
-        const outstandingCount = countOutstandingPerformance(records);
-        outstandingCountEl.textContent = outstandingCount;
-        outstandingTextEl.textContent = `${outstandingCount} subjects`;
-    }
-};
-
-const generatePriorityAlerts = (records, targets) => {
-    const container = el('criticalAlerts');
-    if (!container) return;
-    
-    const criticalAlerts = [];
-    
-    records.forEach(record => {
-        const target = findMatchingTarget(record, targets);
-        
-        // Critical alert if performance is very low
-        if (record.mean < 40) {
-            criticalAlerts.push({
-                type: 'critical',
-                icon: '⚠️',
-                subject: record.subject,
-                grade: record.grade,
-                stream: record.stream,
-                score: record.mean,
-                message: `Very low performance needs immediate intervention`,
-                tag: 'Critical'
-            });
-        }
-        // Alert if significantly below target
-        else if (target && record.mean < target.score - 15) {
-            criticalAlerts.push({
-                type: 'critical',
-                icon: '🎯',
-                subject: record.subject,
-                grade: record.grade,
-                stream: record.stream,
-                score: record.mean,
-                target: target.score,
-                message: `Significantly below target (${target.score}%)`,
-                tag: 'Below Target'
-            });
-        }
-        // Alert if declining trend (you'd need historical data for this)
-    });
-    
-    const badge = el('criticalBadge');
-    if (badge) {
-        badge.textContent = `${criticalAlerts.length} critical`;
-    }
-    
-    if (criticalAlerts.length === 0) {
-        container.innerHTML = `
-            <div class="empty-alert">
-                <div class="empty-icon">✅</div>
-                <p>No critical alerts! All subjects are performing well.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = criticalAlerts.map(alert => `
-        <div class="alert-item critical">
-            <div class="alert-icon">${alert.icon}</div>
-            <div class="alert-content">
-                <h4>${alert.subject} - Grade ${alert.grade} (${alert.stream})</h4>
-                <p>${alert.message} - Current: <strong>${alert.score.toFixed(1)}%</strong></p>
-            </div>
-            <span class="alert-tag">${alert.tag}</span>
-        </div>
-    `).join('');
-};
-
-const generateOutstandingPerformance = (records, targets) => {
-    const container = el('positiveAlerts');
-    if (!container) return;
-    
-    const outstandingAlerts = [];
-    
-    records.forEach(record => {
-        const target = findMatchingTarget(record, targets);
-        
-        // Outstanding if score is very high
-        if (record.mean >= 85) {
-            outstandingAlerts.push({
-                type: 'outstanding',
-                icon: '⭐',
-                subject: record.subject,
-                grade: record.grade,
-                stream: record.stream,
-                score: record.mean,
-                message: `Exceptional performance!`,
-                tag: 'Outstanding'
-            });
-        }
-        // Outstanding if significantly above target
-        else if (target && record.mean > target.score + 10) {
-            outstandingAlerts.push({
-                type: 'outstanding',
-                icon: '🚀',
-                subject: record.subject,
-                grade: record.grade,
-                stream: record.stream,
-                score: record.mean,
-                target: target.score,
-                message: `Exceeding target by ${(record.mean - target.score).toFixed(1)}%`,
-                tag: 'Above Target'
-            });
-        }
-    });
-    
-    const badge = el('positiveBadge');
-    if (badge) {
-        badge.textContent = `${outstandingAlerts.length} outstanding`;
-    }
-    
-    if (outstandingAlerts.length === 0) {
-        container.innerHTML = `
-            <div class="empty-alert">
-                <div class="empty-icon">📊</div>
-                <p>No outstanding performance alerts yet.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = outstandingAlerts.map(alert => `
-        <div class="alert-item positive">
-            <div class="alert-icon">${alert.icon}</div>
-            <div class="alert-content">
-                <h4>${alert.subject} - Grade ${alert.grade} (${alert.stream})</h4>
-                <p>${alert.message}</p>
-            </div>
-            <span class="alert-tag">${alert.tag}</span>
-        </div>
-    `).join('');
-};
-
-const generateOnTrackPerformance = (records, targets) => {
-    const container = el('onTrackAlerts');
-    if (!container) return;
-    
-    const onTrackAlerts = [];
-    
-    records.forEach(record => {
-        const target = findMatchingTarget(record, targets);
-        
-        // On track if within 5% of target
-        if (target && Math.abs(record.mean - target.score) <= 5) {
-            onTrackAlerts.push({
-                type: 'on-track',
-                icon: '✅',
-                subject: record.subject,
-                grade: record.grade,
-                stream: record.stream,
-                score: record.mean,
-                target: target.score,
-                message: `Performing as expected`,
-                tag: 'On Track'
-            });
-        }
-    });
-    
-    const badge = el('onTrackBadge');
-    if (badge) {
-        badge.textContent = `${onTrackAlerts.length} on track`;
-    }
-    
-    if (onTrackAlerts.length === 0) {
-        container.innerHTML = `
-            <div class="empty-alert">
-                <div class="empty-icon">🎯</div>
-                <p>No subjects currently tracked against targets.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = onTrackAlerts.map(alert => `
-        <div class="alert-item info">
-            <div class="alert-icon">${alert.icon}</div>
-            <div class="alert-content">
-                <h4>${alert.subject} - Grade ${alert.grade} (${alert.stream})</h4>
-                <p>${alert.message} - Target: ${alert.target}%</p>
-            </div>
-            <span class="alert-tag">${alert.tag}</span>
-        </div>
-    `).join('');
-};
-
-const generateAIRecommendations = (records, targets) => {
-    const container = el('aiRecommendations');
-    if (!container) return;
-    
-    const recommendations = [];
-    
-    // Analyze patterns and generate recommendations
-    if (records.length === 0) {
-        container.innerHTML = `
-            <div class="empty-recommendation">
-                <div class="empty-icon">🤖</div>
-                <p>Add more data and set targets to get AI recommendations.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    // Recommendation 1: Based on overall performance
-    const overallAvg = records.reduce((sum, record) => sum + record.mean, 0) / records.length;
-    if (overallAvg < 50) {
-        recommendations.push({
-            icon: '📚',
-            title: 'Focus on Foundation Skills',
-            description: 'Overall performance suggests students may need additional support in fundamental concepts. Consider review sessions.',
-            priority: 'High'
-        });
-    }
-    
-    // Recommendation 2: Based on target achievement
-    const targetAchievement = calculateTargetAchievement(records, targets);
-    if (targetAchievement.rate < 60) {
-        recommendations.push({
-            icon: '🎯',
-            title: 'Review Target Settings',
-            description: `Only ${targetAchievement.rate}% of targets are being met. Consider adjusting targets or implementing additional support strategies.`,
-            priority: 'Medium'
-        });
-    }
-    
-    // Recommendation 3: Based on subject variation
-    const subjectVariation = calculateSubjectVariation(records);
-    if (subjectVariation > 20) {
-        recommendations.push({
-            icon: '📊',
-            title: 'Address Performance Gaps',
-            description: 'Significant variation between subjects detected. Consider cross-subject support strategies.',
-            priority: 'Medium'
-        });
-    }
-    
-    // Recommendation 4: General best practice
-    if (records.length < 10) {
-        recommendations.push({
-            icon: '📝',
-            title: 'Collect More Data',
-            description: 'More data points will improve the accuracy of insights and recommendations.',
-            priority: 'Low'
-        });
-    }
-    
-    const badge = el('recommendationBadge');
-    if (badge) {
-        badge.textContent = `${recommendations.length} recommendations`;
-    }
-    
-    if (recommendations.length === 0) {
-        container.innerHTML = `
-            <div class="empty-recommendation">
-                <div class="empty-icon">✅</div>
-                <p>Great job! All systems are performing well. Keep up the good work!</p>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = recommendations.map(rec => `
-        <div class="recommendation-item">
-            <div class="recommendation-icon">${rec.icon}</div>
-            <div class="recommendation-content">
-                <h4>${rec.title}</h4>
-                <p>${rec.description}</p>
-                <span class="recommendation-priority ${rec.priority.toLowerCase()}">${rec.priority} Priority</span>
-            </div>
-        </div>
-    `).join('');
-};
-
-// ==================== AVERAGES PAGE RENDERING ====================
-const renderAveragesAnalysis = () => {
-    const records = loadRecords();
-    
-    // Update quick stats
-    updateAveragesQuickStats(records);
-    
-    // Render averages table
-    renderAveragesTable(records);
-    
-    // Render charts
-    renderAveragesCharts(records);
-};
-
-const updateAveragesQuickStats = (records) => {
-    if (records.length === 0) return;
-    
-    // Total subjects
-    const uniqueSubjects = new Set(records.map(r => r.subject));
-    const totalSubjectsEl = el('totalSubjects');
-    if (totalSubjectsEl) {
-        totalSubjectsEl.textContent = uniqueSubjects.size;
-    }
-    
-    // Best subject
-    const bestSubjectEl = el('bestSubjectScore');
-    const bestSubjectNameEl = el('bestSubjectName');
-    if (bestSubjectEl && bestSubjectNameEl) {
-        const subjectAverages = calculateSubjectAverages(records);
-        if (subjectAverages.length > 0) {
-            const best = subjectAverages[0]; // Assuming sorted
-            bestSubjectEl.textContent = `${best.average.toFixed(1)}%`;
-            bestSubjectNameEl.textContent = best.subject;
-        }
-    }
-    
-    // Improved subjects (placeholder - would need historical data)
-    const improvedSubjectsEl = el('improvedSubjects');
-    if (improvedSubjectsEl) {
-        improvedSubjectsEl.textContent = '--';
-    }
-};
-
-const renderAveragesTable = (records) => {
-    const tbody = document.querySelector('#averagesTable tbody');
-    if (!tbody) return;
-    
-    if (records.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="9" class="text-center loading-cell">No data available for averages analysis.</td>
-            </tr>
-        `;
-        return;
-    }
-    
-    // Group records by subject, grade, stream, term
-    const groups = {};
-    records.forEach(record => {
-        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}`;
-        if (!groups[key]) {
-            groups[key] = {
-                subject: record.subject,
-                grade: record.grade,
-                stream: record.stream,
-                term: record.term,
-                exams: {
-                    'Opener Exam': [],
-                    'Mid Term Exam': [],
-                    'End Term Exam': []
-                }
-            };
-        }
-        
-        const examType = record.examType || '';
-        if (examType.includes('Opener')) {
-            groups[key].exams['Opener Exam'].push(record.mean);
-        } else if (examType.includes('Mid')) {
-            groups[key].exams['Mid Term Exam'].push(record.mean);
-        } else if (examType.includes('End')) {
-            groups[key].exams['End Term Exam'].push(record.mean);
-        }
-    });
-    
-    // Calculate averages
-    const averages = Object.values(groups).map(group => {
-        const openerAvg = group.exams['Opener Exam'].length > 0 ? 
-            group.exams['Opener Exam'].reduce((a, b) => a + b, 0) / group.exams['Opener Exam'].length : null;
-        const midAvg = group.exams['Mid Term Exam'].length > 0 ? 
-            group.exams['Mid Term Exam'].reduce((a, b) => a + b, 0) / group.exams['Mid Term Exam'].length : null;
-        const endAvg = group.exams['End Term Exam'].length > 0 ? 
-            group.exams['End Term Exam'].reduce((a, b) => a + b, 0) / group.exams['End Term Exam'].length : null;
-        
-        const allScores = [...group.exams['Opener Exam'], ...group.exams['Mid Term Exam'], ...group.exams['End Term Exam']];
-        const overallAvg = allScores.length > 0 ? 
-            allScores.reduce((a, b) => a + b, 0) / allScores.length : 0;
-        
-        return {
-            ...group,
-            openerAvg,
-            midAvg,
-            endAvg,
-            overallAvg
-        };
-    });
-    
-    // Sort by subject name
-    averages.sort((a, b) => a.subject.localeCompare(b.subject));
-    
-    tbody.innerHTML = averages.map(avg => `
-        <tr>
-            <td>${avg.subject}</td>
-            <td>${avg.grade}</td>
-            <td>${avg.stream}</td>
-            <td>${avg.term}</td>
-            <td>${avg.openerAvg !== null ? avg.openerAvg.toFixed(1) + '%' : '–'}</td>
-            <td>${avg.midAvg !== null ? avg.midAvg.toFixed(1) + '%' : '–'}</td>
-            <td>${avg.endAvg !== null ? avg.endAvg.toFixed(1) + '%' : '–'}</td>
-            <td style="font-weight: bold;">${avg.overallAvg.toFixed(1)}%</td>
-            <td>${formatRubricBadge(avg.overallAvg)}</td>
-        </tr>
-    `).join('');
-};
-
-const renderAveragesCharts = (records) => {
-    // This would implement the Chart.js visualizations
-    // Placeholder for chart rendering logic
-    console.log('Rendering averages charts with', records.length, 'records');
-};
-
-// ==================== TRENDS PAGE RENDERING ====================
-const renderTrendsAnalysis = () => {
-    const records = loadRecords();
-    
-    // Update progress overview
-    updateTrendsOverview(records);
-    
-    // Render trends table
-    renderTrendsTable(records);
-    
-    // Render trend visualizations
-    renderTrendVisualizations(records);
-    
-    // Generate insights
-    generateTrendInsights(records);
-};
-
-const updateTrendsOverview = (records) => {
-    if (records.length === 0) return;
-    
-    const trends = analyzeTrends(records);
-    
-    const improvingCountEl = el('improvingCount');
-    const stableCountEl = el('stableCount');
-    const decliningCountEl = el('decliningCount');
-    const insufficientDataEl = el('insufficientData');
-    
-    if (improvingCountEl) improvingCountEl.textContent = trends.improving;
-    if (stableCountEl) stableCountEl.textContent = trends.stable;
-    if (decliningCountEl) decliningCountEl.textContent = trends.declining;
-    if (insufficientDataEl) insufficientDataEl.textContent = trends.insufficientData;
-};
-
-const renderTrendsTable = (records) => {
-    const tbody = document.querySelector('#trendsTable tbody');
-    if (!tbody) return;
-    
-    if (records.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="9" class="text-center loading-cell">No data available for trend analysis.</td>
-            </tr>
-        `;
-        return;
-    }
-    
-    const trends = calculateDetailedTrends(records);
-    
-    const trendsCountEl = el('trendsCount');
-    if (trendsCountEl) {
-        trendsCountEl.textContent = `${trends.length} trends analyzed`;
-    }
-    
-    if (trends.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="9" class="text-center loading-cell">
-                    Not enough data for trend analysis. Need multiple exam scores per subject.
-                </td>
-            </tr>
-        `;
-        return;
-    }
-    
-    tbody.innerHTML = trends.map(trend => `
-        <tr>
-            <td>${trend.subject}</td>
-            <td>${trend.grade}</td>
-            <td>${trend.stream}</td>
-            <td>${trend.term}</td>
-            <td>${trend.opener !== null ? trend.opener + '%' : '–'}</td>
-            <td>${trend.midTerm !== null ? trend.midTerm + '%' : '–'}</td>
-            <td>${trend.endTerm !== null ? trend.endTerm + '%' : '–'}</td>
-            <td style="font-weight: bold; color: ${trend.trendColor};">${trend.trend}</td>
-            <td>
-                <span class="rubric-badge" style="background: ${trend.trendColor}">${trend.status}</span>
-            </td>
-        </tr>
-    `).join('');
-};
-
-const renderTrendVisualizations = (records) => {
-    // Placeholder for trend charts
-    console.log('Rendering trend visualizations with', records.length, 'records');
-};
-
-const generateTrendInsights = (records) => {
-    const container = el('trendInsights');
-    if (!container) return;
-    
-    if (records.length === 0) {
-        container.innerHTML = `
-            <div class="insight-item">
-                <div class="insight-icon">📊</div>
-                <div class="insight-content">
-                    <h4>Add More Data</h4>
-                    <p>Enter exam scores for multiple terms to see trend analysis.</p>
-                </div>
-            </div>
-        `;
-        return;
-    }
-    
-    const trends = analyzeTrends(records);
-    const insights = [];
-    
-    if (trends.improving > trends.declining) {
-        insights.push({
-            icon: '📈',
-            title: 'Positive Momentum',
-            description: `More subjects are improving (${trends.improving}) than declining (${trends.declining}). Keep up the effective teaching strategies!`
-        });
-    }
-    
-    if (trends.insufficientData > 5) {
-        insights.push({
-            icon: '📝',
-            title: 'Data Collection Opportunity',
-            description: `${trends.insufficientData} subjects need more exam data for proper trend analysis.`
-        });
-    }
-    
-    if (insights.length === 0) {
-        insights.push({
-            icon: '🔍',
-            title: 'Continue Monitoring',
-            description: 'Track performance over time to identify patterns and opportunities for improvement.'
-        });
-    }
-    
-    container.innerHTML = insights.map(insight => `
-        <div class="insight-item">
-            <div class="insight-icon">${insight.icon}</div>
-            <div class="insight-content">
-                <h4>${insight.title}</h4>
-                <p>${insight.description}</p>
-            </div>
-        </div>
-    `).join('');
-};
-
-// ==================== HELPER FUNCTIONS ====================
-const findMatchingTarget = (record, targets) => {
-    return targets.find(target => 
-        target.subject === record.subject &&
-        target.grade === record.grade &&
-        target.stream === record.stream &&
-        target.term === record.term &&
-        target.examType === record.examType
-    );
-};
-
-const countCriticalAlerts = (records, targets) => {
-    return records.filter(record => {
-        const target = findMatchingTarget(record, targets);
-        return record.mean < 40 || (target && record.mean < target.score - 15);
-    }).length;
-};
-
-const countOutstandingPerformance = (records) => {
-    return records.filter(record => record.mean >= 85).length;
-};
-
-const calculateTargetAchievement = (records, targets) => {
-    let metCount = 0;
-    let totalTracked = 0;
-    
-    records.forEach(record => {
-        const target = findMatchingTarget(record, targets);
-        if (target) {
-            totalTracked++;
-            if (record.mean >= target.score) {
-                metCount++;
-            }
-        }
-    });
-    
-    return {
-        met: metCount,
-        total: totalTracked,
-        rate: totalTracked > 0 ? Math.round((metCount / totalTracked) * 100) : 0
-    };
-};
-
-const calculateSubjectVariation = (records) => {
-    const subjectAverages = calculateSubjectAverages(records);
-    if (subjectAverages.length < 2) return 0;
-    
-    const averages = subjectAverages.map(s => s.average);
-    const max = Math.max(...averages);
-    const min = Math.min(...averages);
-    
-    return max - min;
-};
-
-const calculateSubjectAverages = (records) => {
-    const subjectMap = {};
-    
-    records.forEach(record => {
-        const key = record.subject;
-        if (!subjectMap[key]) {
-            subjectMap[key] = { sum: 0, count: 0, subject: key };
-        }
-        subjectMap[key].sum += record.mean;
-        subjectMap[key].count++;
-    });
-    
-    const averages = Object.values(subjectMap).map(item => ({
-        subject: item.subject,
-        average: item.sum / item.count
-    }));
-    
-    return averages.sort((a, b) => b.average - a.average);
-};
-
-const analyzeTrends = (records) => {
-    const groups = {};
-    
-    records.forEach(record => {
-        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}`;
-        if (!groups[key]) {
-            groups[key] = {
-                subject: record.subject,
-                grade: record.grade,
-                stream: record.stream,
-                term: record.term,
-                exams: {}
-            };
-        }
-        groups[key].exams[record.examType] = record.mean;
-    });
-    
-    let improving = 0;
-    let declining = 0;
-    let stable = 0;
-    let insufficientData = 0;
-    
-    Object.values(groups).forEach(group => {
-        const exams = Object.values(group.exams);
-        if (exams.length < 2) {
-            insufficientData++;
-            return;
-        }
-        
-        // Simple trend analysis - compare first and last available scores
-        const scores = exams.filter(score => score !== undefined);
-        if (scores.length >= 2) {
-            const firstScore = scores[0];
-            const lastScore = scores[scores.length - 1];
-            const change = lastScore - firstScore;
-            
-            if (change > 2) improving++;
-            else if (change < -2) declining++;
-            else stable++;
-        }
-    });
-    
-    return { improving, declining, stable, insufficientData };
-};
-
-const calculateDetailedTrends = (records) => {
-    const groups = {};
-    const trends = [];
-    
-    records.forEach(record => {
-        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}`;
-        if (!groups[key]) {
-            groups[key] = {
-                subject: record.subject,
-                grade: record.grade,
-                stream: record.stream,
-                term: record.term,
-                exams: {}
-            };
-        }
-        groups[key].exams[record.examType] = record.mean;
-    });
-    
-    Object.values(groups).forEach(group => {
-        const opener = group.exams['Opener Exam'];
-        const midTerm = group.exams['Mid Term Exam'];
-        const endTerm = group.exams['End Term Exam'];
-        
-        const exams = [opener, midTerm, endTerm].filter(score => score !== undefined);
-        if (exams.length < 2) return;
-        
-        let trend = '';
-        let trendValue = 0;
-        let status = 'Insufficient Data';
-        let trendColor = '#666';
-        
-        if (opener !== undefined && endTerm !== undefined) {
-            trendValue = endTerm - opener;
-            trend = `${trendValue >= 0 ? '+' : ''}${trendValue.toFixed(1)}%`;
-            if (trendValue > 2) {
-                status = 'Improving';
-                trendColor = '#10b981';
-            } else if (trendValue < -2) {
-                status = 'Declining';
-                trendColor = '#ef4444';
-            } else {
-                status = 'Stable';
-                trendColor = '#f59e0b';
-            }
-        } else if (opener !== undefined && midTerm !== undefined) {
-            trendValue = midTerm - opener;
-            trend = `${trendValue >= 0 ? '+' : ''}${trendValue.toFixed(1)}%`;
-            status = trendValue > 0 ? 'Improving' : 'Declining';
-            trendColor = trendValue > 0 ? '#10b981' : '#ef4444';
-        } else if (midTerm !== undefined && endTerm !== undefined) {
-            trendValue = endTerm - midTerm;
-            trend = `${trendValue >= 0 ? '+' : ''}${trendValue.toFixed(1)}%`;
-            status = trendValue > 0 ? 'Improving' : 'Declining';
-            trendColor = trendValue > 0 ? '#10b981' : '#ef4444';
-        }
-        
-        trends.push({
-            ...group,
-            opener,
-            midTerm,
-            endTerm,
-            trend,
-            status,
-            trendColor
-        });
-    });
-    
-    return trends;
-};
 
 // ==================== SORTING ====================
 let currentSort = { column: 0, direction: 'asc' };
@@ -1175,56 +372,6 @@ const updateSortIndicators = (sortedColumn) => {
         }
         header.textContent = text;
     });
-};
-
-// ==================== TRENDS & AVERAGES FILTERS ====================
-window.applyTrendFilters = () => {
-    showAlert('Trend filters applied!', 'success');
-    // Implementation for trend filtering would go here
-};
-
-window.resetTrendFilters = () => {
-    const trendFilter = el('trendFilter');
-    const subjectFilter = el('subjectFilter');
-    const trendGradeFilter = el('trendGradeFilter');
-    
-    if (trendFilter) trendFilter.value = '';
-    if (subjectFilter) subjectFilter.value = '';
-    if (trendGradeFilter) trendGradeFilter.value = '';
-    
-    showAlert('Trend filters reset!', 'info');
-};
-
-window.sortTrendsTable = (column) => {
-    showAlert(`Sorting trends table by column ${column}`, 'info');
-    // Implementation for trends table sorting would go here
-};
-
-window.applyAveragesFilters = () => {
-    showAlert('Averages filters applied!', 'success');
-    // Implementation for averages filtering would go here
-};
-
-window.resetAveragesFilters = () => {
-    const gradeFilter = el('gradeFilter');
-    const streamFilter = el('streamFilter');
-    const termFilter = el('termFilter');
-    
-    if (gradeFilter) gradeFilter.value = '';
-    if (streamFilter) streamFilter.value = '';
-    if (termFilter) termFilter.value = '';
-    
-    showAlert('Averages filters reset!', 'info');
-};
-
-window.sortAveragesTable = (column) => {
-    showAlert(`Sorting averages table by column ${column}`, 'info');
-    // Implementation for averages table sorting would go here
-};
-
-window.exportAverages = () => {
-    showAlert('Exporting averages data...', 'info');
-    // Implementation for averages export would go here
 };
 
 // ==================== RENDERING FUNCTIONS ====================
@@ -1348,111 +495,99 @@ const updateTargetsSummary = (targets) => {
 };
 
 // ==================== AI INSIGHTS ====================
-// ==================== COMPLETE AI INSIGHTS RENDERING ====================
-const renderAIAnalysis = () => {
+const renderAIInsights = () => {
+    const container = el('insights');
+    if (!container) return;
+    
     const records = loadRecords();
     const targets = loadTargets();
     
-    console.log('AI Insights: Processing', records.length, 'records and', targets.length, 'targets');
-    
     if (records.length === 0) {
-        // Show empty state for all sections
-        updateEmptyAIState();
+        container.innerHTML = `
+            <div class="insight-item">
+                <p>No data available. Start by entering scores to generate insights.</p>
+            </div>
+        `;
         return;
     }
     
-    // Update executive summary
-    updateExecutiveSummary(records, targets);
+    const targetMap = {};
+    targets.forEach(target => {
+        const key = `${target.subject}|${target.grade}|${target.stream}|${target.term}|${target.examType}`;
+        targetMap[key] = target.score;
+    });
     
-    // Generate alerts and recommendations
-    generatePriorityAlerts(records, targets);
-    generateOutstandingPerformance(records, targets);
-    generateOnTrackPerformance(records, targets);
-    generateAIRecommendations(records, targets);
-};
-
-const updateEmptyAIState = () => {
-    // Update all sections to show empty states
-    const overallAvgEl = el('overallAverage');
-    const targetsMetEl = el('targetsMet');
-    const needsAttentionEl = el('needsAttention');
-    const outstandingCountEl = el('outstandingCount');
+    const insights = [];
+    let onTrackCount = 0;
+    let aboveTargetCount = 0;
+    let belowTargetCount = 0;
     
-    if (overallAvgEl) overallAvgEl.textContent = '--';
-    if (targetsMetEl) targetsMetEl.textContent = '--';
-    if (needsAttentionEl) needsAttentionEl.textContent = '--';
-    if (outstandingCountEl) outstandingCountEl.textContent = '--';
+    records.forEach(record => {
+        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
+        const target = targetMap[key];
+        
+        if (target !== undefined) {
+            const deviation = ((record.mean - target) / target) * 100;
+            const absoluteDeviation = Math.abs(deviation);
+            
+            if (absoluteDeviation > 10) {
+                const insight = {
+                    subject: record.subject,
+                    grade: record.grade,
+                    stream: record.stream,
+                    term: record.term,
+                    actual: record.mean,
+                    target: target,
+                    deviation: deviation,
+                    type: deviation > 0 ? 'above' : 'below'
+                };
+                insights.push(insight);
+                
+                if (deviation > 0) aboveTargetCount++;
+                else belowTargetCount++;
+            } else {
+                onTrackCount++;
+            }
+        }
+    });
     
-    // Keep the default empty states that are already in the HTML
-};
-
-// ==================== COMPLETE AVERAGES RENDERING ====================
-const renderAveragesAnalysis = () => {
-    const records = loadRecords();
+    let insightsHTML = '';
     
-    console.log('Averages: Processing', records.length, 'records');
-    
-    if (records.length === 0) {
-        updateEmptyAveragesState();
-        return;
+    if (insights.length === 0 && targets.length > 0) {
+        insightsHTML = `
+            <div class="insight-item positive">
+                <h4>🎉 Excellent Performance!</h4>
+                <p>All ${onTrackCount} tracked subjects are within 10% of their targets.</p>
+            </div>
+        `;
+    } else if (insights.length > 0) {
+        insightsHTML = insights.map(insight => `
+            <div class="insight-item ${insight.type === 'above' ? 'positive' : 'negative'}">
+                <h4>${insight.type === 'above' ? '🚀 Outstanding!' : '⚠️ Needs Attention'}</h4>
+                <p><strong>${insight.subject}</strong> (Grade ${insight.grade}, ${insight.stream}, ${insight.term})</p>
+                <p>Actual: <strong>${insight.actual.toFixed(1)}%</strong> | Target: ${insight.target}%</p>
+                <p>Deviation: <strong style="color: ${insight.type === 'above' ? '#10b981' : '#ef4444'}">
+                    ${insight.deviation > 0 ? '+' : ''}${insight.deviation.toFixed(1)}%
+                </strong></p>
+            </div>
+        `).join('');
+        
+        insightsHTML += `
+            <div class="insights-summary">
+                <p><strong>Summary:</strong> ${aboveTargetCount} above target, ${belowTargetCount} below target, ${onTrackCount} on track</p>
+            </div>
+        `;
+    } else {
+        insightsHTML = `
+            <div class="insight-item">
+                <h4>📊 Set Targets for Better Insights</h4>
+                <p>Set performance targets to get AI insights about your class performance.</p>
+                <a href="./set-targets.html" class="btn btn-primary">Set Targets</a>
+            </div>
+        `;
     }
     
-    // Update quick stats
-    updateAveragesQuickStats(records);
-    
-    // Render averages table
-    renderAveragesTable(records);
-    
-    // Render charts (placeholder - would need Chart.js implementation)
-    renderAveragesCharts(records);
-};
-
-const updateEmptyAveragesState = () => {
-    const totalSubjectsEl = el('totalSubjects');
-    const bestSubjectScoreEl = el('bestSubjectScore');
-    const bestSubjectNameEl = el('bestSubjectName');
-    const improvedSubjectsEl = el('improvedSubjects');
-    
-    if (totalSubjectsEl) totalSubjectsEl.textContent = '--';
-    if (bestSubjectScoreEl) bestSubjectScoreEl.textContent = '--';
-    if (bestSubjectNameEl) bestSubjectNameEl.textContent = '--';
-    if (improvedSubjectsEl) improvedSubjectsEl.textContent = '--';
-};
-
-// ==================== COMPLETE TRENDS RENDERING ====================
-const renderTrendsAnalysis = () => {
-    const records = loadRecords();
-    
-    console.log('Trends: Processing', records.length, 'records');
-    
-    if (records.length === 0) {
-        updateEmptyTrendsState();
-        return;
-    }
-    
-    // Update progress overview
-    updateTrendsOverview(records);
-    
-    // Render trends table
-    renderTrendsTable(records);
-    
-    // Render trend visualizations (placeholder)
-    renderTrendVisualizations(records);
-    
-    // Generate insights
-    generateTrendInsights(records);
-};
-
-const updateEmptyTrendsState = () => {
-    const improvingCountEl = el('improvingCount');
-    const stableCountEl = el('stableCount');
-    const decliningCountEl = el('decliningCount');
-    const insufficientDataEl = el('insufficientData');
-    
-    if (improvingCountEl) improvingCountEl.textContent = '--';
-    if (stableCountEl) stableCountEl.textContent = '--';
-    if (decliningCountEl) decliningCountEl.textContent = '--';
-    if (insufficientDataEl) insufficientDataEl.textContent = '--';
+    container.innerHTML = insightsHTML;
 };
 
 // ==================== CUMULATIVE AVERAGES ====================
@@ -2101,301 +1236,51 @@ window.clearAllData = () => {
 };
 
 // ==================== MAIN RENDER FUNCTION ====================
-
 const renderAll = () => {
     const currentPage = window.location.pathname.split('/').pop();
-    console.log('Current page:', currentPage, 'Rendering...');
     
-    // Always render records (needed for all pages)
     renderRecords();
     
-    // Page-specific rendering with proper function calls
-    if (currentPage === 'index.html' || currentPage === '' || currentPage === './') {
-        console.log('Rendering dashboard...');
+    if (currentPage === 'index.html') {
         updateDashboardStats();
         renderProgressChart();
     } else if (currentPage === 'set-targets.html') {
-        console.log('Rendering targets...');
         renderTargets();
-    } else if (currentPage === 'ai-insights.html') {
-        console.log('Rendering AI insights...');
-        renderAIAnalysis();
-    } else if (currentPage === 'averages.html') {
-        console.log('Rendering averages...');
-        renderAveragesAnalysis();
-    } else if (currentPage === 'trends.html') {
-        console.log('Rendering trends...');
-        renderTrendsAnalysis();
+    } else if (currentPage === 'averages-insights.html') {
+        renderAIInsights();
+        renderCumulativeAverages();
+        renderTrendAnalysis();
     } else if (currentPage === 'data-entry.html') {
-        console.log('Rendering data entry...');
         const teacherDisplay = el('currentTeacher');
         if (teacherDisplay) {
             teacherDisplay.textContent = localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Not logged in';
         }
-    } else if (currentPage === 'recorded-scores.html') {
-        console.log('Rendering recorded scores...');
-        // Already handled by renderRecords() above
-    }
-    
-    console.log('Render complete for:', currentPage);
-};
-
-// ==================== MANUAL RENDERING TRIGGERS ====================
-// ==================== FORCE RENDERING FOR ANALYSIS PAGES ====================
-document.addEventListener('DOMContentLoaded', function() {
-    const currentPage = window.location.pathname.split('/').pop();
-    
-    // Force render for analysis pages after DOM is fully loaded
-    setTimeout(() => {
-        if (currentPage === 'ai-insights.html') {
-            console.log('Force rendering AI insights...');
-            renderAIAnalysis();
-        } else if (currentPage === 'averages.html') {
-            console.log('Force rendering averages...');
-            renderAveragesAnalysis();
-        } else if (currentPage === 'trends.html') {
-            console.log('Force rendering trends...');
-            renderTrendsAnalysis();
+        
+        const records = loadRecords();
+        const totalRecords = el('totalRecords');
+        const termRecords = el('termRecords');
+        const yearRecords = el('yearRecords');
+        
+        if (totalRecords) totalRecords.textContent = records.length;
+        
+        if (termRecords) {
+            const currentTerm = 'Term 1';
+            const termCount = records.filter(r => r.term === currentTerm).length;
+            termRecords.textContent = termCount;
         }
-    }, 200); // Increased to 200ms for better reliability
-});
-/* =========================================================
-   SIDEBAR NAVIGATION - FIXED VERSION
-========================================================= */
-.menu-toggle {
-    position: fixed;
-    top: 15px;
-    left: 15px;
-    background: var(--gradient-primary);
-    color: white;
-    border: none;
-    padding: 12px 16px;
-    border-radius: 10px;
-    z-index: 1001;
-    cursor: pointer;
-    font-size: 1.2em;
-    box-shadow: var(--shadow);
-    transition: all 0.3s ease;
-    display: block !important;
-}
-
-.menu-toggle:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(139, 0, 0, 0.3);
-}
-
-/* Sidebar base styles */
-.sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 280px;
-    height: 100vh;
-    background: var(--card);
-    border-right: 1px solid var(--border);
-    padding-top: 80px;
-    transition: transform 0.3s ease;
-    z-index: 1000;
-    overflow-y: auto;
-    box-shadow: 2px 0 20px rgba(0,0,0,0.1);
-}
-
-.sidebar.closed {
-    transform: translateX(-100%);
-}
-
-.sidebar:not(.closed) {
-    transform: translateX(0);
-}
-
-.sidebar a, .sidebar button {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 24px;
-    border-bottom: 1px solid var(--border);
-    color: var(--text);
-    text-decoration: none;
-    font-weight: 600;
-    background: none;
-    text-align: left;
-    width: 100%;
-    transition: all 0.3s ease;
-    font-size: 1em;
-    border: none;
-    cursor: pointer;
-}
-
-.sidebar a:hover, .sidebar button:hover {
-    background: rgba(139, 0, 0, 0.08);
-    color: var(--primary);
-}
-
-.sidebar a.active {
-    background: var(--gradient-primary);
-    color: white;
-    border-left: 4px solid var(--accent);
-}
-
-.sidebar button.logout-btn {
-    background: linear-gradient(135deg, #e53e3e, #c53030);
-    color: white;
-    margin-top: auto;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.sidebar button.logout-btn:hover {
-    background: linear-gradient(135deg, #f56565, #e53e3e);
-    transform: translateY(-1px);
-}
-
-/* Desktop layout */
-@media (min-width: 1024px) {
-    .sidebar:not(.closed) {
-        transform: translateX(0);
-    }
-    
-    .content-with-sidebar {
-        margin-left: 280px;
-    }
-    
-    header {
-        margin-left: 280px;
-    }
-    
-    .floating-top-btn {
-        right: 20px;
-    }
-}
-
-/* Mobile layout */
-@media (max-width: 1023px) {
-    .content-with-sidebar {
-        margin-left: 0;
-    }
-    
-    header {
-        margin-left: 0;
-    }
-    
-    .floating-top-btn {
-        right: 20px;
-    }
-}
-
-// ==================== INITIALIZATION ====================
-// ==================== SIDEBAR MANAGEMENT ====================
-
-// Enhanced sidebar toggle function
-window.toggleSidebar = function() {
-    const sidebar = document.getElementById('sidebarMenu');
-    const toggleBtn = document.getElementById('sidebarToggle');
-    
-    console.log('Toggle sidebar called'); // Debug log
-    
-    if (!sidebar) {
-        console.log('Sidebar element not found');
-        return;
-    }
-    
-    // Toggle the sidebar visibility
-    sidebar.classList.toggle('closed');
-    
-    // Update toggle button text
-    if (toggleBtn) {
-        toggleBtn.textContent = sidebar.classList.contains('closed') ? '☰' : '✕';
-    }
-    
-    console.log('Sidebar closed state:', sidebar.classList.contains('closed')); // Debug log
-};
-
-// Close sidebar when clicking outside (mobile only)
-function closeSidebarOnClickOutside(event) {
-    const sidebar = document.getElementById('sidebarMenu');
-    const toggleBtn = document.getElementById('sidebarToggle');
-    
-    if (!sidebar || !toggleBtn) return;
-    
-    // Only close on mobile
-    if (window.innerWidth >= 1024) return;
-    
-    const isClickInsideSidebar = sidebar.contains(event.target);
-    const isClickOnToggle = toggleBtn.contains(event.target);
-    
-    if (!isClickInsideSidebar && !isClickOnToggle && !sidebar.classList.contains('closed')) {
-        sidebar.classList.add('closed');
-        if (toggleBtn) {
-            toggleBtn.textContent = '☰';
+        
+        if (yearRecords) {
+            const currentYear = new Date().getFullYear();
+            const yearCount = records.filter(r => parseInt(r.year) === currentYear).length;
+            yearRecords.textContent = yearCount;
         }
     }
-}
-
-// Initialize sidebar
-function initializeSidebar() {
-    const sidebar = document.getElementById('sidebarMenu');
-    const toggleBtn = document.getElementById('sidebarToggle');
-    
-    console.log('Initializing sidebar'); // Debug log
-    
-    if (!sidebar) {
-        console.log('Sidebar not found during initialization');
-        return;
-    }
-    
-    // Set initial state based on screen size
-    const isDesktop = window.innerWidth >= 1024;
-    
-    if (isDesktop) {
-        sidebar.classList.remove('closed');
-    } else {
-        sidebar.classList.add('closed');
-    }
-    
-    // Setup click outside listener for mobile
-    document.addEventListener('click', closeSidebarOnClickOutside);
-    
-    // Auto-close sidebar when clicking links on mobile
-    const sidebarLinks = document.querySelectorAll('.sidebar a, .sidebar button');
-    sidebarLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            if (window.innerWidth < 1024) {
-                sidebar.classList.add('closed');
-                if (toggleBtn) {
-                    toggleBtn.textContent = '☰';
-                }
-            }
-        });
-    });
-    
-    console.log('Sidebar initialized. Closed:', sidebar.classList.contains('closed'));
-}
-
-// Handle window resize
-function handleSidebarResize() {
-    const sidebar = document.getElementById('sidebarMenu');
-    if (!sidebar) return;
-    
-    const isDesktop = window.innerWidth >= 1024;
-    
-    if (isDesktop) {
-        sidebar.classList.remove('closed');
-    } else {
-        sidebar.classList.add('closed');
-    }
-}
+};
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
     loadTheme();
     autoFillYear();
-    
-    // Initialize sidebar - ADD THIS LINE
-    initializeSidebar();
-    
-    // Setup window resize handler for sidebar - ADD THIS LINE
-    window.addEventListener('resize', handleSidebarResize);
     
     const dataForm = el('dataEntryForm');
     if (dataForm) {

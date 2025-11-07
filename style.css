@@ -126,291 +126,94 @@ header p {
 /* =========================================================
    SIDEBAR NAVIGATION
 ========================================================= */
-/* =========================================================
-   SIDEBAR NAVIGATION - FIXED VERSION
-========================================================= */
 .menu-toggle {
-    position: fixed;
-    top: 15px;
-    left: 15px;
-    background: var(--gradient-primary);
-    color: white;
-    border: none;
-    padding: 12px 16px;
-    border-radius: 10px;
-    z-index: 1001;
-    cursor: pointer;
-    font-size: 1.2em;
-    box-shadow: var(--shadow);
-    transition: all 0.3s ease;
-    display: block !important;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 10px;
+  z-index: 1000;
+  cursor: pointer;
+  font-size: 1.2em;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
 }
 
 .menu-toggle:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(139, 0, 0, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(139, 0, 0, 0.3);
 }
 
-/* Sidebar base styles */
 .sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 280px;
-    height: 100vh;
-    background: var(--card);
-    border-right: 1px solid var(--border);
-    padding-top: 80px;
-    transition: transform 0.3s ease;
-    z-index: 1000;
-    overflow-y: auto;
-    box-shadow: 2px 0 20px rgba(0,0,0,0.1);
-}
-
-.sidebar.closed {
-    transform: translateX(-100%);
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 280px;
+  height: 100vh;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  padding-top: 80px;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 999;
+  overflow-y: auto;
+  box-shadow: 2px 0 20px rgba(0,0,0,0.1);
 }
 
 .sidebar:not(.closed) {
-    transform: translateX(0);
+  transform: translateX(0);
+}
+
+.sidebar.closed {
+  transform: translateX(-100%);
 }
 
 .sidebar a, .sidebar button {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 24px;
-    border-bottom: 1px solid var(--border);
-    color: var(--text);
-    text-decoration: none;
-    font-weight: 600;
-    background: none;
-    text-align: left;
-    width: 100%;
-    transition: all 0.3s ease;
-    font-size: 1em;
-    border: none;
-    cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+  background: none;
+  text-align: left;
+  width: 100%;
+  transition: all 0.3s ease;
+  font-size: 1em;
+  border: none;
+  cursor: pointer;
 }
 
 .sidebar a:hover, .sidebar button:hover {
-    background: rgba(139, 0, 0, 0.08);
-    color: var(--primary);
+  background: rgba(139, 0, 0, 0.08);
+  color: var(--primary);
 }
 
 .sidebar a.active {
-    background: var(--gradient-primary);
-    color: white;
-    border-left: 4px solid var(--accent);
+  background: var(--gradient-primary);
+  color: white;
+  border-left: 4px solid var(--accent);
 }
 
 .sidebar button.logout-btn {
-    background: linear-gradient(135deg, #e53e3e, #c53030);
-    color: white;
-    margin-top: auto;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
+  background: linear-gradient(135deg, #e53e3e, #c53030);
+  color: white;
+  margin-top: auto;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
 }
 
 .sidebar button.logout-btn:hover {
-    background: linear-gradient(135deg, #f56565, #e53e3e);
-    transform: translateY(-1px);
+  background: linear-gradient(135deg, #f56565, #e53e3e);
+  transform: translateY(-1px);
 }
 
-/* Desktop layout */
-@media (min-width: 1024px) {
-    .sidebar:not(.closed) {
-        transform: translateX(0);
-    }
-    
-    .content-with-sidebar {
-        margin-left: 280px;
-    }
-    
-    header {
-        margin-left: 280px;
-    }
-    
-    .floating-top-btn {
-        right: 20px;
-    }
-}
-
-/* Mobile layout */
-@media (max-width: 1023px) {
-    .content-with-sidebar {
-        margin-left: 0;
-    }
-    
-    header {
-        margin-left: 0;
-    }
-    
-    .floating-top-btn {
-        right: 20px;
-    }
-}
-
-/* =========================================================
-   DESKTOP LAYOUT (1024px and up) - FIXED
-========================================================= */
-@media (min-width: 1024px) {
-    .menu-toggle {
-        display: block !important; /* Show on desktop too */
-    }
-    
-    .sidebar {
-        transform: translateX(0) !important; /* Always show sidebar on desktop */
-        width: 280px;
-    }
-    
-    .sidebar.closed {
-        transform: translateX(-100%) !important; /* Hide when closed on desktop */
-    }
-    
-    .content-with-sidebar {
-        margin-left: 280px; /* Create space for sidebar */
-        transition: margin-left 0.3s ease;
-    }
-    
-    /* Ensure header accounts for sidebar */
-    header {
-        margin-left: 280px;
-        transition: margin-left 0.3s ease;
-    }
-    
-    /* Adjust floating button position to account for sidebar */
-    .floating-top-btn {
-        right: 20px;
-        margin-left: 280px; /* Account for sidebar */
-    }
-}
-
-/* =========================================================
-   MOBILE LAYOUT (below 1024px) - FIXED
-========================================================= */
-@media (max-width: 1023px) {
-    .menu-toggle {
-        display: block; /* Show menu toggle on mobile */
-    }
-    
-    .sidebar {
-        transform: translateX(-100%); /* Hidden by default on mobile */
-        width: 280px;
-    }
-    
-    .sidebar:not(.closed) {
-        transform: translateX(0); /* Show when not closed */
-    }
-    
-    .sidebar.closed {
-        transform: translateX(-100%); /* Hide when closed */
-    }
-    
-    .content-with-sidebar {
-        margin-left: 0; /* No sidebar margin on mobile */
-    }
-    
-    header {
-        margin-left: 0; /* No sidebar margin on mobile */
-    }
-    
-    .floating-top-btn {
-        right: 20px;
-        margin-left: 0; /* No sidebar adjustment on mobile */
-    }
-}
-
-/* =========================================================
-   DESKTOP LAYOUT (1024px and up)
-========================================================= */
-@media (min-width: 1024px) {
-    .menu-toggle {
-        display: none; /* Hide menu toggle on desktop */
-    }
-    
-    .sidebar {
-        transform: translateX(0) !important; /* Always show sidebar on desktop */
-        width: 280px;
-    }
-    
-    .sidebar.closed {
-        transform: translateX(0) !important; /* Override closed state on desktop */
-    }
-    
-    .content-with-sidebar {
-        margin-left: 280px; /* Create space for sidebar */
-        transition: margin-left 0.3s ease;
-    }
-    
-    /* Ensure header accounts for sidebar */
-    header {
-        margin-left: 280px;
-        transition: margin-left 0.3s ease;
-    }
-    
-    /* Adjust floating button position to account for sidebar */
-    .floating-top-btn {
-        right: 20px;
-        margin-left: 280px; /* Account for sidebar */
-    }
-}
-
-/* =========================================================
-   MOBILE LAYOUT (below 1024px)
-========================================================= */
-@media (max-width: 1023px) {
-    .menu-toggle {
-        display: block; /* Show menu toggle on mobile */
-    }
-    
-    .sidebar {
-        transform: translateX(-100%); /* Hidden by default on mobile */
-        width: 280px;
-    }
-    
-    .sidebar:not(.closed) {
-        transform: translateX(0); /* Show when not closed */
-    }
-    
-    .sidebar.closed {
-        transform: translateX(-100%); /* Hide when closed */
-    }
-    
-    .content-with-sidebar {
-        margin-left: 0; /* No sidebar margin on mobile */
-    }
-    
-    header {
-        margin-left: 0; /* No sidebar margin on mobile */
-    }
-    
-    .floating-top-btn {
-        right: 20px;
-        margin-left: 0; /* No sidebar adjustment on mobile */
-    }
-}
-
-/* =========================================================
-   LAYOUT & CONTAINERS (Updated)
-========================================================= */
-.content {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-/* Default for content with sidebar - will be overridden by media queries */
-.content-with-sidebar {
-    margin-left: 0;
-    transition: margin-left 0.3s ease;
-}
-
-/* Ensure smooth transitions */
-body {
-    transition: all 0.3s ease;
-}
 /* =========================================================
    DASHBOARD STYLES
 ========================================================= */
@@ -656,118 +459,6 @@ button, .btn {
 
 .full {
   width: 100%;
-}
-
-/* Add to style.css - Login specific styles */
-.login-error, .login-success {
-    animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.shake {
-    animation: shake 0.5s ease-in-out;
-}
-
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
-}
-
-/* Login page specific styles */
-.login-container {
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.login-subtitle {
-    color: var(--secondary);
-    margin-bottom: 2rem;
-    text-align: center;
-}
-
-.login-features {
-    background: var(--card);
-    padding: 1.5rem;
-    border-radius: 12px;
-    margin: 2rem 0;
-    border-left: 4px solid var(--primary);
-}
-
-.login-features h3 {
-    margin-bottom: 1rem;
-    color: var(--primary);
-}
-
-.login-features ul {
-    list-style: none;
-    padding: 0;
-}
-
-.login-features li {
-    padding: 0.5rem 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-/* Mobile Menu Toggle Button */
-.menu-toggle {
-    position: fixed;
-    top: 15px;
-    left: 15px;
-    z-index: 1001;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    width: 44px;
-    height: 44px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    display: block !important; /* Force display */
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    transition: all 0.3s ease;
-}
-
-.menu-toggle:hover {
-    background: var(--primary-dark);
-    transform: scale(1.05);
-}
-
-/* Ensure sidebar is properly positioned */
-.sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100vh;
-    transform: translateX(0);
-    transition: transform 0.3s ease;
-    z-index: 1000;
-}
-
-.sidebar.closed {
-    transform: translateX(-100%);
-}
-
-/* Desktop: sidebar always visible, toggle functional */
-@media (min-width: 1024px) {
-    .menu-toggle {
-        display: block !important; /* Always show on desktop too */
-    }
-    
-    .sidebar:not(.closed) {
-        transform: translateX(0);
-    }
 }
 
 /* =========================================================
@@ -1267,229 +958,6 @@ tbody tr:hover {
   border-radius: 12px;
   font-size: 0.85em;
   font-weight: 600;
-}
-/* AI Insights specific styles */
-.recommendation-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.recommendation-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    padding: 20px;
-    background: var(--card);
-    border-radius: 10px;
-    box-shadow: var(--shadow);
-    border-left: 4px solid var(--info);
-}
-
-.recommendation-icon {
-    font-size: 1.5em;
-    flex-shrink: 0;
-}
-
-.recommendation-content h4 {
-    margin: 0 0 8px 0;
-    font-size: 1.1em;
-}
-
-.recommendation-content p {
-    margin: 0 0 10px 0;
-    color: var(--secondary);
-    line-height: 1.5;
-}
-
-.recommendation-priority {
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.8em;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.recommendation-priority.high {
-    background: var(--danger);
-    color: white;
-}
-
-.recommendation-priority.medium {
-    background: var(--warning);
-    color: #000;
-}
-
-.recommendation-priority.low {
-    background: var(--info);
-    color: white;
-}
-
-.empty-recommendation {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--secondary);
-}
-
-/* Trends specific styles */
-.progress-overview {
-    margin: 25px 0;
-}
-
-.heatmap-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 10px;
-    padding: 20px;
-}
-
-.heatmap-item {
-    padding: 15px 10px;
-    border-radius: 8px;
-    text-align: center;
-    font-weight: 600;
-    background: var(--card);
-    border: 1px solid var(--border);
-}
-/* AI Insights Specific Styles */
-.executive-summary {
-    margin-bottom: 2rem;
-}
-
-.summary-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.summary-card {
-    background: var(--card-bg);
-    padding: 1.5rem;
-    border-radius: 12px;
-    text-align: center;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.summary-icon {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-}
-
-.summary-value {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--primary);
-    margin: 0.5rem 0;
-}
-
-.summary-label {
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 0.25rem;
-}
-
-.summary-subtext, .summary-trend {
-    font-size: 0.875rem;
-    color: var(--text-light);
-}
-
-/* Alert Sections */
-.alerts-section {
-    margin-bottom: 2rem;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.alert-badge, .recommendation-badge {
-    background: var(--danger);
-    color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.875rem;
-    font-weight: 600;
-}
-
-.alert-badge.positive { background: var(--success); }
-.alert-badge.info { background: var(--info); }
-
-.alert-list, .recommendation-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.alert-item, .recommendation-item {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1rem;
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-}
-
-.alert-item.critical { border-left: 4px solid var(--danger); }
-.alert-item.positive { border-left: 4px solid var(--success); }
-.alert-item.info { border-left: 4px solid var(--info); }
-
-.alert-icon, .recommendation-icon {
-    font-size: 1.5rem;
-    flex-shrink: 0;
-}
-
-.alert-content, .recommendation-content {
-    flex: 1;
-}
-
-.alert-content h4, .recommendation-content h4 {
-    margin: 0 0 0.5rem 0;
-    color: var(--text);
-}
-
-.alert-content p, .recommendation-content p {
-    margin: 0;
-    color: var(--text-light);
-}
-
-.alert-tag {
-    background: var(--bg-secondary);
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text);
-}
-
-.recommendation-priority {
-    display: inline-block;
-    margin-top: 0.5rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.recommendation-priority.high { background: #fee2e2; color: #dc2626; }
-.recommendation-priority.medium { background: #fef3c7; color: #d97706; }
-.recommendation-priority.low { background: #d1fae5; color: #065f46; }
-
-.empty-alert, .empty-recommendation {
-    text-align: center;
-    padding: 2rem;
-    color: var(--text-light);
-}
-
-.empty-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
 }
 
 /* =========================================================
