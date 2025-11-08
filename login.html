@@ -130,5 +130,96 @@
 
     document.getElementById("firstName").focus();
   </script>
+  <script>
+// Global functions for the login page
+async function handleGoogleSignIn() {
+  try {
+    const result = await firebaseAuth.loginWithGoogle();
+    if (result.success) {
+      showLoginSuccess(`Welcome! Redirecting to your dashboard...`);
+      setTimeout(() => {
+        window.location.href = './index.html';
+      }, 1500);
+    } else {
+      showLoginError(`Google Sign-In failed: ${result.error}`);
+    }
+  } catch (error) {
+    showLoginError('Google Sign-In error: ' + error.message);
+  }
+}
+
+function handleLocalLogin() {
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  
+  if (!firstName || !lastName) {
+    showLoginError('Please enter your first and last name');
+    return;
+  }
+  
+  // Use local-only mode (no Firebase)
+  const result = firebaseAuth.loginLocalOnly(firstName, lastName);
+  if (result.success) {
+    showLoginSuccess(`Welcome ${firstName}! Using local storage only.`);
+    setTimeout(() => {
+      window.location.href = './index.html';
+    }, 1500);
+  }
+}
+
+// Enhanced form submission for email signup
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const school = document.getElementById('school').value.trim();
+  const cloudSync = document.getElementById('cloudSync').checked;
+  
+  if (!firstName || !lastName || !email || !password) {
+    showLoginError('Please fill all required fields');
+    return;
+  }
+  
+  if (cloudSync) {
+    // Use Firebase registration
+    try {
+      const result = await firebaseAuth.registerWithEmail(email, password, firstName, lastName, school);
+      if (result.success) {
+        showLoginSuccess(`Account created! Welcome ${firstName}!`);
+        setTimeout(() => {
+          window.location.href = './index.html';
+        }, 1500);
+      } else {
+        showLoginError(`Registration failed: ${result.error}`);
+      }
+    } catch (error) {
+      showLoginError('Registration error: ' + error.message);
+    }
+  } else {
+    // Use local-only mode
+    handleLocalLogin();
+  }
+});
+
+// Helper functions for showing messages
+function showLoginError(message) {
+  alert('❌ ' + message); // Simple alert for now
+}
+
+function showLoginSuccess(message) {
+  alert('✅ ' + message); // Simple alert for now
+}
+
+// Auto-focus first name field
+document.addEventListener('DOMContentLoaded', function() {
+  const firstNameInput = document.getElementById('firstName');
+  if (firstNameInput) {
+    setTimeout(() => firstNameInput.focus(), 100);
+  }
+});
+</script>
 </body>
 </html>
