@@ -100,6 +100,10 @@
       overflow-y: auto;
     }
 
+    .sidebar:not(.closed) {
+      transform: translateX(0);
+    }
+
     .sidebar.closed {
       transform: translateX(-100%);
     }
@@ -490,7 +494,7 @@
   <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰</button>
 
   <!-- SIDEBAR -->
-  <aside id="sidebarMenu" class="sidebar">
+  <aside id="sidebarMenu" class="sidebar closed">
     <a href="./index.html">📊 Dashboard</a>
     <a href="./data-entry.html">📝 Data Entry</a>
     <a href="./recorded-scores.html">📋 Recorded Scores</a>
@@ -680,9 +684,35 @@
       
       if (sidebar) {
         sidebar.classList.toggle('closed');
+        
+        // Update toggle button text
         if (toggleBtn) {
           toggleBtn.textContent = sidebar.classList.contains('closed') ? '☰' : '✕';
         }
+        
+        // Close sidebar when clicking outside on mobile
+        if (!sidebar.classList.contains('closed') && window.innerWidth < 1024) {
+          setTimeout(() => {
+            document.addEventListener('click', closeSidebarOnClickOutside);
+          }, 100);
+        }
+        
+        updateSidebarDebugInfo();
+      }
+    }
+
+    function closeSidebarOnClickOutside(event) {
+      const sidebar = document.getElementById('sidebarMenu');
+      const toggleBtn = document.getElementById('sidebarToggle');
+      
+      if (!sidebar || !toggleBtn) return;
+      
+      const isClickInsideSidebar = sidebar.contains(event.target);
+      const isClickOnToggle = toggleBtn.contains(event.target);
+      
+      if (!isClickInsideSidebar && !isClickOnToggle && !sidebar.classList.contains('closed')) {
+        sidebar.classList.add('closed');
+        document.removeEventListener('click', closeSidebarOnClickOutside);
         updateSidebarDebugInfo();
       }
     }
@@ -691,7 +721,6 @@
       const sidebar = document.getElementById('sidebarMenu');
       if (sidebar) {
         sidebar.classList.remove('closed');
-        sidebar.style.transform = 'translateX(0)';
         updateSidebarDebugInfo();
       }
     }
@@ -709,7 +738,6 @@
         // Desktop - always show sidebar
         if (sidebar) {
           sidebar.classList.remove('closed');
-          sidebar.style.transform = 'translateX(0)';
         }
       } else {
         // Mobile - start closed
@@ -720,21 +748,19 @@
       updateSidebarDebugInfo();
     }
 
-    // Close sidebar when clicking outside on mobile
+    // Close sidebar on mobile when navigating
     function setupSidebarAutoClose() {
-      document.addEventListener('click', function(event) {
-        const sidebar = document.getElementById('sidebarMenu');
-        const toggleBtn = document.getElementById('sidebarToggle');
-        
-        if (window.innerWidth < 1024 && sidebar && !sidebar.classList.contains('closed')) {
-          const isClickInsideSidebar = sidebar.contains(event.target);
-          const isClickOnToggle = toggleBtn && toggleBtn.contains(event.target);
-          
-          if (!isClickInsideSidebar && !isClickOnToggle) {
-            sidebar.classList.add('closed');
-            updateSidebarDebugInfo();
+      const sidebarLinks = document.querySelectorAll('.sidebar a');
+      sidebarLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          if (window.innerWidth < 1024) {
+            const sidebar = document.getElementById('sidebarMenu');
+            if (sidebar && !sidebar.classList.contains('closed')) {
+              sidebar.classList.add('closed');
+              updateSidebarDebugInfo();
+            }
           }
-        }
+        });
       });
     }
 
@@ -1071,20 +1097,6 @@
       
       // Setup sidebar auto-close
       setupSidebarAutoClose();
-      
-      // Auto-close sidebar on mobile when navigating
-      const sidebarLinks = document.querySelectorAll('.sidebar a');
-      sidebarLinks.forEach(link => {
-        link.addEventListener('click', () => {
-          if (window.innerWidth < 1024) {
-            const sidebar = document.getElementById('sidebarMenu');
-            if (sidebar && !sidebar.classList.contains('closed')) {
-              sidebar.classList.add('closed');
-              updateSidebarDebugInfo();
-            }
-          }
-        });
-      });
       
       // Run averages calculation
       calculateAverages();
