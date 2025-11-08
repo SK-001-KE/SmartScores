@@ -1,3 +1,5 @@
+[file name]: trends.html
+[file content begin]
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -5,18 +7,518 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartScores - Trend Analysis</title>
   <meta name="description" content="Track performance trends and progress over time">
-  <link rel="manifest" href="./manifest.json" />
-  <link rel="stylesheet" href="./style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="./app.js" defer></script>
-  <script src="./auth.js" defer></script>
+  <style>
+    /* ===== CORE STYLES ===== */
+    :root {
+      --bg: #ffffff;
+      --text: #2d3748;
+      --card: #f7fafc;
+      --border: #e2e8f0;
+      --primary: #8B0000;
+      --success: #38a169;
+      --danger: #e53e3e;
+      --info: #3182ce;
+      --gradient-primary: linear-gradient(135deg, #8B0000, #a83232);
+      --gradient-header: linear-gradient(135deg, #2d3748, #4a5568);
+    }
+
+    [data-theme="dark"] {
+      --bg: #1a202c;
+      --text: #e2e8f0;
+      --card: #2d3748;
+      --border: #4a5568;
+      --primary: #c53030;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 60px;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      text-align: center;
+      padding: 25px 20px;
+      background: var(--gradient-header);
+      color: white;
+      position: relative;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-size: 2.2em;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .menu-toggle {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      z-index: 1000;
+      cursor: pointer;
+      font-size: 1.2em;
+      transition: all 0.3s ease;
+    }
+
+    .menu-toggle:hover {
+      transform: translateY(-2px);
+    }
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 280px;
+      height: 100vh;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      padding-top: 80px;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      z-index: 999;
+      overflow-y: auto;
+    }
+
+    .sidebar.closed {
+      transform: translateX(-100%);
+    }
+
+    .sidebar a, .sidebar button {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      background: none;
+      text-align: left;
+      width: 100%;
+      transition: all 0.3s ease;
+      font-size: 1em;
+      border: none;
+      cursor: pointer;
+    }
+
+    .sidebar a:hover, .sidebar button:hover {
+      background: rgba(139, 0, 0, 0.08);
+      color: var(--primary);
+    }
+
+    .sidebar a.active {
+      background: var(--gradient-primary);
+      color: white;
+      border-left: 4px solid var(--info);
+    }
+
+    .sidebar button.logout-btn {
+      background: linear-gradient(135deg, #e53e3e, #c53030);
+      color: white;
+      margin-top: auto;
+      border: none;
+    }
+
+    .sidebar button.logout-btn:hover {
+      background: linear-gradient(135deg, #f56565, #e53e3e);
+    }
+
+    /* ===== CONTENT ===== */
+    .content {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      transition: margin-left 0.3s ease;
+    }
+
+    /* ===== DESKTOP LAYOUT - FIXED ===== */
+    @media (min-width: 1024px) {
+      .menu-toggle {
+        display: none;
+      }
+      
+      .sidebar {
+        transform: translateX(0) !important;
+        width: 280px;
+      }
+      
+      .sidebar.closed {
+        transform: translateX(-100%) !important;
+      }
+      
+      .content {
+        margin-left: 280px !important;
+      }
+    }
+
+    /* Force desktop sidebar visibility */
+    @media (min-width: 1024px) {
+      #sidebarMenu {
+        transform: translateX(0) !important;
+      }
+    }
+
+    /* ===== DARK MODE BUTTON ===== */
+    .floating-top-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--info), #3182ce);
+      color: white;
+      border: none;
+      cursor: pointer;
+      z-index: 1000;
+      font-size: 1.1em;
+      transition: all 0.3s ease;
+    }
+
+    .floating-top-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    /* ===== TRENDS SPECIFIC STYLES ===== */
+    .progress-overview {
+      margin: 25px 0;
+    }
+
+    .progress-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .progress-card {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      border-top: 4px solid;
+      transition: all 0.3s ease;
+    }
+
+    .progress-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .progress-card.improving { border-top-color: var(--success); }
+    .progress-card.stable { border-top-color: var(--info); }
+    .progress-card.declining { border-top-color: #d69e2e; }
+    .progress-card.insufficient { border-top-color: #4a5568; }
+
+    .progress-icon { font-size: 2em; margin-bottom: 10px; }
+    .progress-value { font-size: 2.2em; font-weight: bold; margin: 10px 0; }
+    .progress-card.improving .progress-value { color: var(--success); }
+    .progress-card.stable .progress-value { color: var(--info); }
+    .progress-card.declining .progress-value { color: #d69e2e; }
+    .progress-card.insufficient .progress-value { color: #4a5568; }
+    .progress-label { font-weight: 600; margin-bottom: 5px; }
+    .progress-subtext { font-size: 0.85em; color: #666; }
+
+    /* Filter Sections */
+    .filter-section {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      margin: 25px 0;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .filter-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      align-items: end;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .filter-group label {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      align-items: end;
+    }
+
+    /* Table Sections */
+    .table-section {
+      margin: 30px 0;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .table-info {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .info-badge {
+      padding: 6px 12px;
+      background: #4a5568;
+      color: white;
+      border-radius: 12px;
+      font-size: 0.85em;
+      font-weight: 600;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      background: var(--card);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    thead {
+      background: var(--gradient-header);
+      color: white;
+    }
+
+    th {
+      padding: 18px 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.95em;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+
+    th:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    td {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9em;
+    }
+
+    tbody tr {
+      transition: background-color 0.3s ease;
+    }
+
+    tbody tr:hover {
+      background: rgba(139, 0, 0, 0.04);
+    }
+
+    .loading-cell {
+      padding: 40px 20px;
+      color: #666;
+      font-style: italic;
+      text-align: center;
+    }
+
+    /* Visualization Grid */
+    .trend-visualizations {
+      margin: 30px 0;
+    }
+
+    .visualization-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 25px;
+      margin: 25px 0;
+    }
+
+    .viz-card {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .viz-card h3 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .viz-description {
+      text-align: center;
+      color: #666;
+      font-size: 0.9em;
+      margin-top: 15px;
+    }
+
+    .heatmap-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      padding: 20px;
+    }
+
+    /* Key Insights */
+    .key-insights {
+      margin: 30px 0;
+    }
+
+    .insights-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .insight-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+      padding: 20px;
+      background: var(--card);
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .insight-icon {
+      font-size: 1.5em;
+      flex-shrink: 0;
+    }
+
+    .insight-content h4 {
+      margin: 0 0 8px 0;
+      font-size: 1.1em;
+    }
+
+    .insight-content p {
+      margin: 0;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary { background: var(--gradient-primary); }
+    .btn-secondary { background: #4a5568; }
+
+    .btn-small {
+      padding: 10px 16px;
+      font-size: 0.9em;
+    }
+
+    /* Form Elements */
+    select {
+      width: 100%;
+      padding: 14px 18px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1em;
+      transition: all 0.3s ease;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #3182ce;
+      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      font-size: 0.9em;
+    }
+
+    @media (max-width: 768px) {
+      .progress-cards,
+      .visualization-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .filter-controls {
+        grid-template-columns: 1fr;
+      }
+      
+      .section-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+      }
+      
+      th, td {
+        padding: 8px 6px;
+        font-size: 0.8em;
+      }
+    }
+  </style>
 </head>
 <body>
   <!-- MOBILE MENU TOGGLE -->
   <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰</button>
 
   <!-- SIDEBAR -->
-  <aside id="sidebarMenu" class="sidebar closed">
+  <aside id="sidebarMenu" class="sidebar">
     <a href="./index.html">📊 Dashboard</a>
     <a href="./data-entry.html">📝 Data Entry</a>
     <a href="./recorded-scores.html">📋 All Records</a>
@@ -24,17 +526,18 @@
     <a href="./averages.html">📈 Averages</a>
     <a href="./trends.html" class="active">📊 Trends</a>
     <a href="./set-targets.html">🎯 Set Targets</a>
-    <button class="logout-btn">🚪 Logout</button>
+    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
   </aside>
 
+  <!-- DARK MODE TOGGLE -->
   <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
   <header>
-    <h1>📊 Trend Analysis</h1>
-    <p>Track Performance Progress Over Time</p>
+    <h1>SmartScores</h1>
+    <p>Trend Analysis & Performance Tracking</p>
   </header>
 
-  <main class="content content-with-sidebar">
+  <main class="content">
     <!-- PROGRESS OVERVIEW -->
     <section class="progress-overview">
       <h2>📈 Progress Overview</h2>
@@ -83,7 +586,15 @@
           <label>Subject</label>
           <select id="subjectFilter">
             <option value="">All Subjects</option>
-            <!-- Subjects will be populated dynamically -->
+            <option>Mathematics</option>
+            <option>English</option>
+            <option>Kiswahili</option>
+            <option>Science</option>
+            <option>Social Studies</option>
+            <option>CRE</option>
+            <option>IRE</option>
+            <option>Home Science</option>
+            <option>Agriculture</option>
           </select>
         </div>
         <div class="filter-group">
@@ -129,7 +640,7 @@
           </thead>
           <tbody>
             <tr>
-              <td colspan="9" class="text-center loading-cell">Loading trend analysis...</td>
+              <td colspan="9" class="loading-cell">Loading trend analysis...</td>
             </tr>
           </tbody>
         </table>
@@ -158,7 +669,9 @@
         <div class="viz-card">
           <h3>Improvement Heatmap</h3>
           <div id="improvementHeatmap" class="heatmap-container">
-            <!-- Heatmap will be generated dynamically -->
+            <div style="text-align: center; padding: 40px 20px; color: #666;">
+              Add more data to see heatmap visualization
+            </div>
           </div>
           <p class="viz-description">Subject improvement intensity</p>
         </div>
@@ -178,18 +691,449 @@
         </div>
       </div>
     </section>
+
+    <!-- DEBUG INFO -->
+    <section style="background: var(--card); padding: 15px; border-radius: 8px; margin-top: 30px;">
+      <h3>🔧 Debug Information</h3>
+      <p><strong>Records Found:</strong> <span id="debugRecords">0</span></p>
+      <p><strong>Trend Groups:</strong> <span id="debugTrends">0</span></p>
+      <p><strong>Last Updated:</strong> <span id="debugTime">--</span></p>
+      <button onclick="refreshTrends()" class="btn" style="margin-top: 10px;">🔄 Refresh Trends</button>
+    </section>
   </main>
 
   <footer>SmartScores v3.0 © 2025</footer>
 
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./service-worker.js')
-          .then(registration => console.log('SW registered: ', registration))
-          .catch(error => console.log('SW registration failed: ', error));
+    // ==================== STANDALONE TRENDS WITH SIDEBAR ====================
+    console.log('📊 Trends with Sidebar loaded!');
+
+    // Simple DOM helper
+    const el = id => document.getElementById(id);
+
+    // ===== SIDEBAR MANAGEMENT =====
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebarMenu');
+      const toggleBtn = document.getElementById('sidebarToggle');
+      
+      if (sidebar) {
+        sidebar.classList.toggle('closed');
+        if (toggleBtn) {
+          toggleBtn.textContent = sidebar.classList.contains('closed') ? '☰' : '✕';
+        }
+      }
+    }
+
+    function forceShowSidebar() {
+      const sidebar = document.getElementById('sidebarMenu');
+      if (sidebar) {
+        sidebar.classList.remove('closed');
+        sidebar.style.transform = 'translateX(0)';
+      }
+    }
+
+    // Auto-detect screen size and adjust sidebar
+    function handleResize() {
+      const sidebar = document.getElementById('sidebarMenu');
+      if (window.innerWidth >= 1024) {
+        // Desktop - always show sidebar
+        if (sidebar) {
+          sidebar.classList.remove('closed');
+          sidebar.style.transform = 'translateX(0)';
+        }
+      } else {
+        // Mobile - start closed
+        if (sidebar) {
+          sidebar.classList.add('closed');
+        }
+      }
+    }
+
+    // Close sidebar when clicking outside on mobile
+    function setupSidebarAutoClose() {
+      document.addEventListener('click', function(event) {
+        const sidebar = document.getElementById('sidebarMenu');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        
+        if (window.innerWidth < 1024 && sidebar && !sidebar.classList.contains('closed')) {
+          const isClickInsideSidebar = sidebar.contains(event.target);
+          const isClickOnToggle = toggleBtn && toggleBtn.contains(event.target);
+          
+          if (!isClickInsideSidebar && !isClickOnToggle) {
+            sidebar.classList.add('closed');
+          }
+        }
       });
     }
+
+    // ===== THEME MANAGEMENT =====
+    function toggleDarkMode() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('themeMode', newTheme);
+    }
+
+    function loadTheme() {
+      const theme = localStorage.getItem('themeMode') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+
+    // ===== AUTH MANAGEMENT =====
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('teacherFullName');
+        window.location.href = './login.html';
+      }
+    }
+
+    function checkAuth() {
+      const teacher = localStorage.getItem('teacherFullName');
+      if (!teacher) {
+        window.location.href = './login.html';
+        return false;
+      }
+      return true;
+    }
+
+    // ===== DATA MANAGEMENT =====
+    function loadRecords() {
+      try {
+        const data = localStorage.getItem('smartScoresRecords');
+        return data ? JSON.parse(data) : [];
+      } catch (error) {
+        console.error('Error loading records:', error);
+        return [];
+      }
+    }
+
+    // ===== TREND ANALYSIS LOGIC =====
+    function analyzeTrends() {
+      console.log('🔍 Analyzing trends...');
+      
+      if (!checkAuth()) return;
+      
+      const records = loadRecords();
+      
+      // Update debug info
+      el('debugRecords').textContent = records.length;
+      el('debugTime').textContent = new Date().toLocaleTimeString();
+
+      // If no records, show empty state
+      if (records.length === 0) {
+        showEmptyState();
+        return;
+      }
+
+      // Analyze trends
+      const trendData = calculateTrends(records);
+      updateTrendOverview(trendData);
+      renderTrendsTable(trendData);
+      updateTrendInsights(trendData);
+    }
+
+    function calculateTrends(records) {
+      const groups = {};
+      
+      // Group records by subject, grade, stream, term
+      records.forEach(record => {
+        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}`;
+        if (!groups[key]) {
+          groups[key] = {
+            subject: record.subject,
+            grade: record.grade,
+            stream: record.stream,
+            term: record.term,
+            exams: {}
+          };
+        }
+        
+        const examType = record.examType || '';
+        groups[key].exams[examType] = record.mean;
+      });
+      
+      const trends = [];
+      let improvingCount = 0;
+      let stableCount = 0;
+      let decliningCount = 0;
+      let insufficientCount = 0;
+      
+      Object.values(groups).forEach(group => {
+        const { exams } = group;
+        const opener = exams['Opener Exam'];
+        const mid = exams['Mid Term Exam'];
+        const end = exams['End Term Exam'];
+        
+        const examCount = [opener, mid, end].filter(score => score !== undefined).length;
+        
+        let trend = '';
+        let trendValue = 0;
+        let status = '';
+        let statusColor = '#666';
+        
+        if (examCount >= 2) {
+          if (opener !== undefined && end !== undefined) {
+            trendValue = end - opener;
+            trend = `${trendValue >= 0 ? '+' : ''}${trendValue.toFixed(1)}%`;
+            status = trendValue > 2 ? 'Improving' : trendValue < -2 ? 'Declining' : 'Stable';
+            statusColor = trendValue > 2 ? '#38a169' : trendValue < -2 ? '#d69e2e' : '#3182ce';
+          } else if (opener !== undefined && mid !== undefined) {
+            trendValue = mid - opener;
+            trend = `${trendValue >= 0 ? '+' : ''}${trendValue.toFixed(1)}%`;
+            status = trendValue > 0 ? 'Improving' : 'Declining';
+            statusColor = trendValue > 0 ? '#38a169' : '#d69e2e';
+          } else if (mid !== undefined && end !== undefined) {
+            trendValue = end - mid;
+            trend = `${trendValue >= 0 ? '+' : ''}${trendValue.toFixed(1)}%`;
+            status = trendValue > 0 ? 'Improving' : 'Declining';
+            statusColor = trendValue > 0 ? '#38a169' : '#d69e2e';
+          }
+          
+          // Count by status
+          if (status === 'Improving') improvingCount++;
+          else if (status === 'Declining') decliningCount++;
+          else if (status === 'Stable') stableCount++;
+        } else {
+          status = 'Insufficient Data';
+          insufficientCount++;
+        }
+        
+        trends.push({
+          ...group,
+          opener: opener !== undefined ? opener.toFixed(1) : '–',
+          mid: mid !== undefined ? mid.toFixed(1) : '–',
+          end: end !== undefined ? end.toFixed(1) : '–',
+          trend,
+          status,
+          statusColor,
+          examCount
+        });
+      });
+      
+      return {
+        trends,
+        counts: {
+          improving: improvingCount,
+          stable: stableCount,
+          declining: decliningCount,
+          insufficient: insufficientCount,
+          total: trends.length
+        }
+      };
+    }
+
+    function updateTrendOverview(trendData) {
+      const counts = trendData.counts;
+      
+      el('improvingCount').textContent = counts.improving;
+      el('stableCount').textContent = counts.stable;
+      el('decliningCount').textContent = counts.declining;
+      el('insufficientData').textContent = counts.insufficient;
+      el('trendsCount').textContent = `${counts.total} trends analyzed`;
+    }
+
+    function renderTrendsTable(trendData) {
+      const tbody = document.querySelector('#trendsTable tbody');
+      const trends = trendData.trends;
+      
+      if (trends.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="loading-cell">
+              Not enough data for trend analysis (need 2+ exams per group).
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      tbody.innerHTML = trends.map(trend => `
+        <tr>
+          <td>${trend.subject}</td>
+          <td>${trend.grade}</td>
+          <td>${trend.stream}</td>
+          <td>${trend.term}</td>
+          <td style="text-align: center; font-weight: bold;">${trend.opener}%</td>
+          <td style="text-align: center; font-weight: bold;">${trend.mid}%</td>
+          <td style="text-align: center; font-weight: bold;">${trend.end}%</td>
+          <td style="font-weight: bold; color: ${trend.statusColor};">${trend.trend}</td>
+          <td>
+            <span class="rubric-badge" style="background: ${trend.statusColor}; color: white; padding: 4px 8px; border-radius: 8px; font-size: 0.8em;">
+              ${trend.status}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+      
+      el('debugTrends').textContent = trends.length;
+    }
+
+    function updateTrendInsights(trendData) {
+      const insightsContainer = el('trendInsights');
+      const counts = trendData.counts;
+      
+      if (counts.total === 0) {
+        insightsContainer.innerHTML = `
+          <div class="insight-item">
+            <div class="insight-icon">📊</div>
+            <div class="insight-content">
+              <h4>Add More Data</h4>
+              <p>Enter exam scores for multiple terms to see trend analysis.</p>
+            </div>
+          </div>
+        `;
+        return;
+      }
+      
+      let insightsHTML = '';
+      
+      if (counts.improving > 0) {
+        insightsHTML += `
+          <div class="insight-item">
+            <div class="insight-icon">🎉</div>
+            <div class="insight-content">
+              <h4>Positive Progress</h4>
+              <p>${counts.improving} subject${counts.improving !== 1 ? 's' : ''} showing improvement across terms.</p>
+            </div>
+          </div>
+        `;
+      }
+      
+      if (counts.declining > 0) {
+        insightsHTML += `
+          <div class="insight-item">
+            <div class="insight-icon">⚠️</div>
+            <div class="insight-content">
+              <h4>Attention Needed</h4>
+              <p>${counts.declining} subject${counts.declining !== 1 ? 's' : ''} showing decline. Consider targeted interventions.</p>
+            </div>
+          </div>
+        `;
+      }
+      
+      if (counts.insufficient > 0) {
+        insightsHTML += `
+          <div class="insight-item">
+            <div class="insight-icon">📝</div>
+            <div class="insight-content">
+              <h4>More Data Needed</h4>
+              <p>${counts.insufficient} group${counts.insufficient !== 1 ? 's' : ''} need more exam data for trend analysis.</p>
+            </div>
+          </div>
+        `;
+      }
+      
+      insightsContainer.innerHTML = insightsHTML;
+    }
+
+    function showEmptyState() {
+      el('improvingCount').textContent = '0';
+      el('stableCount').textContent = '0';
+      el('decliningCount').textContent = '0';
+      el('insufficientData').textContent = '0';
+      el('trendsCount').textContent = '0 trends analyzed';
+      
+      const insightsContainer = el('trendInsights');
+      insightsContainer.innerHTML = `
+        <div class="insight-item">
+          <div class="insight-icon">📊</div>
+          <div class="insight-content">
+            <h4>No Data Available</h4>
+            <p>Start by entering scores in the Data Entry page to see trend analysis.</p>
+          </div>
+        </div>
+      `;
+    }
+
+    // ===== FILTER FUNCTIONS =====
+    function applyTrendFilters() {
+      showNotification('Trend filters applied!');
+      // Filter implementation would go here
+    }
+
+    function resetTrendFilters() {
+      el('trendFilter').value = '';
+      el('subjectFilter').value = '';
+      el('trendGradeFilter').value = '';
+      showNotification('Trend filters reset!');
+    }
+
+    function sortTrendsTable(column) {
+      showNotification(`Sorting trends table by column ${column}`);
+      // Sorting implementation would go here
+    }
+
+    function refreshTrends() {
+      console.log('🔄 Refreshing trends...');
+      analyzeTrends();
+      showNotification('Trends refreshed!');
+    }
+
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--primary);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 1000;
+        font-weight: 600;
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
+
+    // ===== INITIALIZATION =====
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('📊 Trends with Sidebar initialized!');
+      
+      // Load theme
+      loadTheme();
+      
+      // Setup sidebar for current screen size
+      handleResize();
+      
+      // Listen for window resize
+      window.addEventListener('resize', handleResize);
+      
+      // Setup sidebar auto-close
+      setupSidebarAutoClose();
+      
+      // Auto-close sidebar on mobile when navigating
+      const sidebarLinks = document.querySelectorAll('.sidebar a');
+      sidebarLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          if (window.innerWidth < 1024) {
+            const sidebar = document.getElementById('sidebarMenu');
+            if (sidebar && !sidebar.classList.contains('closed')) {
+              sidebar.classList.add('closed');
+            }
+          }
+        });
+      });
+      
+      // Run trend analysis
+      analyzeTrends();
+    });
+
+    // Make functions available globally
+    window.toggleSidebar = toggleSidebar;
+    window.toggleDarkMode = toggleDarkMode;
+    window.logout = logout;
+    window.applyTrendFilters = applyTrendFilters;
+    window.resetTrendFilters = resetTrendFilters;
+    window.sortTrendsTable = sortTrendsTable;
+    window.refreshTrends = refreshTrends;
+    window.forceShowSidebar = forceShowSidebar;
+    window.handleResize = handleResize;
   </script>
 </body>
 </html>
+[file content end]
