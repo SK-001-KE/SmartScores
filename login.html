@@ -26,39 +26,79 @@
   </header>
 
   <main class="content centered">
-    <div class="login-container">
-      <h2>👤 Teacher Login</h2>
-      <p class="login-subtitle">Enter your name to access your performance dashboard</p>
-      
-      <form id="loginForm" class="form-box">
-        <div class="form-group">
-          <label>First Name *</label>
-          <input type="text" id="firstName" required placeholder="e.g. John">
-        </div>
+  <div class="login-container">
+    <h2>👤 Teacher Login</h2>
+    <p class="login-subtitle">Choose your sign-in method</p>
+    
+    <!-- Google Sign-In Button -->
+    <button onclick="handleGoogleSignIn()" class="btn btn-google full" style="margin-bottom: 20px;">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+           style="width: 20px; height: 20px; margin-right: 10px;">
+      Sign in with Google
+    </button>
+    
+    <div class="divider">
+      <span>or</span>
+    </div>
 
-        <div class="form-group">
-          <label>Last Name *</label>
-          <input type="text" id="lastName" required placeholder="e.g. Kariuki">
-        </div>
-
-        <button type="submit" class="btn btn-primary full">🚀 Login to Dashboard</button>
-      </form>
-
-      <div class="login-features">
-        <h3>What you can do:</h3>
-        <ul>
-          <li>📝 Record and manage student scores</li>
-          <li>🎯 Set performance targets</li>
-          <li>📊 Track progress with AI insights</li>
-          <li>📄 Export reports to PDF and Excel</li>
-          <li>🌙 Dark mode for comfortable viewing</li>
-          <li>📱 Works offline as a PWA</li>
-        </ul>
+    <!-- Email & Password Form -->
+    <form id="loginForm" class="form-box">
+      <div class="form-group">
+        <label>First Name *</label>
+        <input type="text" id="firstName" required placeholder="e.g. John">
       </div>
 
-      <p class="hint">Your data is stored locally on this device only</p>
+      <div class="form-group">
+        <label>Last Name *</label>
+        <input type="text" id="lastName" required placeholder="e.g. Kariuki">
+      </div>
+
+      <div class="form-group">
+        <label>Email Address *</label>
+        <input type="email" id="email" required placeholder="your.email@school.com">
+      </div>
+
+      <div class="form-group">
+        <label>Password *</label>
+        <input type="password" id="password" required placeholder="Create a password">
+      </div>
+
+      <div class="form-group">
+        <label>School Name (Optional)</label>
+        <input type="text" id="school" placeholder="Your school name">
+      </div>
+
+      <div class="form-options">
+        <label>
+          <input type="checkbox" id="cloudSync" checked>
+          Enable cloud sync (access from any device)
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary full">📧 Sign Up with Email</button>
+        <button type="button" onclick="handleLocalLogin()" class="btn btn-secondary full">
+          📱 Continue Locally Only
+        </button>
+      </div>
+    </form>
+
+    <div class="login-features">
+      <h3>What you can do:</h3>
+      <ul>
+        <li>📝 Record and manage student scores</li>
+        <li>🎯 Set performance targets</li>
+        <li>📊 Track progress with AI insights</li>
+        <li>📄 Export reports to PDF and Excel</li>
+        <li>🌙 Dark mode for comfortable viewing</li>
+        <li>📱 Works offline as a PWA</li>
+        <li>☁️ Cloud sync across devices (with account)</li>
+      </ul>
     </div>
-  </main>
+
+    <p class="hint">Your data is stored locally. With cloud sync, it's backed up and accessible from any device.</p>
+  </div>
+</main>
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
