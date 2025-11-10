@@ -1,3 +1,5 @@
+[file name]: averages.html
+[file content begin]
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -21,6 +23,7 @@
       --info: #3182ce;
       --gradient-primary: linear-gradient(135deg, #8B0000, #a83232);
       --gradient-header: linear-gradient(135deg, #2d3748, #4a5568);
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
     }
 
     [data-theme="dark"] {
@@ -45,6 +48,155 @@
       padding-bottom: 60px;
     }
 
+    /* ===== TOP NAVIGATION ===== */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background: var(--gradient-header);
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      font-weight: 700;
+      font-size: 1.3em;
+    }
+
+    .logo-small {
+      height: 32px;
+      margin-right: 10px;
+      border-radius: 6px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .nav-link {
+      color: white;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .nav-link.active {
+      background: var(--gradient-primary);
+      box-shadow: 0 2px 8px rgba(139, 0, 0, 0.3);
+    }
+
+    .nav-user {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .teacher-name {
+      font-weight: 600;
+      color: white;
+    }
+
+    /* ===== MOBILE NAVIGATION ===== */
+    .mobile-menu-toggle {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      z-index: 1001;
+      cursor: pointer;
+      font-size: 1.2em;
+      transition: all 0.3s ease;
+      display: none;
+    }
+
+    .mobile-menu-toggle:hover {
+      transform: translateY(-2px);
+    }
+
+    .mobile-sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 280px;
+      height: 100vh;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      padding-top: 80px;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+
+    .mobile-sidebar:not(.closed) {
+      transform: translateX(0);
+    }
+
+    .mobile-sidebar.closed {
+      transform: translateX(-100%);
+    }
+
+    .mobile-sidebar a, .mobile-sidebar button {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      background: none;
+      text-align: left;
+      width: 100%;
+      transition: all 0.3s ease;
+      font-size: 1em;
+      border: none;
+      cursor: pointer;
+    }
+
+    .mobile-sidebar a:hover, .mobile-sidebar button:hover {
+      background: rgba(139, 0, 0, 0.08);
+      color: var(--primary);
+    }
+
+    .mobile-sidebar a.active {
+      background: var(--gradient-primary);
+      color: white;
+      border-left: 4px solid var(--info);
+    }
+
+    .mobile-sidebar button.logout-btn {
+      background: linear-gradient(135deg, #e53e3e, #c53030);
+      color: white;
+      margin-top: auto;
+      border: none;
+    }
+
+    .mobile-sidebar button.logout-btn:hover {
+      background: linear-gradient(135deg, #f56565, #e53e3e);
+    }
+
     /* ===== HEADER ===== */
     header {
       text-align: center;
@@ -67,142 +219,46 @@
       font-weight: 300;
     }
 
-    /* ===== SIDEBAR ===== */
-    .menu-toggle {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: var(--gradient-primary);
-      color: white;
-      border: none;
-      padding: 12px 16px;
-      border-radius: 10px;
-      z-index: 1000;
-      cursor: pointer;
-      font-size: 1.2em;
-      transition: all 0.3s ease;
-    }
-
-    .menu-toggle:hover {
-      transform: translateY(-2px);
-    }
-
-    .sidebar {
-      position: fixed;
-      left: 0;
-      top: 0;
-      width: 280px;
-      height: 100vh;
-      background: var(--card);
-      border-right: 1px solid var(--border);
-      padding-top: 80px;
-      transform: translateX(-100%);
-      transition: transform 0.3s ease;
-      z-index: 999;
-      overflow-y: auto;
-    }
-
-    .sidebar:not(.closed) {
-      transform: translateX(0);
-    }
-
-    .sidebar.closed {
-      transform: translateX(-100%);
-    }
-
-    .sidebar a, .sidebar button {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--border);
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 600;
-      background: none;
-      text-align: left;
-      width: 100%;
-      transition: all 0.3s ease;
-      font-size: 1em;
-      border: none;
-      cursor: pointer;
-    }
-
-    .sidebar a:hover, .sidebar button:hover {
-      background: rgba(139, 0, 0, 0.08);
-      color: var(--primary);
-    }
-
-    .sidebar a.active {
-      background: var(--gradient-primary);
-      color: white;
-      border-left: 4px solid var(--info);
-    }
-
-    .sidebar button.logout-btn {
-      background: linear-gradient(135deg, #e53e3e, #c53030);
-      color: white;
-      margin-top: auto;
-      border: none;
-    }
-
-    .sidebar button.logout-btn:hover {
-      background: linear-gradient(135deg, #f56565, #e53e3e);
-    }
-
     /* ===== CONTENT ===== */
     .content {
       padding: 20px;
       max-width: 1200px;
       margin: 0 auto;
-      transition: margin-left 0.3s ease;
     }
 
-    /* ===== DESKTOP LAYOUT - FIXED ===== */
-    @media (min-width: 1024px) {
-      .menu-toggle {
+    /* ===== RESPONSIVE DESIGN ===== */
+    @media (max-width: 1024px) {
+      .nav-links {
         display: none;
       }
       
-      .sidebar {
-        transform: translateX(0) !important;
-        width: 280px;
+      .mobile-menu-toggle {
+        display: block;
       }
       
-      .sidebar.closed {
-        transform: translateX(-100%) !important;
+      .nav-user {
+        margin-left: auto;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .top-nav {
+        padding: 12px 15px;
       }
       
-      .content {
-        margin-left: 280px !important;
+      .nav-brand {
+        font-size: 1.1em;
       }
-    }
-
-    /* Force desktop sidebar visibility */
-    @media (min-width: 1024px) {
-      #sidebarMenu {
-        transform: translateX(0) !important;
+      
+      .nav-user {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
       }
-    }
-
-    /* ===== DARK MODE BUTTON ===== */
-    .floating-top-btn {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 12px 16px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--info), #3182ce);
-      color: white;
-      border: none;
-      cursor: pointer;
-      z-index: 1000;
-      font-size: 1.1em;
-      transition: all 0.3s ease;
-    }
-
-    .floating-top-btn:hover {
-      transform: translateY(-2px);
+      
+      .teacher-name {
+        font-size: 0.9em;
+      }
     }
 
     /* ===== AVERAGES SPECIFIC STYLES ===== */
@@ -223,6 +279,7 @@
       text-align: center;
       border-top: 4px solid var(--primary);
       transition: all 0.3s ease;
+      box-shadow: var(--shadow);
     }
 
     .stat-item:hover {
@@ -252,6 +309,7 @@
       padding: 25px;
       border-radius: 12px;
       margin: 25px 0;
+      box-shadow: var(--shadow);
     }
 
     .filter-controls {
@@ -307,7 +365,7 @@
     .table-container {
       overflow-x: auto;
       border-radius: 12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      box-shadow: var(--shadow);
       background: var(--card);
     }
 
@@ -366,7 +424,7 @@
       background: var(--card);
       padding: 25px;
       border-radius: 12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      box-shadow: var(--shadow);
       height: 300px;
       display: flex;
       flex-direction: column;
@@ -389,6 +447,7 @@
       border-radius: 12px;
       margin: 25px 0;
       text-align: center;
+      box-shadow: var(--shadow);
     }
 
     .rubric-key {
@@ -449,6 +508,10 @@
       background: linear-gradient(135deg, #4a5568, #718096);
     }
 
+    .btn-danger {
+      background: linear-gradient(135deg, #e53e3e, #c53030);
+    }
+
     .btn-small {
       padding: 8px 16px;
       font-size: 0.9em;
@@ -476,6 +539,26 @@
       bottom: 0;
       width: 100%;
       font-size: 0.9em;
+    }
+
+    /* DARK MODE BUTTON */
+    .floating-top-btn {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--info), #3182ce);
+      color: white;
+      border: none;
+      cursor: pointer;
+      z-index: 1000;
+      font-size: 1.1em;
+      transition: all 0.3s ease;
+    }
+
+    .floating-top-btn:hover {
+      transform: translateY(-2px);
     }
 
     @media (max-width: 768px) {
@@ -508,15 +591,46 @@
       .chart-card {
         height: 250px;
       }
+      
+      .floating-top-btn {
+        top: 70px;
+        right: 15px;
+        padding: 10px 14px;
+        font-size: 1em;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- MOBILE MENU TOGGLE -->
-  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <!-- TOP NAVIGATION BAR -->
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <img src="./icon-192x192.png" class="logo-small" style="height:32px;margin-right:10px;border-radius:6px;">
+      <span>SmartScores</span>
+    </div>
+    
+    <div class="nav-links">
+      <a href="./index.html" class="nav-link">📊 Dashboard</a>
+      <a href="./data-entry.html" class="nav-link">📝 Data Entry</a>
+      <a href="./recorded-scores.html" class="nav-link">📋 Scores</a>
+      <a href="./ai-insights.html" class="nav-link">🤖 AI Insights</a>
+      <a href="./averages.html" class="nav-link active">📈 Averages</a>
+      <a href="./trends.html" class="nav-link">📊 Trends</a>
+      <a href="./grade-distribution.html" class="nav-link">📈 Distribution</a>
+      <a href="./set-targets.html" class="nav-link">🎯 Targets</a>
+    </div>
+    
+    <div class="nav-user">
+      <span id="teacherName" class="teacher-name">Teacher</span>
+      <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
+    </div>
+  </nav>
 
-  <!-- SIDEBAR -->
-  <aside id="sidebarMenu" class="sidebar closed">
+  <!-- MOBILE MENU TOGGLE (only show on mobile) -->
+  <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+
+  <!-- MOBILE SIDEBAR (only for mobile) -->
+  <aside id="mobileSidebar" class="mobile-sidebar closed">
     <a href="./index.html">📊 Dashboard</a>
     <a href="./data-entry.html">📝 Data Entry</a>
     <a href="./recorded-scores.html">📋 Recorded Scores</a>
@@ -689,22 +803,22 @@
     </section>
 
     <!-- DEBUG INFO -->
-    <section style="background: var(--card); padding: 15px; border-radius: 8px; margin-top: 30px;">
+    <section style="background: var(--card); padding: 15px; border-radius: 8px; margin-top: 30px; box-shadow: var(--shadow);">
       <h3>🔧 Debug Information</h3>
       <p><strong>Records Found:</strong> <span id="debugRecords">0</span></p>
       <p><strong>Last Updated:</strong> <span id="debugTime">--</span></p>
       <p><strong>Screen Width:</strong> <span id="screenWidth">--</span></p>
-      <p><strong>Sidebar State:</strong> <span id="sidebarState">--</span></p>
-      <button onclick="refreshAverages()" class="btn" style="margin-top: 10px;">🔄 Refresh Averages</button>
-      <button onclick="forceShowSidebar()" class="btn btn-secondary" style="margin-top: 10px;">🔄 Force Show Sidebar</button>
+      <p><strong>Navigation State:</strong> <span id="navState">--</span></p>
+      <button onclick="refreshAverages()" class="btn" style="margin-top: 10px; margin-right: 10px;">🔄 Refresh Averages</button>
+      <button onclick="testNavigation()" class="btn btn-secondary" style="margin-top: 10px;">🧪 Test Navigation</button>
     </section>
   </main>
 
   <footer>SmartScores v3.0 © 2025</footer>
 
   <script>
-    // ==================== STANDALONE AVERAGES WITH SIDEBAR ====================
-    console.log('📈 Averages with Sidebar loaded!');
+    // ==================== AVERAGES WITH UPDATED NAVIGATION ====================
+    console.log('📈 Averages with Updated Navigation loaded!');
 
     // Simple DOM helper
     const el = id => document.getElementById(id);
@@ -712,88 +826,35 @@
     // Chart instances
     let subjectChart, streamChart, gradeChart, termChart;
 
-    // ===== SIDEBAR MANAGEMENT =====
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebarMenu');
-      const toggleBtn = document.getElementById('sidebarToggle');
+    // ===== NAVIGATION MANAGEMENT =====
+    function toggleMobileMenu() {
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      const toggleBtn = document.getElementById('mobileMenuToggle');
       
-      if (sidebar) {
-        sidebar.classList.toggle('closed');
-        
-        // Update toggle button text
+      if (mobileSidebar) {
+        mobileSidebar.classList.toggle('closed');
         if (toggleBtn) {
-          toggleBtn.textContent = sidebar.classList.contains('closed') ? '☰' : '✕';
+          toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
         }
-        
-        // Close sidebar when clicking outside on mobile
-        if (!sidebar.classList.contains('closed') && window.innerWidth < 1024) {
-          setTimeout(() => {
-            document.addEventListener('click', closeSidebarOnClickOutside);
-          }, 100);
-        }
-        
-        updateSidebarDebugInfo();
+        updateNavDebugInfo();
       }
     }
 
-    function closeSidebarOnClickOutside(event) {
-      const sidebar = document.getElementById('sidebarMenu');
-      const toggleBtn = document.getElementById('sidebarToggle');
-      
-      if (!sidebar || !toggleBtn) return;
-      
-      const isClickInsideSidebar = sidebar.contains(event.target);
-      const isClickOnToggle = toggleBtn.contains(event.target);
-      
-      if (!isClickInsideSidebar && !isClickOnToggle && !sidebar.classList.contains('closed')) {
-        sidebar.classList.add('closed');
-        document.removeEventListener('click', closeSidebarOnClickOutside);
-        updateSidebarDebugInfo();
-      }
-    }
-
-    function forceShowSidebar() {
-      const sidebar = document.getElementById('sidebarMenu');
-      if (sidebar) {
-        sidebar.classList.remove('closed');
-        updateSidebarDebugInfo();
-      }
-    }
-
-    function updateSidebarDebugInfo() {
-      const sidebar = document.getElementById('sidebarMenu');
+    function updateNavDebugInfo() {
+      const mobileSidebar = document.getElementById('mobileSidebar');
       el('screenWidth').textContent = window.innerWidth + 'px';
-      el('sidebarState').textContent = sidebar ? (sidebar.classList.contains('closed') ? 'Closed' : 'Open') : 'Not found';
+      el('navState').textContent = mobileSidebar ? (mobileSidebar.classList.contains('closed') ? 'Mobile Menu Closed' : 'Mobile Menu Open') : 'Desktop Navigation';
     }
 
-    // Auto-detect screen size and adjust sidebar
-    function handleResize() {
-      const sidebar = document.getElementById('sidebarMenu');
-      if (window.innerWidth >= 1024) {
-        // Desktop - always show sidebar
-        if (sidebar) {
-          sidebar.classList.remove('closed');
-        }
-      } else {
-        // Mobile - start closed
-        if (sidebar) {
-          sidebar.classList.add('closed');
-        }
-      }
-      updateSidebarDebugInfo();
-    }
-
-    // Close sidebar on mobile when navigating
-    function setupSidebarAutoClose() {
-      const sidebarLinks = document.querySelectorAll('.sidebar a');
-      sidebarLinks.forEach(link => {
+    // Auto-close mobile sidebar when navigating
+    function setupMobileSidebarAutoClose() {
+      const mobileSidebarLinks = document.querySelectorAll('.mobile-sidebar a');
+      mobileSidebarLinks.forEach(link => {
         link.addEventListener('click', () => {
-          if (window.innerWidth < 1024) {
-            const sidebar = document.getElementById('sidebarMenu');
-            if (sidebar && !sidebar.classList.contains('closed')) {
-              sidebar.classList.add('closed');
-              updateSidebarDebugInfo();
-            }
+          const mobileSidebar = document.getElementById('mobileSidebar');
+          if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
+            mobileSidebar.classList.add('closed');
+            updateNavDebugInfo();
           }
         });
       });
@@ -1185,6 +1246,11 @@
       showNotification('Averages refreshed!');
     }
 
+    function testNavigation() {
+      showNotification('Navigation test completed!');
+      updateNavDebugInfo();
+    }
+
     // ===== CHART FUNCTIONS =====
     function renderCharts(records) {
       renderSubjectAveragesChart(records);
@@ -1518,7 +1584,7 @@
       const notification = document.createElement('div');
       notification.style.cssText = `
         position: fixed;
-        top: 20px;
+        top: 100px;
         right: 20px;
         background: var(--primary);
         color: white;
@@ -1526,6 +1592,7 @@
         border-radius: 8px;
         z-index: 1000;
         font-weight: 600;
+        box-shadow: var(--shadow);
       `;
       notification.textContent = message;
       document.body.appendChild(notification);
@@ -1537,31 +1604,41 @@
 
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('📈 Averages with Sidebar initialized!');
+      console.log('📈 Averages with Updated Navigation initialized!');
       
       // Load theme
       loadTheme();
       
-      // Setup sidebar for current screen size
-      handleResize();
+      // Setup mobile navigation
+      setupMobileSidebarAutoClose();
       
-      // Listen for window resize
-      window.addEventListener('resize', handleResize);
-      
-      // Setup sidebar auto-close
-      setupSidebarAutoClose();
+      // Update teacher name
+      const teacherName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
+      const teacherNameElements = document.querySelectorAll('.teacher-name');
+      teacherNameElements.forEach(element => {
+        element.textContent = teacherName;
+      });
       
       // Run averages calculation
       calculateAverages();
-      updateSidebarDebugInfo();
+      updateNavDebugInfo();
+
+      // Set initial navigation state
+      setTimeout(() => {
+        if (window.innerWidth >= 1024) {
+          el('navState').textContent = 'Desktop Navigation Active';
+        } else {
+          el('navState').textContent = 'Mobile Navigation Ready';
+        }
+      }, 100);
     });
 
     // Make functions available globally
-    window.toggleSidebar = toggleSidebar;
+    window.toggleMobileMenu = toggleMobileMenu;
     window.toggleDarkMode = toggleDarkMode;
     window.logout = logout;
     window.refreshAverages = refreshAverages;
-    window.forceShowSidebar = forceShowSidebar;
+    window.testNavigation = testNavigation;
     window.applyAveragesFilters = applyAveragesFilters;
     window.resetAveragesFilters = resetAveragesFilters;
     window.sortAveragesTable = sortAveragesTable;
@@ -1569,3 +1646,4 @@
   </script>
 </body>
 </html>
+[file content end]
