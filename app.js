@@ -213,10 +213,42 @@ window.toggleDarkMode = () => {
 // ==================== SIDEBAR MANAGEMENT ====================
 window.toggleSidebar = function() {
     const sidebar = document.getElementById('sidebarMenu');
-    if (sidebar) {
-        sidebar.classList.toggle('closed');
+    if (!sidebar) return;
+    
+    // On desktop, don't allow closing the sidebar
+    if (window.innerWidth >= 1024) {
+        sidebar.classList.remove('closed');
+        return;
+    }
+    
+    // On mobile, toggle the closed class
+    sidebar.classList.toggle('closed');
+    
+    // Update toggle button text for mobile
+    const toggleBtn = document.getElementById('sidebarToggle');
+    if (toggleBtn && window.innerWidth < 1024) {
+        toggleBtn.textContent = sidebar.classList.contains('closed') ? '☰' : '✕';
     }
 };
+
+// Initialize sidebar state based on screen size
+const initializeSidebar = () => {
+    const sidebar = document.getElementById('sidebarMenu');
+    if (!sidebar) return;
+    
+    if (window.innerWidth >= 1024) {
+        // Desktop - ensure sidebar is open
+        sidebar.classList.remove('closed');
+    } else {
+        // Mobile - ensure sidebar is closed initially
+        sidebar.classList.add('closed');
+    }
+};
+
+// Handle window resize
+window.addEventListener('resize', () => {
+    initializeSidebar();
+});
 
 // ==================== ENHANCED ERROR HANDLING ====================
 const showAlert = (message, type = 'info') => {
