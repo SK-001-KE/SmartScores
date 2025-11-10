@@ -130,6 +130,7 @@ body {
     gap: 10px;
   }
 }
+
 /* =========================================================
    TOP NAVIGATION STYLES
 ========================================================= */
@@ -194,7 +195,7 @@ body {
   font-weight: 500;
 }
 
-/* Mobile Menu Toggle (hidden on desktop) */
+/* Mobile Menu Toggle */
 .mobile-menu-toggle {
   display: none;
   position: fixed;
@@ -211,7 +212,7 @@ body {
   box-shadow: var(--shadow);
 }
 
-/* Mobile Sidebar (hidden on desktop) */
+/* Mobile Sidebar */
 .mobile-sidebar {
   display: none;
   position: fixed;
@@ -286,12 +287,16 @@ header {
 }
 
 /* =========================================================
-   RESPONSIVE DESIGN FOR NAVIGATION
+   RESPONSIVE DESIGN FOR NAVIGATION - FIXED VERSION
 ========================================================= */
 
-/* Desktop styles (default) */
+/* Desktop styles (default) - Top nav always visible */
 @media (min-width: 1024px) {
   .top-nav {
+    display: flex;
+  }
+  
+  .nav-links {
     display: flex;
   }
   
@@ -304,23 +309,35 @@ header {
   }
 }
 
-/* Mobile styles */
+/* Mobile styles - Hide nav links, show mobile menu */
 @media (max-width: 1023px) {
   .top-nav {
-    display: none; /* Hide top nav on mobile */
+    display: flex;
+    padding: 0 15px;
+  }
+  
+  .nav-links {
+    display: none; /* Hide navigation links on mobile */
   }
   
   .mobile-menu-toggle {
-    display: block; /* Show mobile menu toggle */
+    display: block;
   }
   
   .mobile-sidebar {
-    display: block; /* Show mobile sidebar */
+    display: block;
   }
   
-  /* Adjust header for mobile */
-  header {
-    margin-top: 0;
+  .nav-user {
+    margin-left: auto; /* Push user info to the right */
+  }
+  
+  .nav-brand {
+    font-size: 1.1em;
+  }
+  
+  .teacher-name {
+    font-size: 0.9em;
   }
 }
 
@@ -341,7 +358,6 @@ header {
 .floating-top-btn {
   top: 80px; /* Adjust for the top nav */
 }
-
 
 /* =========================================================
    LAYOUT & CONTAINERS
@@ -530,6 +546,7 @@ header p {
     padding: 40px 20px;
     color: var(--secondary);
 }
+
 /* =========================================================
    DASHBOARD STYLES
 ========================================================= */
@@ -1473,6 +1490,7 @@ footer {
   font-size: 4em;
   margin-bottom: 20px;
 }
+
 /* =========================================================
    SIDEBAR FIXES FOR DESKTOP
 ========================================================= */
