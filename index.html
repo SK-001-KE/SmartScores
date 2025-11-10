@@ -19,7 +19,7 @@
   <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰</button>
 
   <!-- SIDEBAR -->
-  <aside id="sidebarMenu" class="sidebar closed">
+  <aside id="sidebarMenu" class="sidebar">
     <a href="./index.html" class="active">📊 Dashboard</a>
     <a href="./data-entry.html">📝 Data Entry</a>
     <a href="./recorded-scores.html">📋 Recorded Scores</a>
@@ -86,5 +86,21 @@
       });
     }
   </script>
+  <script>
+// Debug script - add this temporarily to test
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('sidebarMenu');
+    console.log('Sidebar element:', sidebar);
+    console.log('Sidebar classes:', sidebar?.className);
+    console.log('Window width:', window.innerWidth);
+    console.log('Is desktop?', window.innerWidth >= 1024);
+    
+    // Force sidebar open on desktop
+    if (window.innerWidth >= 1024 && sidebar) {
+        sidebar.classList.remove('closed');
+        console.log('Removed closed class from sidebar');
+    }
+});
+</script>
 </body>
 </html>
