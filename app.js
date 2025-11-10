@@ -463,14 +463,14 @@ window.deleteTarget = (index) => {
 };
 
 // ==================== RECORD MANAGEMENT ====================
-window.deleteRecord = (index) => {
+window.deleteRecord = async (index) => { // ADDED ASYNC
     if (confirm('Are you sure you want to delete this record?')) {
-        const records = loadRecords();
+        const records = await loadRecords(); // CHANGED TO AWAIT
         if (index >= 0 && index < records.length) {
             records.splice(index, 1);
-            if (saveRecords(records)) {
+            if (await saveRecords(records)) { // CHANGED TO AWAIT
                 showAlert('Record deleted successfully', 'success');
-                renderAll();
+                await renderAll(); // CHANGED TO AWAIT
             }
         }
     }
