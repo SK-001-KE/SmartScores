@@ -407,7 +407,7 @@ const generateAIRecommendations = (records, targets) => {
     return recommendations;
 };
 // ==================== TARGET MANAGEMENT ====================
-const handleSaveTarget = (event) => {
+const handleSaveTarget = async (event) => { // ADDED ASYNC
     if (event) event.preventDefault();
     
     const target = {
@@ -419,20 +419,9 @@ const handleSaveTarget = (event) => {
         score: parseFloat(el('targetScore')?.value)
     };
     
-    const requiredFields = ['subject', 'grade', 'stream', 'term', 'examType'];
-    const missingFields = requiredFields.filter(field => !target[field]);
+    // ... (keep all your existing validation code) ...
     
-    if (missingFields.length > 0 || isNaN(target.score)) {
-        showAlert('Please fill all fields with valid data', 'error');
-        return;
-    }
-    
-    if (target.score < 0 || target.score > 100) {
-        showAlert('Target score must be between 0 and 100', 'error');
-        return;
-    }
-    
-    const existingTargets = loadTargets();
+    const existingTargets = await loadTargets(); // CHANGED TO AWAIT
     const duplicate = existingTargets.find(t =>
         t.subject === target.subject &&
         t.grade === target.grade &&
@@ -452,15 +441,14 @@ const handleSaveTarget = (event) => {
         timestamp: new Date().toISOString()
     });
     
-    if (saveTargets(existingTargets)) {
+    if (await saveTargets(existingTargets)) { // CHANGED TO AWAIT
         showAlert('Target saved successfully!', 'success');
         if (el('targetsForm')) {
             el('targetsForm').reset();
         }
-        renderTargets();
+        await renderTargets(); // CHANGED TO AWAIT
     }
 };
-
 window.deleteTarget = (index) => {
     if (confirm('Are you sure you want to delete this target?')) {
         const targets = loadTargets();
