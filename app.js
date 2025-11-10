@@ -96,6 +96,107 @@ const formatRubricBadge = (score) => {
     `;
 };
 
+// ==================== SYNC STATUS INDICATOR ====================
+const createSyncStatusIndicator = () => {
+    const statusDiv = document.createElement('div');
+    statusDiv.id = 'syncStatus';
+    statusDiv.style.cssText = `
+        position: fixed;
+        bottom: 60px;
+        right: 20px;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        font-weight: 600;
+        z-index: 1000;
+        transition: all 0.3s ease;
+        background: var(--card);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+    `;
+    
+    document.body.appendChild(statusDiv);
+    return statusDiv;
+};
+
+const updateSyncStatus = () => {
+    if (typeof firebaseSync === 'undefined') return;
+    
+    const statusDiv = document.getElementById('syncStatus') || createSyncStatusIndicator();
+    const status = firebaseSync.getSyncStatus();
+    const user = firebaseAuth.getCurrentUser();
+    
+    let statusText = '';
+    let statusColor = '#666';
+    
+    if (!user) {
+        statusText = '🔓 Not signed in';
+        statusColor = '#6B7280';
+    } else if (user.uid === 'local-user') {
+        statusText = '📱 Local mode';
+        statusColor = '#F59E0B';
+    } else if (!status.isOnline) {
+        statusText = '📴 Offline - queued';
+        statusColor = '#EF4444';
+    } else if (status.queueLength > 0) {
+        statusText = `🔄 Syncing (${status.queueLength})`;
+        statusColor = '#F59E0B';
+    } else {
+        statusText = '☁️ Synced';
+        statusColor = '#10B981';
+    }
+    
+    statusDiv.textContent = statusText;
+    statusDiv.style.background = statusColor;
+    statusDiv.style.color = 'white';
+};
+
+// Update sync status every 5 seconds and on network events
+setInterval(updateSyncStatus, 5000);
+window.addEventListener('online', updateSyncStatus);
+window.addEventListener('offline', updateSyncStatus);
+
+// ==================== DATA MIGRATION ====================
+const migrateExistingData = async () => {
+    if (typeof firebaseSync === 'undefined' || typeof firebaseAuth === 'undefined') return;
+    
+    const user = firebaseAuth.getCurrentUser();
+    if (!user || user.uid === 'local-user') return;
+    
+    // Check if we've already migrated
+    const migrationKey = `data_migrated_${user.uid}`;
+    if (localStorage.getItem(migrationKey)) return;
+    
+    console.log('🔄 Checking for existing data to migrate...');
+    
+    // Migrate records
+    const localRecords = localStorage.getItem('smartScoresRecords');
+    if (localRecords) {
+        const records = JSON.parse(localRecords);
+        if (records.length > 0) {
+            console.log(`📦 Migrating ${records.length} records to cloud...`);
+            await firebaseSync.saveRecords(records);
+        }
+    }
+    
+    // Migrate targets
+    const localTargets = localStorage.getItem('smartScoresTargets');
+    if (localTargets) {
+        const targets = JSON.parse(localTargets);
+        if (targets.length > 0) {
+            console.log(`🎯 Migrating ${targets.length} targets to cloud...`);
+            await firebaseSync.saveTargets(targets);
+        }
+    }
+    
+    // Mark as migrated
+    localStorage.setItem(migrationKey, 'true');
+    console.log('✅ Data migration completed');
+};
+
+// Call this after successful login
+// Add this to your auth success handlers
+
 // ==================== THEME MANAGEMENT ====================
 const loadTheme = () => {
     const theme = localStorage.getItem(STORAGE_KEYS.THEME) || 'light';
