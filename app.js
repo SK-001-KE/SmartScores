@@ -633,12 +633,12 @@ window.exportAverages = () => {
 };
 
 // ==================== RENDERING FUNCTIONS ====================
-const renderRecords = () => {
+const renderRecords = async () => { // ADDED ASYNC
     const tbody = document.querySelector('#recordsTable tbody') || el('recordsBody');
     if (!tbody) return;
     
-    const records = loadRecords();
-    const targets = loadTargets();
+    const records = await loadRecords(); // CHANGED TO AWAIT
+    const targets = await loadTargets(); // CHANGED TO AWAIT
     
     if (records.length === 0) {
         tbody.innerHTML = `
