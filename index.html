@@ -9,17 +9,41 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="./app.js" defer></script>
   <script src="./auth.js" defer></script>
-  <!-- Add this line to the head section of each HTML file -->
-<script type="module" src="./firebase-config.js"></script>
-  <!-- Add this line to the head section -->
-<script type="module" src="./firebase-sync.js"></script>
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="./firebase-sync.js"></script>
 </head>
 <body>
-  <!-- MOBILE MENU TOGGLE - ADDED -->
-  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <!-- REMOVE the menu-toggle button and sidebar -->
 
-  <!-- SIDEBAR -->
-  <aside id="sidebarMenu" class="sidebar">
+  <!-- TOP NAVIGATION BAR -->
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <img src="./icon-192x192.png" class="logo-small" style="height:32px;margin-right:10px;border-radius:6px;">
+      <span>SmartScores</span>
+    </div>
+    
+    <div class="nav-links">
+      <a href="./index.html" class="nav-link active">📊 Dashboard</a>
+      <a href="./data-entry.html" class="nav-link">📝 Data Entry</a>
+      <a href="./recorded-scores.html" class="nav-link">📋 Scores</a>
+      <a href="./ai-insights.html" class="nav-link">🤖 AI Insights</a>
+      <a href="./averages.html" class="nav-link">📈 Averages</a>
+      <a href="./trends.html" class="nav-link">📊 Trends</a>
+      <a href="./grade-distribution.html" class="nav-link">📈 Distribution</a>
+      <a href="./set-targets.html" class="nav-link">🎯 Targets</a>
+    </div>
+    
+    <div class="nav-user">
+      <span id="teacherName" class="teacher-name">Teacher</span>
+      <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
+    </div>
+  </nav>
+
+  <!-- MOBILE MENU TOGGLE (only show on mobile) -->
+  <button id="mobileMenuToggle" class="mobile-menu-toggle">☰</button>
+
+  <!-- MOBILE SIDEBAR (only for mobile) -->
+  <aside id="mobileSidebar" class="mobile-sidebar closed">
     <a href="./index.html" class="active">📊 Dashboard</a>
     <a href="./data-entry.html">📝 Data Entry</a>
     <a href="./recorded-scores.html">📋 Recorded Scores</a>
@@ -29,7 +53,7 @@
     <a href="./grade-distribution.html">📈 Grade Distribution</a>
     <a href="./set-targets.html">🎯 Set Targets</a>
     <button class="logout-btn">🚪 Logout</button>
-</aside>
+  </aside>
 
   <!-- DARK MODE -->
   <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
@@ -39,7 +63,8 @@
     <p>Teacher Performance Dashboard</p>
   </header>
 
-  <main class="content content-with-sidebar">
+  <main class="content">
+    <!-- Your existing dashboard content remains the same -->
     <div class="dashboard-cards">
       <div class="dashboard-card total-avg-card" id="totalAvgCard">
         <h3>Overall Average</h3>
@@ -86,21 +111,5 @@
       });
     }
   </script>
-  <script>
-// Debug script - add this temporarily to test
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebar = document.getElementById('sidebarMenu');
-    console.log('Sidebar element:', sidebar);
-    console.log('Sidebar classes:', sidebar?.className);
-    console.log('Window width:', window.innerWidth);
-    console.log('Is desktop?', window.innerWidth >= 1024);
-    
-    // Force sidebar open on desktop
-    if (window.innerWidth >= 1024 && sidebar) {
-        sidebar.classList.remove('closed');
-        console.log('Removed closed class from sidebar');
-    }
-});
-</script>
 </body>
 </html>
