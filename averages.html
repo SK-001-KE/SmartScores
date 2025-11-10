@@ -1,13 +1,13 @@
-[file name]: averages.html
-[file content begin]
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
   <!-- Add this line to the head section -->
-<script type="module" src="./firebase-sync.js"></script>
+  <script type="module" src="./firebase-sync.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartScores - Cumulative Averages</title>
+  <!-- Add Chart.js for visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* ===== CORE STYLES ===== */
     :root {
@@ -273,6 +273,14 @@
       margin-bottom: 5px;
     }
 
+    .filter-group select {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+    }
+
     .filter-actions {
       display: flex;
       gap: 10px;
@@ -359,11 +367,19 @@
       padding: 25px;
       border-radius: 12px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      height: 300px;
+      display: flex;
+      flex-direction: column;
     }
 
     .chart-card h3 {
       margin-bottom: 20px;
       text-align: center;
+    }
+
+    .chart-container {
+      flex: 1;
+      position: relative;
     }
 
     /* Rubric Section */
@@ -488,6 +504,10 @@
         text-align: center;
         justify-content: center;
       }
+      
+      .chart-card {
+        height: 250px;
+      }
     }
   </style>
 </head>
@@ -505,7 +525,7 @@
     <a href="./trends.html">📊 Trends</a>
     <a href="./grade-distribution.html">📈 Grade Distribution</a>
     <a href="./set-targets.html">🎯 Set Targets</a>
-    <button class="logout-btn">🚪 Logout</button>
+    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
   </aside>
 
   <!-- DARK MODE TOGGLE -->
@@ -628,19 +648,27 @@
       <div class="charts-grid">
         <div class="chart-card">
           <h3>Subject Performance</h3>
-          <canvas id="subjectAveragesChart"></canvas>
+          <div class="chart-container">
+            <canvas id="subjectAveragesChart"></canvas>
+          </div>
         </div>
         <div class="chart-card">
           <h3>Stream Comparison</h3>
-          <canvas id="streamComparisonChart"></canvas>
+          <div class="chart-container">
+            <canvas id="streamComparisonChart"></canvas>
+          </div>
         </div>
         <div class="chart-card">
           <h3>Grade Level Performance</h3>
-          <canvas id="gradeAveragesChart"></canvas>
+          <div class="chart-container">
+            <canvas id="gradeAveragesChart"></canvas>
+          </div>
         </div>
         <div class="chart-card">
           <h3>Term Comparison</h3>
-          <canvas id="termComparisonChart"></canvas>
+          <div class="chart-container">
+            <canvas id="termComparisonChart"></canvas>
+          </div>
         </div>
       </div>
     </section>
@@ -680,6 +708,9 @@
 
     // Simple DOM helper
     const el = id => document.getElementById(id);
+
+    // Chart instances
+    let subjectChart, streamChart, gradeChart, termChart;
 
     // ===== SIDEBAR MANAGEMENT =====
     function toggleSidebar() {
@@ -774,6 +805,9 @@
       const newTheme = currentTheme === 'light' ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', newTheme);
       localStorage.setItem('themeMode', newTheme);
+      
+      // Update charts if they exist
+      updateChartsTheme();
     }
 
     function loadTheme() {
@@ -835,6 +869,9 @@
       
       // Update quick stats
       updateQuickStats(records);
+      
+      // Render charts
+      renderCharts(records);
     }
 
     function calculateOverallStats(records) {
@@ -939,8 +976,11 @@
                a.term.localeCompare(b.term);
       });
 
+      // Apply filters if any
+      const filteredAverages = applyCurrentFilters(averages);
+
       // Render table
-      tbody.innerHTML = averages.map(avg => `
+      tbody.innerHTML = filteredAverages.map(avg => `
         <tr>
           <td>${avg.subject}</td>
           <td>${avg.grade}</td>
@@ -1022,6 +1062,18 @@
     }
 
     // ===== FILTERS AND SORTING =====
+    function applyCurrentFilters(averages) {
+      const gradeFilter = el('gradeFilter').value;
+      const streamFilter = el('streamFilter').value;
+      const termFilter = el('termFilter').value;
+      
+      return averages.filter(avg => {
+        return (!gradeFilter || avg.grade === gradeFilter) &&
+               (!streamFilter || avg.stream === streamFilter) &&
+               (!termFilter || avg.term === termFilter);
+      });
+    }
+
     function applyAveragesFilters() {
       showNotification('Filters applied!');
       calculateAverages();
@@ -1041,14 +1093,388 @@
     }
 
     function exportAverages() {
-      showNotification('Exporting averages data...');
-      // Export logic would be implemented here
+      const records = loadRecords();
+      if (records.length === 0) {
+        showNotification('No data to export!');
+        return;
+      }
+      
+      // Create CSV content
+      let csvContent = "Subject,Grade,Stream,Term,Opener,Mid Term,End Term,Overall Average,Rubric\n";
+      
+      // Get filtered averages
+      const groups = {};
+      records.forEach(record => {
+        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}`;
+        if (!groups[key]) {
+          groups[key] = {
+            subject: record.subject,
+            grade: record.grade,
+            stream: record.stream,
+            term: record.term,
+            exams: {
+              'Opener Exam': [],
+              'Mid Term Exam': [],
+              'End Term Exam': []
+            }
+          };
+        }
+        
+        const examType = record.examType || '';
+        if (examType.includes('Opener')) {
+          groups[key].exams['Opener Exam'].push(record.mean);
+        } else if (examType.includes('Mid')) {
+          groups[key].exams['Mid Term Exam'].push(record.mean);
+        } else if (examType.includes('End')) {
+          groups[key].exams['End Term Exam'].push(record.mean);
+        }
+      });
+
+      // Calculate averages for each group
+      const averages = Object.values(groups).map(group => {
+        const openerScores = group.exams['Opener Exam'];
+        const midScores = group.exams['Mid Term Exam'];
+        const endScores = group.exams['End Term Exam'];
+        
+        const openerAvg = openerScores.length > 0 ? 
+            openerScores.reduce((a, b) => a + b, 0) / openerScores.length : null;
+        const midAvg = midScores.length > 0 ? 
+            midScores.reduce((a, b) => a + b, 0) / midScores.length : null;
+        const endAvg = endScores.length > 0 ? 
+            endScores.reduce((a, b) => a + b, 0) / endScores.length : null;
+        
+        const allScores = [...openerScores, ...midScores, ...endScores];
+        const overallAvg = allScores.length > 0 ? 
+            allScores.reduce((a, b) => a + b, 0) / allScores.length : 0;
+        
+        return {
+          ...group,
+          openerAvg,
+          midAvg,
+          endAvg,
+          overallAvg,
+          rubric: getRubric(overallAvg).code
+        };
+      });
+
+      // Apply filters
+      const filteredAverages = applyCurrentFilters(averages);
+      
+      // Add rows to CSV
+      filteredAverages.forEach(avg => {
+        csvContent += `"${avg.subject}",${avg.grade},"${avg.stream}","${avg.term}",${avg.openerAvg || ''},${avg.midAvg || ''},${avg.endAvg || ''},${avg.overallAvg.toFixed(1)},"${avg.rubric}"\n`;
+      });
+      
+      // Create download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `SmartScores_Averages_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      showNotification('Data exported successfully!');
     }
 
     function refreshAverages() {
       console.log('🔄 Refreshing averages...');
       calculateAverages();
       showNotification('Averages refreshed!');
+    }
+
+    // ===== CHART FUNCTIONS =====
+    function renderCharts(records) {
+      renderSubjectAveragesChart(records);
+      renderStreamComparisonChart(records);
+      renderGradeAveragesChart(records);
+      renderTermComparisonChart(records);
+    }
+
+    function renderSubjectAveragesChart(records) {
+      const ctx = document.getElementById('subjectAveragesChart').getContext('2d');
+      
+      // Calculate subject averages
+      const subjectAverages = {};
+      records.forEach(record => {
+        if (!subjectAverages[record.subject]) {
+          subjectAverages[record.subject] = { sum: 0, count: 0 };
+        }
+        subjectAverages[record.subject].sum += record.mean;
+        subjectAverages[record.subject].count++;
+      });
+      
+      const subjects = Object.keys(subjectAverages);
+      const averages = subjects.map(subject => 
+        (subjectAverages[subject].sum / subjectAverages[subject].count).toFixed(1)
+      );
+      
+      // Destroy previous chart if exists
+      if (subjectChart) subjectChart.destroy();
+      
+      // Create new chart
+      subjectChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: subjects,
+          datasets: [{
+            label: 'Average Score (%)',
+            data: averages,
+            backgroundColor: 'rgba(139, 0, 0, 0.7)',
+            borderColor: 'rgba(139, 0, 0, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Average: ${context.parsed.y}%`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderStreamComparisonChart(records) {
+      const ctx = document.getElementById('streamComparisonChart').getContext('2d');
+      
+      // Calculate stream averages
+      const streamAverages = {};
+      records.forEach(record => {
+        if (!streamAverages[record.stream]) {
+          streamAverages[record.stream] = { sum: 0, count: 0 };
+        }
+        streamAverages[record.stream].sum += record.mean;
+        streamAverages[record.stream].count++;
+      });
+      
+      const streams = Object.keys(streamAverages);
+      const averages = streams.map(stream => 
+        (streamAverages[stream].sum / streamAverages[stream].count).toFixed(1)
+      );
+      
+      // Destroy previous chart if exists
+      if (streamChart) streamChart.destroy();
+      
+      // Create new chart
+      streamChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: streams,
+          datasets: [{
+            data: averages,
+            backgroundColor: [
+              'rgba(139, 0, 0, 0.7)',
+              'rgba(0, 100, 0, 0.7)',
+              'rgba(0, 0, 139, 0.7)',
+              'rgba(139, 69, 19, 0.7)',
+              'rgba(128, 0, 128, 0.7)',
+              'rgba(0, 128, 128, 0.7)'
+            ],
+            borderColor: [
+              'rgba(139, 0, 0, 1)',
+              'rgba(0, 100, 0, 1)',
+              'rgba(0, 0, 139, 1)',
+              'rgba(139, 69, 19, 1)',
+              'rgba(128, 0, 128, 1)',
+              'rgba(0, 128, 128, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `${context.label}: ${context.parsed}%`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderGradeAveragesChart(records) {
+      const ctx = document.getElementById('gradeAveragesChart').getContext('2d');
+      
+      // Calculate grade averages
+      const gradeAverages = {};
+      records.forEach(record => {
+        if (!gradeAverages[record.grade]) {
+          gradeAverages[record.grade] = { sum: 0, count: 0 };
+        }
+        gradeAverages[record.grade].sum += record.mean;
+        gradeAverages[record.grade].count++;
+      });
+      
+      const grades = Object.keys(gradeAverages).sort();
+      const averages = grades.map(grade => 
+        (gradeAverages[grade].sum / gradeAverages[grade].count).toFixed(1)
+      );
+      
+      // Destroy previous chart if exists
+      if (gradeChart) gradeChart.destroy();
+      
+      // Create new chart
+      gradeChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: grades,
+          datasets: [{
+            label: 'Average Score (%)',
+            data: averages,
+            backgroundColor: 'rgba(139, 0, 0, 0.1)',
+            borderColor: 'rgba(139, 0, 0, 1)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Average: ${context.parsed.y}%`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderTermComparisonChart(records) {
+      const ctx = document.getElementById('termComparisonChart').getContext('2d');
+      
+      // Calculate term averages
+      const termAverages = {};
+      records.forEach(record => {
+        if (!termAverages[record.term]) {
+          termAverages[record.term] = { sum: 0, count: 0 };
+        }
+        termAverages[record.term].sum += record.mean;
+        termAverages[record.term].count++;
+      });
+      
+      const terms = Object.keys(termAverages).sort();
+      const averages = terms.map(term => 
+        (termAverages[term].sum / termAverages[term].count).toFixed(1)
+      );
+      
+      // Destroy previous chart if exists
+      if (termChart) termChart.destroy();
+      
+      // Create new chart
+      termChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: terms,
+          datasets: [{
+            label: 'Average Score (%)',
+            data: averages,
+            backgroundColor: [
+              'rgba(139, 0, 0, 0.7)',
+              'rgba(0, 100, 0, 0.7)',
+              'rgba(0, 0, 139, 0.7)'
+            ],
+            borderColor: [
+              'rgba(139, 0, 0, 1)',
+              'rgba(0, 100, 0, 1)',
+              'rgba(0, 0, 139, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Average: ${context.parsed.y}%`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateChartsTheme() {
+      // Update chart colors based on theme
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+      const textColor = isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)';
+      
+      // Update all charts if they exist
+      const charts = [subjectChart, streamChart, gradeChart, termChart];
+      charts.forEach(chart => {
+        if (chart) {
+          chart.options.scales.x.grid.color = gridColor;
+          chart.options.scales.y.grid.color = gridColor;
+          chart.options.scales.x.ticks.color = textColor;
+          chart.options.scales.y.ticks.color = textColor;
+          chart.update();
+        }
+      });
     }
 
     // ===== UTILITY FUNCTIONS =====
@@ -1063,6 +1489,29 @@
           </tr>
         `;
       }
+      
+      // Clear charts
+      const chartIds = [
+        'subjectAveragesChart',
+        'streamComparisonChart',
+        'gradeAveragesChart',
+        'termComparisonChart'
+      ];
+      
+      chartIds.forEach(id => {
+        const canvas = document.getElementById(id);
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = '#f0f0f0';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = '#666';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.font = '16px Arial';
+          ctx.fillText('No data available', canvas.width / 2, canvas.height / 2);
+        }
+      });
     }
 
     function showNotification(message) {
@@ -1120,4 +1569,3 @@
   </script>
 </body>
 </html>
-
