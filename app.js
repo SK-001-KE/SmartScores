@@ -1714,9 +1714,13 @@ const renderAll = async () => { // ADDED ASYNC
     }
 };
 // ==================== INITIALIZATION ====================
-document.addEventListener('DOMContentLoaded', async () => { // ADDED ASYNC
+// ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', async () => {
     loadTheme();
     autoFillYear();
+    
+    // Initialize sidebar first
+    initializeSidebar();
     
     const dataForm = el('dataEntryForm');
     if (dataForm) {
@@ -1738,7 +1742,7 @@ document.addEventListener('DOMContentLoaded', async () => { // ADDED ASYNC
         targetSearch.addEventListener('input', filterTargets);
     }
     
-    await renderAll(); // CHANGED TO AWAIT
+    await renderAll();
     
     const teacherNameElement = el('teacherName');
     if (teacherNameElement) {
