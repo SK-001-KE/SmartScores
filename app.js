@@ -210,45 +210,58 @@ window.toggleDarkMode = () => {
     localStorage.setItem(STORAGE_KEYS.THEME, newTheme);
 };
 
-// ==================== SIDEBAR MANAGEMENT ====================
-window.toggleSidebar = function() {
-    const sidebar = document.getElementById('sidebarMenu');
-    if (!sidebar) return;
+// ==================== MOBILE NAVIGATION MANAGEMENT ====================
+window.toggleMobileMenu = function() {
+    const mobileSidebar = document.getElementById('mobileSidebar');
+    const toggleBtn = document.getElementById('mobileMenuToggle');
     
-    // On desktop, don't allow closing the sidebar
-    if (window.innerWidth >= 1024) {
-        sidebar.classList.remove('closed');
-        return;
-    }
-    
-    // On mobile, toggle the closed class
-    sidebar.classList.toggle('closed');
-    
-    // Update toggle button text for mobile
-    const toggleBtn = document.getElementById('sidebarToggle');
-    if (toggleBtn && window.innerWidth < 1024) {
-        toggleBtn.textContent = sidebar.classList.contains('closed') ? '☰' : '✕';
-    }
-};
-
-// Initialize sidebar state based on screen size
-const initializeSidebar = () => {
-    const sidebar = document.getElementById('sidebarMenu');
-    if (!sidebar) return;
-    
-    if (window.innerWidth >= 1024) {
-        // Desktop - ensure sidebar is open
-        sidebar.classList.remove('closed');
-    } else {
-        // Mobile - ensure sidebar is closed initially
-        sidebar.classList.add('closed');
+    if (mobileSidebar) {
+        mobileSidebar.classList.toggle('closed');
+        
+        // Update toggle button text
+        if (toggleBtn) {
+            toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
+        }
+        
+        // Close sidebar when clicking outside on mobile
+        if (!mobileSidebar.classList.contains('closed')) {
+            setTimeout(() => {
+                document.addEventListener('click', closeMobileSidebarOnClickOutside);
+            }, 100);
+        }
     }
 };
 
-// Handle window resize
-window.addEventListener('resize', () => {
-    initializeSidebar();
-});
+// Close mobile sidebar when clicking outside
+function closeMobileSidebarOnClickOutside(event) {
+    const mobileSidebar = document.getElementById('mobileSidebar');
+    const toggleBtn = document.getElementById('mobileMenuToggle');
+    
+    if (!mobileSidebar || !toggleBtn) return;
+    
+    const isClickInsideSidebar = mobileSidebar.contains(event.target);
+    const isClickOnToggle = toggleBtn.contains(event.target);
+    
+    if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
+        mobileSidebar.classList.add('closed');
+        document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+    }
+}
+
+// Auto-close mobile sidebar when navigating
+function setupMobileSidebarAutoClose() {
+    if (window.innerWidth < 1024) {
+        const mobileSidebarLinks = document.querySelectorAll('.mobile-sidebar a');
+        mobileSidebarLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                const mobileSidebar = document.getElementById('mobileSidebar');
+                if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
+                    mobileSidebar.classList.add('closed');
+                }
+            });
+        });
+    }
+}
 
 // ==================== ENHANCED ERROR HANDLING ====================
 const showAlert = (message, type = 'info') => {
