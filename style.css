@@ -1262,6 +1262,61 @@ footer {
   font-size: 4em;
   margin-bottom: 20px;
 }
+/* =========================================================
+   SIDEBAR FIXES FOR DESKTOP
+========================================================= */
+
+/* Desktop sidebar - always visible */
+@media (min-width: 1024px) {
+  .menu-toggle {
+    display: none !important;
+  }
+  
+  .sidebar {
+    transform: translateX(0) !important;
+    width: 280px;
+  }
+  
+  .sidebar.closed {
+    transform: translateX(-100%) !important;
+  }
+  
+  .content-with-sidebar {
+    margin-left: 280px;
+    transition: margin-left 0.3s ease;
+  }
+}
+
+/* Mobile sidebar */
+@media (max-width: 1023px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: 280px;
+  }
+  
+  .sidebar:not(.closed) {
+    transform: translateX(0);
+  }
+  
+  .content-with-sidebar {
+    margin-left: 0;
+  }
+}
+
+/* Ensure sidebar has proper z-index and styling */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  padding-top: 80px;
+  transition: transform 0.3s ease;
+  z-index: 999;
+  overflow-y: auto;
+  box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+}
 
 /* =========================================================
    RESPONSIVE DESIGN
