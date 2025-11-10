@@ -1726,14 +1726,14 @@ const renderAll = async () => { // ADDED ASYNC
         }
     }
 };
-// ==================== INITIALIZATION ====================
+
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async () => {
     loadTheme();
     autoFillYear();
     
-    // Initialize sidebar first
-    initializeSidebar();
+    // Setup mobile navigation
+    setupMobileSidebarAutoClose();
     
     const dataForm = el('dataEntryForm');
     if (dataForm) {
