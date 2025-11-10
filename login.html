@@ -132,31 +132,55 @@
   </script>
   <script>
 // Global functions for the login page
+// Enhanced Google Sign-In function
 async function handleGoogleSignIn() {
+  console.log('🔐 Google Sign-In initiated...');
+  
+  const button = event.target;
+  const originalText = button.innerHTML;
+  
+  // Show loading state
+  button.innerHTML = '<span class="loading-spinner">⏳</span> Signing in...';
+  button.disabled = true;
+  
   try {
+    // Check if Firebase auth is loaded
+    if (typeof firebaseAuth === 'undefined') {
+      throw new Error('Authentication service not loaded. Please refresh the page.');
+    }
+    
+    console.log('Firebase Auth available, starting sign-in...');
     const result = await firebaseAuth.loginWithGoogle();
+    
     if (result.success) {
+      console.log('✅ Google Sign-In successful!');
       showLoginSuccess(`Welcome! Redirecting to your dashboard...`);
       setTimeout(() => {
         window.location.href = './index.html';
       }, 1500);
     } else {
+      console.error('❌ Google Sign-In failed:', result.error);
       showLoginError(`Google Sign-In failed: ${result.error}`);
     }
   } catch (error) {
-    showLoginError('Google Sign-In error: ' + error.message);
+    console.error('💥 Google Sign-In error:', error);
+    
+    // User-friendly error messages
+    if (error.code === 'auth/popup-blocked') {
+      showLoginError('Popup blocked! Please allow popups for this site and try again.');
+    } else if (error.code === 'auth/popup-closed-by-user') {
+      showLoginError('Sign-in cancelled. Please try again.');
+    } else if (error.code === 'auth/unauthorized-domain') {
+      showLoginError('Domain not authorized. Please contact support.');
+    } else {
+      showLoginError('Sign-in failed: ' + (error.message || 'Unknown error'));
+    }
+  } finally {
+    // Restore button state
+    button.innerHTML = originalText;
+    button.disabled = false;
   }
 }
-
-function handleLocalLogin() {
-  const firstName = document.getElementById('firstName').value.trim();
-  const lastName = document.getElementById('lastName').value.trim();
-  
-  if (!firstName || !lastName) {
-    showLoginError('Please enter your first and last name');
-    return;
-  }
-  
   // Use local-only mode (no Firebase)
   const result = firebaseAuth.loginLocalOnly(firstName, lastName);
   if (result.success) {
