@@ -218,6 +218,50 @@ window.toggleSidebar = function() {
     }
 };
 
+// ==================== ENHANCED ERROR HANDLING ====================
+const showAlert = (message, type = 'info') => {
+    // Create a more sophisticated alert that shows sync status
+    const alertDiv = document.createElement('div');
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 600;
+        z-index: 10000;
+        max-width: 300px;
+        box-shadow: var(--shadow);
+        animation: slideIn 0.3s ease;
+    `;
+    
+    const colors = {
+        success: '#10B981',
+        error: '#EF4444', 
+        warning: '#F59E0B',
+        info: '#3B82F6'
+    };
+    
+    alertDiv.style.background = colors[type] || colors.info;
+    alertDiv.textContent = message;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 4000);
+};
+
+// Add this CSS for the animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+`;
+document.head.appendChild(style);
 // ==================== DATA ENTRY ====================
 const handleSaveRecord = async (event) => {
     if (event) event.preventDefault();
