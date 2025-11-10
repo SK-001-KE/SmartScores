@@ -1494,31 +1494,29 @@ window.clearAllData = () => {
 };
 
 // ==================== MAIN RENDER FUNCTION ====================
-const renderAll = () => {
+const renderAll = async () => { // ADDED ASYNC
     const currentPage = window.location.pathname.split('/').pop();
     
-    renderRecords();
+    await renderRecords(); // CHANGED TO AWAIT
     
     if (currentPage === 'index.html') {
         updateDashboardStats();
         renderProgressChart();
     } else if (currentPage === 'set-targets.html') {
-        renderTargets();
+        await renderTargets(); // CHANGED TO AWAIT
     } else if (currentPage === 'ai-insights.html') {
-        updateAIInsights(); // Add this line
+        updateAIInsights();
     } else if (currentPage === 'averages.html') {
         renderCumulativeAverages();
-        // Add averages specific rendering here
     } else if (currentPage === 'trends.html') {
         renderTrendAnalysis();
-        // Add trends specific rendering here
     } else if (currentPage === 'data-entry.html') {
         const teacherDisplay = el('currentTeacher');
         if (teacherDisplay) {
             teacherDisplay.textContent = localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Not logged in';
         }
         
-        const records = loadRecords();
+        const records = await loadRecords(); // CHANGED TO AWAIT
         const totalRecords = el('totalRecords');
         const termRecords = el('termRecords');
         const yearRecords = el('yearRecords');
