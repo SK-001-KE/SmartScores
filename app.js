@@ -1537,7 +1537,7 @@ const renderAll = async () => { // ADDED ASYNC
     }
 };
 // ==================== INITIALIZATION ====================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => { // ADDED ASYNC
     loadTheme();
     autoFillYear();
     
@@ -1561,7 +1561,7 @@ document.addEventListener('DOMContentLoaded', () => {
         targetSearch.addEventListener('input', filterTargets);
     }
     
-    renderAll();
+    await renderAll(); // CHANGED TO AWAIT
     
     const teacherNameElement = el('teacherName');
     if (teacherNameElement) {
