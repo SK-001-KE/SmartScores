@@ -9,15 +9,40 @@
   <script src="./app.js" defer></script>
   <script src="./auth.js" defer></script>
   <!-- Add this line to the head section of each HTML file -->
-<script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="./firebase-config.js"></script>
   <!-- Add this line to the head section -->
-<script type="module" src="./firebase-sync.js"></script>
+  <script type="module" src="./firebase-sync.js"></script>
 </head>
 <body>
-  <!-- MOBILE MENU TOGGLE -->
-  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <!-- TOP NAVIGATION BAR -->
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <img src="./icon-192x192.png" class="logo-small" style="height:32px;margin-right:10px;border-radius:6px;">
+      <span>SmartScores</span>
+    </div>
+    
+    <div class="nav-links">
+      <a href="./index.html" class="nav-link">📊 Dashboard</a>
+      <a href="./data-entry.html" class="nav-link active">📝 Data Entry</a>
+      <a href="./recorded-scores.html" class="nav-link">📋 Scores</a>
+      <a href="./ai-insights.html" class="nav-link">🤖 AI Insights</a>
+      <a href="./averages.html" class="nav-link">📈 Averages</a>
+      <a href="./trends.html" class="nav-link">📊 Trends</a>
+      <a href="./grade-distribution.html" class="nav-link">📈 Distribution</a>
+      <a href="./set-targets.html" class="nav-link">🎯 Targets</a>
+    </div>
+    
+    <div class="nav-user">
+      <span id="currentTeacher" class="teacher-name">Loading...</span>
+      <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
+    </div>
+  </nav>
 
- <aside id="sidebarMenu" class="sidebar closed">
+  <!-- MOBILE MENU TOGGLE (only show on mobile) -->
+  <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+
+  <!-- MOBILE SIDEBAR (only for mobile) -->
+  <aside id="mobileSidebar" class="mobile-sidebar closed">
     <a href="./index.html">📊 Dashboard</a>
     <a href="./data-entry.html" class="active">📝 Data Entry</a>
     <a href="./recorded-scores.html">📋 Recorded Scores</a>
@@ -26,8 +51,8 @@
     <a href="./trends.html">📊 Trends</a>
     <a href="./grade-distribution.html">📈 Grade Distribution</a>
     <a href="./set-targets.html">🎯 Set Targets</a>
-    <button class="logout-btn">🚪 Logout</button>
-</aside>
+    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+  </aside>
 
   <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
@@ -159,6 +184,20 @@
           .then(registration => console.log('SW registered: ', registration))
           .catch(error => console.log('SW registration failed: ', error));
       });
+    }
+
+    // Mobile menu toggle function
+    function toggleMobileMenu() {
+      const sidebar = document.getElementById('mobileSidebar');
+      sidebar.classList.toggle('closed');
+    }
+
+    // Logout function
+    function logout() {
+      // Add your logout logic here
+      console.log('Logout clicked');
+      // Example: Redirect to login page
+      // window.location.href = './login.html';
     }
   </script>
 </body>
