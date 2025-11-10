@@ -1,206 +1,16 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-  <!-- Add this line to the head section -->
-<script type="module" src="./firebase-sync.js"></script>
-  <!-- Add this line to the head section of each HTML file -->
-<script type="module" src="./firebase-config.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartScores - AI Insights</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="stylesheet" href="./style.css" />
+  <script src="./app.js" defer></script>
+  <script src="./auth.js" defer></script>
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="./firebase-sync.js"></script>
   <style>
-    /* ===== CORE STYLES ===== */
-    :root {
-      --bg: #ffffff;
-      --text: #2d3748;
-      --card: #f7fafc;
-      --border: #e2e8f0;
-      --primary: #8B0000;
-      --success: #38a169;
-      --danger: #e53e3e;
-      --info: #3182ce;
-      --gradient-primary: linear-gradient(135deg, #8B0000, #a83232);
-      --gradient-header: linear-gradient(135deg, #2d3748, #4a5568);
-    }
-
-    [data-theme="dark"] {
-      --bg: #1a202c;
-      --text: #e2e8f0;
-      --card: #2d3748;
-      --border: #4a5568;
-      --primary: #c53030;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "Segoe UI", system-ui, sans-serif;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      padding-bottom: 60px;
-    }
-
-    /* ===== HEADER ===== */
-    header {
-      text-align: center;
-      padding: 25px 20px;
-      background: var(--gradient-header);
-      color: white;
-      position: relative;
-      z-index: 100;
-    }
-
-    header h1 {
-      font-size: 2.2em;
-      margin-bottom: 8px;
-      font-weight: 700;
-    }
-
-    header p {
-      font-size: 1.1em;
-      opacity: 0.9;
-      font-weight: 300;
-    }
-
-    /* ===== SIDEBAR ===== */
-    .menu-toggle {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: var(--gradient-primary);
-      color: white;
-      border: none;
-      padding: 12px 16px;
-      border-radius: 10px;
-      z-index: 1000;
-      cursor: pointer;
-      font-size: 1.2em;
-      transition: all 0.3s ease;
-    }
-
-    .menu-toggle:hover {
-      transform: translateY(-2px);
-    }
-
-    .sidebar {
-      position: fixed;
-      left: 0;
-      top: 0;
-      width: 280px;
-      height: 100vh;
-      background: var(--card);
-      border-right: 1px solid var(--border);
-      padding-top: 80px;
-      transform: translateX(-100%);
-      transition: transform 0.3s ease;
-      z-index: 999;
-      overflow-y: auto;
-    }
-
-    .sidebar.closed {
-      transform: translateX(-100%);
-    }
-
-    .sidebar a, .sidebar button {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--border);
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 600;
-      background: none;
-      text-align: left;
-      width: 100%;
-      transition: all 0.3s ease;
-      font-size: 1em;
-      border: none;
-      cursor: pointer;
-    }
-
-    .sidebar a:hover, .sidebar button:hover {
-      background: rgba(139, 0, 0, 0.08);
-      color: var(--primary);
-    }
-
-    .sidebar a.active {
-      background: var(--gradient-primary);
-      color: white;
-      border-left: 4px solid var(--info);
-    }
-
-    .sidebar button.logout-btn {
-      background: linear-gradient(135deg, #e53e3e, #c53030);
-      color: white;
-      margin-top: auto;
-      border: none;
-    }
-
-    .sidebar button.logout-btn:hover {
-      background: linear-gradient(135deg, #f56565, #e53e3e);
-    }
-
-    /* ===== CONTENT ===== */
-    .content {
-      padding: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-      transition: margin-left 0.3s ease;
-    }
-
-    /* ===== DESKTOP LAYOUT - FIXED ===== */
-    @media (min-width: 1024px) {
-      .menu-toggle {
-        display: none;
-      }
-      
-      .sidebar {
-        transform: translateX(0) !important;
-        width: 280px;
-      }
-      
-      .sidebar.closed {
-        transform: translateX(-100%) !important;
-      }
-      
-      .content {
-        margin-left: 280px !important;
-      }
-    }
-
-    /* Force desktop sidebar visibility */
-    @media (min-width: 1024px) {
-      #sidebarMenu {
-        transform: translateX(0) !important;
-      }
-    }
-
-    /* ===== DARK MODE BUTTON ===== */
-    .floating-top-btn {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 12px 16px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--info), #3182ce);
-      color: white;
-      border: none;
-      cursor: pointer;
-      z-index: 1000;
-      font-size: 1.1em;
-      transition: all 0.3s ease;
-    }
-
-    .floating-top-btn:hover {
-      transform: translateY(-2px);
-    }
-
     /* ===== AI INSIGHTS SPECIFIC STYLES ===== */
     .summary-cards {
       display: grid;
@@ -216,6 +26,7 @@
       text-align: center;
       border-top: 4px solid var(--primary);
       transition: all 0.3s ease;
+      box-shadow: var(--shadow);
     }
 
     .summary-card:hover {
@@ -225,7 +36,7 @@
     .summary-icon { font-size: 2em; margin-bottom: 10px; }
     .summary-value { font-size: 2.2em; font-weight: bold; margin: 10px 0; color: var(--primary); }
     .summary-label { font-weight: 600; margin-bottom: 5px; }
-    .summary-subtext { font-size: 0.85em; color: #666; }
+    .summary-subtext { font-size: 0.85em; color: var(--secondary); }
 
     /* Alert Sections */
     .alerts-section {
@@ -233,6 +44,7 @@
       padding: 25px;
       border-radius: 12px;
       background: var(--card);
+      box-shadow: var(--shadow);
     }
 
     .critical-section { border-left: 4px solid var(--danger); }
@@ -269,6 +81,11 @@
       background: var(--bg);
       border-radius: 10px;
       border-left: 4px solid;
+      transition: all 0.3s ease;
+    }
+
+    .alert-item:hover {
+      transform: translateX(5px);
     }
 
     .alert-item.critical { border-left-color: var(--danger); background: rgba(229, 62, 62, 0.05); }
@@ -278,7 +95,7 @@
     .alert-icon { font-size: 1.5em; flex-shrink: 0; }
     .alert-content { flex: 1; }
     .alert-content h4 { margin: 0 0 5px 0; font-size: 1.1em; }
-    .alert-content p { margin: 0; color: #666; }
+    .alert-content p { margin: 0; color: var(--secondary); }
 
     .alert-tag {
       padding: 4px 10px;
@@ -295,14 +112,28 @@
     .empty-alert {
       text-align: center;
       padding: 40px 20px;
-      color: #666;
+      color: var(--secondary);
     }
 
     .empty-icon { font-size: 3em; margin-bottom: 15px; opacity: 0.5; }
 
     /* Recommendations */
-    .recommendations-section { margin: 30px 0; padding: 25px; border-radius: 12px; background: var(--card); }
-    .recommendation-badge { padding: 6px 12px; background: var(--primary); color: white; border-radius: 20px; }
+    .recommendations-section { 
+      margin: 30px 0; 
+      padding: 25px; 
+      border-radius: 12px; 
+      background: var(--card); 
+      box-shadow: var(--shadow);
+    }
+    
+    .recommendation-badge { 
+      padding: 6px 12px; 
+      background: var(--primary); 
+      color: white; 
+      border-radius: 20px; 
+      font-size: 0.85em;
+      font-weight: 600;
+    }
 
     .recommendation-item {
       display: flex;
@@ -313,41 +144,36 @@
       border-radius: 10px;
       margin-bottom: 15px;
       border-left: 4px solid var(--primary);
+      transition: all 0.3s ease;
+    }
+
+    .recommendation-item:hover {
+      transform: translateX(5px);
     }
 
     .recommendation-icon { font-size: 1.5em; flex-shrink: 0; }
     .recommendation-content h4 { margin: 0 0 8px 0; color: var(--primary); }
-    .recommendation-content p { margin: 5px 0; }
+    .recommendation-content p { margin: 5px 0; color: var(--text); }
 
-    .empty-recommendation { text-align: center; padding: 40px 20px; color: #666; }
+    .empty-recommendation { text-align: center; padding: 40px 20px; color: var(--secondary); }
 
-    /* Buttons */
-    .btn {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      background: var(--primary);
-      color: white;
-      text-decoration: none;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
+    /* Debug Section */
+    .debug-section {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 30px;
+      box-shadow: var(--shadow);
     }
 
-    .btn-secondary { background: #4a5568; }
+    .debug-section h3 {
+      color: var(--primary);
+      margin-bottom: 15px;
+    }
 
-    /* Footer */
-    footer {
-      text-align: center;
-      padding: 20px;
-      background: var(--card);
-      border-top: 1px solid var(--border);
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      font-size: 0.9em;
+    .debug-section p {
+      margin: 8px 0;
+      color: var(--text);
     }
 
     @media (max-width: 768px) {
@@ -358,11 +184,35 @@
   </style>
 </head>
 <body>
-  <!-- MOBILE MENU TOGGLE -->
-  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <!-- TOP NAVIGATION BAR -->
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <img src="./icon-192x192.png" class="logo-small" style="height:32px;margin-right:10px;border-radius:6px;">
+      <span>SmartScores</span>
+    </div>
+    
+    <div class="nav-links">
+      <a href="./index.html" class="nav-link">📊 Dashboard</a>
+      <a href="./data-entry.html" class="nav-link">📝 Data Entry</a>
+      <a href="./recorded-scores.html" class="nav-link">📋 Scores</a>
+      <a href="./ai-insights.html" class="nav-link active">🤖 AI Insights</a>
+      <a href="./averages.html" class="nav-link">📈 Averages</a>
+      <a href="./trends.html" class="nav-link">📊 Trends</a>
+      <a href="./grade-distribution.html" class="nav-link">📈 Distribution</a>
+      <a href="./set-targets.html" class="nav-link">🎯 Targets</a>
+    </div>
+    
+    <div class="nav-user">
+      <span id="teacherName" class="teacher-name">Teacher</span>
+      <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
+    </div>
+  </nav>
 
-  <!-- SIDEBAR -->
-  <aside id="sidebarMenu" class="sidebar">
+  <!-- MOBILE MENU TOGGLE (only show on mobile) -->
+  <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+
+  <!-- MOBILE SIDEBAR (only for mobile) -->
+  <aside id="mobileSidebar" class="mobile-sidebar closed">
     <a href="./index.html">📊 Dashboard</a>
     <a href="./data-entry.html">📝 Data Entry</a>
     <a href="./recorded-scores.html">📋 Recorded Scores</a>
@@ -371,7 +221,7 @@
     <a href="./trends.html">📊 Trends</a>
     <a href="./grade-distribution.html">📈 Grade Distribution</a>
     <a href="./set-targets.html">🎯 Set Targets</a>
-    <button class="logout-btn">🚪 Logout</button>
+    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
   </aside>
 
   <!-- DARK MODE TOGGLE -->
@@ -414,7 +264,6 @@
       </div>
     </section>
 
-    <!-- Rest of your AI Insights content remains the same -->
     <!-- PRIORITY ALERTS -->
     <section class="alerts-section critical-section">
       <div class="section-header">
@@ -472,89 +321,58 @@
     </section>
 
     <!-- DEBUG INFO -->
-    <section style="background: var(--card); padding: 15px; border-radius: 8px; margin-top: 30px;">
+    <section class="debug-section">
       <h3>🔧 Debug Information</h3>
       <p><strong>Records Found:</strong> <span id="debugRecords">0</span></p>
       <p><strong>Targets Found:</strong> <span id="debugTargets">0</span></p>
       <p><strong>Last Updated:</strong> <span id="debugTime">--</span></p>
       <p><strong>Screen Width:</strong> <span id="screenWidth">--</span></p>
-      <p><strong>Sidebar State:</strong> <span id="sidebarState">--</span></p>
-      <button onclick="refreshInsights()" class="btn" style="margin-top: 10px;">🔄 Refresh Insights</button>
-      <button onclick="forceShowSidebar()" class="btn btn-secondary" style="margin-top: 10px;">🔄 Force Show Sidebar</button>
+      <p><strong>Navigation State:</strong> <span id="navState">--</span></p>
+      <button onclick="refreshInsights()" class="btn btn-primary" style="margin-top: 10px; margin-right: 10px;">🔄 Refresh Insights</button>
+      <button onclick="testNavigation()" class="btn btn-secondary" style="margin-top: 10px;">🧪 Test Navigation</button>
     </section>
   </main>
 
   <footer>SmartScores v3.0 © 2025</footer>
 
   <script>
-    // ==================== STANDALONE AI INSIGHTS WITH SIDEBAR ====================
-    console.log('🚀 AI Insights with Sidebar loaded!');
+    // ==================== AI INSIGHTS WITH UPDATED NAVIGATION ====================
+    console.log('🚀 AI Insights with Updated Navigation loaded!');
 
     // Simple DOM helper
     const el = id => document.getElementById(id);
 
-    // ===== SIDEBAR MANAGEMENT =====
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebarMenu');
-      const toggleBtn = document.getElementById('sidebarToggle');
+    // ===== NAVIGATION MANAGEMENT =====
+    function toggleMobileMenu() {
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      const toggleBtn = document.getElementById('mobileMenuToggle');
       
-      if (sidebar) {
-        sidebar.classList.toggle('closed');
+      if (mobileSidebar) {
+        mobileSidebar.classList.toggle('closed');
         if (toggleBtn) {
-          toggleBtn.textContent = sidebar.classList.contains('closed') ? '☰' : '✕';
+          toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
         }
-        updateSidebarDebugInfo();
+        updateNavDebugInfo();
       }
     }
 
-    function forceShowSidebar() {
-      const sidebar = document.getElementById('sidebarMenu');
-      if (sidebar) {
-        sidebar.classList.remove('closed');
-        sidebar.style.transform = 'translateX(0)';
-        updateSidebarDebugInfo();
-      }
-    }
-
-    function updateSidebarDebugInfo() {
-      const sidebar = document.getElementById('sidebarMenu');
+    function updateNavDebugInfo() {
+      const mobileSidebar = document.getElementById('mobileSidebar');
       el('screenWidth').textContent = window.innerWidth + 'px';
-      el('sidebarState').textContent = sidebar ? (sidebar.classList.contains('closed') ? 'Closed' : 'Open') : 'Not found';
+      el('navState').textContent = mobileSidebar ? (mobileSidebar.classList.contains('closed') ? 'Mobile Menu Closed' : 'Mobile Menu Open') : 'Desktop Navigation';
     }
 
-    // Auto-detect screen size and adjust sidebar
-    function handleResize() {
-      const sidebar = document.getElementById('sidebarMenu');
-      if (window.innerWidth >= 1024) {
-        // Desktop - always show sidebar
-        if (sidebar) {
-          sidebar.classList.remove('closed');
-          sidebar.style.transform = 'translateX(0)';
-        }
-      } else {
-        // Mobile - start closed
-        if (sidebar) {
-          sidebar.classList.add('closed');
-        }
-      }
-      updateSidebarDebugInfo();
-    }
-
-    // Close sidebar when clicking outside on mobile
-    function setupSidebarAutoClose() {
-      document.addEventListener('click', function(event) {
-        const sidebar = document.getElementById('sidebarMenu');
-        const toggleBtn = document.getElementById('sidebarToggle');
-        
-        if (window.innerWidth < 1024 && sidebar && !sidebar.classList.contains('closed')) {
-          const isClickInsideSidebar = sidebar.contains(event.target);
-          const isClickOnToggle = toggleBtn && toggleBtn.contains(event.target);
-          
-          if (!isClickInsideSidebar && !isClickOnToggle) {
-            sidebar.classList.add('closed');
-            updateSidebarDebugInfo();
+    // Auto-close mobile sidebar when navigating
+    function setupMobileSidebarAutoClose() {
+      const mobileSidebarLinks = document.querySelectorAll('.mobile-sidebar a');
+      mobileSidebarLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          const mobileSidebar = document.getElementById('mobileSidebar');
+          if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
+            mobileSidebar.classList.add('closed');
+            updateNavDebugInfo();
           }
-        }
+        });
       });
     }
 
@@ -634,20 +452,50 @@
       el('overallAverage').textContent = overallAvg.toFixed(1) + '%';
       el('recordCount').textContent = records.length + ' records';
 
-      // Analyze targets
-      analyzeTargets(records, targets);
-      
-      // Find outstanding performance
-      findOutstanding(records);
-      
-      // Find needs attention
-      findNeedsAttention(records, targets);
-      
-      // Generate recommendations
-      generateRecommendations(records, targets);
+      // Use the AI insights functions from app.js
+      if (window.updateAIInsights) {
+        window.updateAIInsights();
+      } else {
+        // Fallback if app.js functions aren't available
+        fallbackAnalysis(records, targets);
+      }
     }
 
-    // ... [rest of your AI insights functions remain the same] ...
+    function fallbackAnalysis(records, targets) {
+      // Simple fallback analysis
+      const outstanding = records.filter(record => record.mean >= 80);
+      const needsAttention = records.filter(record => record.mean < 50);
+      
+      el('outstandingCount').textContent = outstanding.length;
+      el('outstandingText').textContent = outstanding.length + ' subjects';
+      el('needsAttention').textContent = needsAttention.length;
+      el('attentionCount').textContent = needsAttention.length + ' alerts';
+      
+      // Simple target calculation
+      let targetsMet = 0;
+      targets.forEach(target => {
+        const matchingRecords = records.filter(record => 
+          record.subject === target.subject && 
+          record.grade === target.grade &&
+          record.mean >= target.score
+        );
+        if (matchingRecords.length > 0) targetsMet++;
+      });
+      
+      el('targetsMet').textContent = targetsMet;
+      el('targetsCount').textContent = targets.length + ' subjects';
+    }
+
+    function showEmptyState() {
+      el('overallAverage').textContent = '0%';
+      el('recordCount').textContent = '0 records';
+      el('targetsMet').textContent = '0';
+      el('targetsCount').textContent = '0 subjects';
+      el('needsAttention').textContent = '0';
+      el('attentionCount').textContent = '0 alerts';
+      el('outstandingCount').textContent = '0';
+      el('outstandingText').textContent = '0 subjects';
+    }
 
     function refreshInsights() {
       console.log('🔄 Refreshing insights...');
@@ -655,11 +503,16 @@
       showNotification('Insights refreshed!');
     }
 
+    function testNavigation() {
+      showNotification('Navigation test completed!');
+      updateNavDebugInfo();
+    }
+
     function showNotification(message) {
       const notification = document.createElement('div');
       notification.style.cssText = `
         position: fixed;
-        top: 20px;
+        top: 100px;
         right: 20px;
         background: var(--primary);
         color: white;
@@ -667,6 +520,7 @@
         border-radius: 8px;
         z-index: 1000;
         font-weight: 600;
+        box-shadow: var(--shadow);
       `;
       notification.textContent = message;
       document.body.appendChild(notification);
@@ -678,46 +532,41 @@
 
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('🎯 AI Insights with Sidebar initialized!');
+      console.log('🎯 AI Insights with Updated Navigation initialized!');
       
       // Load theme
       loadTheme();
       
-      // Setup sidebar for current screen size
-      handleResize();
+      // Setup mobile navigation
+      setupMobileSidebarAutoClose();
       
-      // Listen for window resize
-      window.addEventListener('resize', handleResize);
-      
-      // Setup sidebar auto-close
-      setupSidebarAutoClose();
-      
-      // Auto-close sidebar on mobile when navigating
-      const sidebarLinks = document.querySelectorAll('.sidebar a');
-      sidebarLinks.forEach(link => {
-        link.addEventListener('click', () => {
-          if (window.innerWidth < 1024) {
-            const sidebar = document.getElementById('sidebarMenu');
-            if (sidebar && !sidebar.classList.contains('closed')) {
-              sidebar.classList.add('closed');
-              updateSidebarDebugInfo();
-            }
-          }
-        });
+      // Update teacher name
+      const teacherName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
+      const teacherNameElements = document.querySelectorAll('.teacher-name');
+      teacherNameElements.forEach(element => {
+        element.textContent = teacherName;
       });
       
       // Run analysis
       analyzePerformance();
-      updateSidebarDebugInfo();
+      updateNavDebugInfo();
+
+      // Set initial navigation state
+      setTimeout(() => {
+        if (window.innerWidth >= 1024) {
+          el('navState').textContent = 'Desktop Navigation Active';
+        } else {
+          el('navState').textContent = 'Mobile Navigation Ready';
+        }
+      }, 100);
     });
 
     // Make functions available globally
-    window.toggleSidebar = toggleSidebar;
+    window.toggleMobileMenu = toggleMobileMenu;
     window.toggleDarkMode = toggleDarkMode;
     window.logout = logout;
     window.refreshInsights = refreshInsights;
-    window.forceShowSidebar = forceShowSidebar;
-    window.handleResize = handleResize;
+    window.testNavigation = testNavigation;
   </script>
 </body>
 </html>
