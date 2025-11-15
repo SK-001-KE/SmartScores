@@ -150,6 +150,36 @@ class FirebaseSyncService {
     return null;
   }
 
+  // NEW: Update teacher name in existing records
+  async updateTeacherNameInRecords(newFullName) {
+    try {
+        const records = await this.loadRecords();
+        let updated = false;
+        
+        // Update teacher name in all records
+        const updatedRecords = records.map(record => {
+            if (record.teacher && record.teacher !== newFullName) {
+                updated = true;
+                return {
+                    ...record,
+                    teacher: newFullName
+                };
+            }
+            return record;
+        });
+        
+        if (updated) {
+            await this.saveRecords(updatedRecords);
+            console.log('✅ Updated teacher name in all records');
+        }
+        
+        return updated;
+    } catch (error) {
+        console.error('❌ Error updating teacher name in records:', error);
+        return false;
+    }
+  }
+
   // Enhanced versions of your existing functions
   async loadRecords() {
     return await this.loadData('smartScoresRecords', []);
@@ -167,35 +197,41 @@ class FirebaseSyncService {
     return await this.saveData('smartScoresTargets', targets);
   }
 
-  // Sync all existing local data to cloud (for migration)
+  // Sync all existing local data to cloud (for migration) - UPDATED
   async syncExistingDataToCloud() {
     const user = firebaseAuth.getCurrentUser();
     if (!this.shouldSyncToCloud(user)) return;
 
     try {
-      console.log('🔄 Syncing existing local data to cloud...');
-      
-      // Sync records
-      const localRecords = localStorage.getItem('smartScoresRecords');
-      if (localRecords) {
-        const records = JSON.parse(localRecords);
-        if (records.length > 0) {
-          await this.saveRecords(records);
+        console.log('🔄 Syncing existing local data to cloud...');
+        
+        // Update teacher name in existing records if needed
+        const currentTeacherName = localStorage.getItem('teacherFullName');
+        if (currentTeacherName) {
+            await this.updateTeacherNameInRecords(currentTeacherName);
         }
-      }
-      
-      // Sync targets
-      const localTargets = localStorage.getItem('smartScoresTargets');
-      if (localTargets) {
-        const targets = JSON.parse(localTargets);
-        if (targets.length > 0) {
-          await this.saveTargets(targets);
+        
+        // Sync records
+        const localRecords = localStorage.getItem('smartScoresRecords');
+        if (localRecords) {
+            const records = JSON.parse(localRecords);
+            if (records.length > 0) {
+                await this.saveRecords(records);
+            }
         }
-      }
-      
-      console.log('✅ Existing data sync completed');
+        
+        // Sync targets
+        const localTargets = localStorage.getItem('smartScoresTargets');
+        if (localTargets) {
+            const targets = JSON.parse(localTargets);
+            if (targets.length > 0) {
+                await this.saveTargets(targets);
+            }
+        }
+        
+        console.log('✅ Existing data sync completed');
     } catch (error) {
-      console.error('❌ Existing data sync failed:', error);
+        console.error('❌ Existing data sync failed:', error);
     }
   }
 
