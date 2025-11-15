@@ -349,39 +349,66 @@
     const el = id => document.getElementById(id);
 
     // ===== NAVIGATION MANAGEMENT =====
-    function toggleMobileMenu() {
+   function toggleMobileMenu() {
+  const mobileSidebar = document.getElementById('mobileSidebar');
+  const toggleBtn = document.getElementById('mobileMenuToggle');
+  
+  if (mobileSidebar) {
+    mobileSidebar.classList.toggle('closed');
+    if (toggleBtn) {
+      toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
+    }
+    
+    // Add/remove click outside listener
+    if (!mobileSidebar.classList.contains('closed')) {
+      setTimeout(() => {
+        document.addEventListener('click', closeMobileSidebarOnClickOutside);
+      }, 100);
+    } else {
+      document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+    }
+    
+    updateNavDebugInfo();
+  }
+}
+
+// Add this function to ai-insights.html
+function closeMobileSidebarOnClickOutside(event) {
+  const mobileSidebar = document.getElementById('mobileSidebar');
+  const toggleBtn = document.getElementById('mobileMenuToggle');
+  
+  if (!mobileSidebar || !toggleBtn) return;
+  
+  const isClickInsideSidebar = mobileSidebar.contains(event.target);
+  const isClickOnToggle = toggleBtn.contains(event.target);
+  
+  if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
+    mobileSidebar.classList.add('closed');
+    toggleBtn.textContent = '☰';
+    document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+    updateNavDebugInfo();
+  }
+}
+
+    // Auto-close mobile sidebar when navigating
+  function setupMobileSidebarAutoClose() {
+  const mobileSidebarLinks = document.querySelectorAll('.mobile-sidebar a, .mobile-sidebar button');
+  mobileSidebarLinks.forEach(link => {
+    link.addEventListener('click', () => {
       const mobileSidebar = document.getElementById('mobileSidebar');
       const toggleBtn = document.getElementById('mobileMenuToggle');
       
-      if (mobileSidebar) {
-        mobileSidebar.classList.toggle('closed');
+      if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
+        mobileSidebar.classList.add('closed');
         if (toggleBtn) {
-          toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
+          toggleBtn.textContent = '☰';
         }
+        document.removeEventListener('click', closeMobileSidebarOnClickOutside);
         updateNavDebugInfo();
       }
-    }
-
-    function updateNavDebugInfo() {
-      const mobileSidebar = document.getElementById('mobileSidebar');
-      el('screenWidth').textContent = window.innerWidth + 'px';
-      el('navState').textContent = mobileSidebar ? (mobileSidebar.classList.contains('closed') ? 'Mobile Menu Closed' : 'Mobile Menu Open') : 'Desktop Navigation';
-    }
-
-    // Auto-close mobile sidebar when navigating
-    function setupMobileSidebarAutoClose() {
-      const mobileSidebarLinks = document.querySelectorAll('.mobile-sidebar a');
-      mobileSidebarLinks.forEach(link => {
-        link.addEventListener('click', () => {
-          const mobileSidebar = document.getElementById('mobileSidebar');
-          if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
-            mobileSidebar.classList.add('closed');
-            updateNavDebugInfo();
-          }
-        });
-      });
-    }
-
+    });
+  });
+}
     // ===== THEME MANAGEMENT =====
     function toggleDarkMode() {
       const currentTheme = document.documentElement.getAttribute('data-theme');
