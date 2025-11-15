@@ -8,10 +8,13 @@
   <link rel="icon" href="./favicon.ico" />
   <link rel="apple-touch-icon" href="./icon-192x192.png" />
   <link rel="stylesheet" href="./style.css" />
-  <script src="./auth.js" defer></script>
+  
+  <!-- Fixed script loading order -->
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./firebase-auth.js"></script>
   <script type="module" src="./firebase-sync.js"></script>
+  <script src="./auth.js" defer></script>
+  <script src="./app.js" defer></script>
   
   <style>
     .btn-google {
@@ -200,9 +203,24 @@
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
   <script>
+    // Debug function to check what's available
+    function debugAuth() {
+      console.log('=== AUTH DEBUG INFO ===');
+      console.log('Firebase Auth available:', typeof firebaseAuth !== 'undefined');
+      console.log('Firebase Sync available:', typeof firebaseSync !== 'undefined');
+      console.log('Simple Auth available:', typeof simpleAuth !== 'undefined');
+      console.log('Local Storage available:', typeof localStorage !== 'undefined');
+      console.log('========================');
+    }
+
+    // Check if Firebase services are available
+    function isFirebaseAvailable() {
+      return typeof firebaseAuth !== 'undefined' && firebaseAuth !== null;
+    }
+
     // Data migration function
     async function migrateExistingData(user) {
-      if (typeof firebaseSync === 'undefined') return;
+      if (!isFirebaseAvailable() || typeof firebaseSync === 'undefined') return;
       
       // Check if we've already migrated
       const migrationKey = `data_migrated_${user.uid}`;
@@ -274,12 +292,17 @@
     // Global functions for the login page
     async function handleGoogleSignIn() {
       try {
+        if (!isFirebaseAvailable()) {
+          showLoginError('Firebase authentication is not available. Please try local login.');
+          return;
+        }
+
         showCustomAlert('Signing in with Google...', 'info');
         const result = await firebaseAuth.loginWithGoogle();
         if (result.success) {
           showLoginSuccess(`Welcome! Setting up your account...`);
           
-          // ADDED: Data migration after successful login
+          // Data migration after successful login
           setTimeout(async () => {
             if (result.user && result.user.uid !== 'local-user') {
               await migrateExistingData(result.user);
@@ -305,12 +328,26 @@
       }
       
       // Use local-only mode (no Firebase)
-      const result = firebaseAuth.loginLocalOnly(firstName, lastName);
+      let result;
+      if (isFirebaseAvailable()) {
+        result = firebaseAuth.loginLocalOnly(firstName, lastName);
+      } else {
+        // Fallback to simple auth
+        const fullName = `${firstName} ${lastName}`;
+        localStorage.setItem('teacherFullName', fullName);
+        localStorage.setItem('teacherEmail', 'local@user.com');
+        localStorage.setItem('teacherUID', 'local-user');
+        localStorage.setItem('authMethod', 'local');
+        result = { success: true };
+      }
+      
       if (result.success) {
         showLoginSuccess(`Welcome ${firstName}! Using local storage only.`);
         setTimeout(() => {
           window.location.href = './index.html';
         }, 1500);
+      } else {
+        showLoginError('Local login failed. Please try again.');
       }
     }
 
@@ -325,20 +362,25 @@
       const school = document.getElementById('school').value.trim();
       const cloudSync = document.getElementById('cloudSync').checked;
       
-      if (!firstName || !lastName || !email || !password) {
-        showLoginError('Please fill all required fields');
+      if (!firstName || !lastName) {
+        showLoginError('Please enter your first and last name');
         return;
       }
       
-      if (cloudSync) {
+      if (cloudSync && isFirebaseAvailable()) {
         // Use Firebase registration
+        if (!email || !password) {
+          showLoginError('Please fill all required fields for cloud sync');
+          return;
+        }
+
         try {
           showCustomAlert('Creating your account...', 'info');
           const result = await firebaseAuth.registerWithEmail(email, password, firstName, lastName, school);
           if (result.success) {
             showLoginSuccess(`Account created! Welcome ${firstName}! Setting up...`);
             
-            // ADDED: Data migration after successful registration
+            // Data migration after successful registration
             setTimeout(async () => {
               if (result.user && result.user.uid !== 'local-user') {
                 await migrateExistingData(result.user);
@@ -354,6 +396,9 @@
         }
       } else {
         // Use local-only mode
+        if (cloudSync && !isFirebaseAvailable()) {
+          showLoginError('Cloud sync not available. Using local storage instead.');
+        }
         handleLocalLogin();
       }
     });
@@ -364,6 +409,9 @@
       if (firstNameInput) {
         setTimeout(() => firstNameInput.focus(), 100);
       }
+      
+      // Debug info
+      debugAuth();
     });
 
     // Theme toggle function
