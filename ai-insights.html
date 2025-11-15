@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>SmartScores - AI Insights</title>
-  <link rel="manifest" href="./manifest.json" />
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./style.css">
   <script src="./app.js" defer></script>
   <script src="./auth.js" defer></script>
   <script type="module" src="./firebase-config.js"></script>
@@ -203,15 +203,15 @@
     </div>
     
     <div class="nav-user">
-      <span id="teacherName" class="teacher-name">Teacher</span>
+      <span id="teacherName" class="teacher-name">Loading...</span>
       <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
     </div>
   </nav>
 
-  <!-- MOBILE MENU TOGGLE (only show on mobile) -->
+  <!-- MOBILE MENU TOGGLE -->
   <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
 
-  <!-- MOBILE SIDEBAR (only for mobile) -->
+  <!-- MOBILE SIDEBAR -->
   <aside id="mobileSidebar" class="mobile-sidebar closed">
     <a href="./index.html">📊 Dashboard</a>
     <a href="./data-entry.html">📝 Data Entry</a>
@@ -224,7 +224,6 @@
     <button class="logout-btn" onclick="logout()">🚪 Logout</button>
   </aside>
 
-  <!-- DARK MODE TOGGLE -->
   <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
   <header>
@@ -232,7 +231,12 @@
     <p>AI Insights & Performance Analysis</p>
   </header>
 
-  <main class="content">
+  <div class="content content-with-sidebar">
+    <div class="form-header">
+      <h2>AI Insights Dashboard</h2>
+      <p class="teacher-info">Teacher: <span id="currentTeacher">Loading...</span></p>
+    </div>
+
     <!-- EXECUTIVE SUMMARY -->
     <section class="executive-summary">
       <h2>Performance Overview</h2>
@@ -331,9 +335,9 @@
       <button onclick="refreshInsights()" class="btn btn-primary" style="margin-top: 10px; margin-right: 10px;">🔄 Refresh Insights</button>
       <button onclick="testNavigation()" class="btn btn-secondary" style="margin-top: 10px;">🧪 Test Navigation</button>
     </section>
-  </main>
+  </div>
 
-  <footer>SmartScores v3.0 © 2025</footer>
+  <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
   <script>
     // ==================== AI INSIGHTS WITH UPDATED NAVIGATION ====================
@@ -391,8 +395,11 @@
 
     // ===== AUTH MANAGEMENT =====
     function logout() {
-      if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem('teacherFullName');
+      if (window.logout) {
+        window.logout();
+      } else {
+        console.log('Logout function not available');
+        // Fallback redirect
         window.location.href = './login.html';
       }
     }
@@ -407,23 +414,34 @@
     }
 
     // ===== DATA MANAGEMENT =====
+    // Use the functions from app.js instead of redefining them
     function loadRecords() {
-      try {
-        const data = localStorage.getItem('smartScoresRecords');
-        return data ? JSON.parse(data) : [];
-      } catch (error) {
-        console.error('Error loading records:', error);
-        return [];
+      if (window.loadRecords) {
+        return window.loadRecords();
+      } else {
+        // Fallback
+        try {
+          const data = localStorage.getItem('smartScoresRecords');
+          return data ? JSON.parse(data) : [];
+        } catch (error) {
+          console.error('Error loading records:', error);
+          return [];
+        }
       }
     }
 
     function loadTargets() {
-      try {
-        const data = localStorage.getItem('smartScoresTargets');
-        return data ? JSON.parse(data) : [];
-      } catch (error) {
-        console.error('Error loading targets:', error);
-        return [];
+      if (window.loadTargets) {
+        return window.loadTargets();
+      } else {
+        // Fallback
+        try {
+          const data = localStorage.getItem('smartScoresTargets');
+          return data ? JSON.parse(data) : [];
+        } catch (error) {
+          console.error('Error loading targets:', error);
+          return [];
+        }
       }
     }
 
@@ -447,15 +465,12 @@
         return;
       }
 
-      // Calculate overall average
-      const overallAvg = records.reduce((sum, record) => sum + record.mean, 0) / records.length;
-      el('overallAverage').textContent = overallAvg.toFixed(1) + '%';
-      el('recordCount').textContent = records.length + ' records';
-
       // Use the AI insights functions from app.js
       if (window.updateAIInsights) {
+        console.log('✅ Using app.js AI insights functions');
         window.updateAIInsights();
       } else {
+        console.log('⚠️ Using fallback analysis - app.js functions not available');
         // Fallback if app.js functions aren't available
         fallbackAnalysis(records, targets);
       }
@@ -471,6 +486,11 @@
       el('needsAttention').textContent = needsAttention.length;
       el('attentionCount').textContent = needsAttention.length + ' alerts';
       
+      // Calculate overall average
+      const overallAvg = records.reduce((sum, record) => sum + record.mean, 0) / records.length;
+      el('overallAverage').textContent = overallAvg.toFixed(1) + '%';
+      el('recordCount').textContent = records.length + ' records';
+
       // Simple target calculation
       let targetsMet = 0;
       targets.forEach(target => {
@@ -484,6 +504,94 @@
       
       el('targetsMet').textContent = targetsMet;
       el('targetsCount').textContent = targets.length + ' subjects';
+
+      // Update alerts with fallback data
+      updateFallbackAlerts(records, targets);
+    }
+
+    function updateFallbackAlerts(records, targets) {
+      // Critical alerts (scores below 40)
+      const critical = records.filter(record => record.mean < 40);
+      updateAlertSection('criticalAlerts', critical, 'critical', 'No critical alerts! All subjects are performing well.');
+      el('criticalBadge').textContent = critical.length + ' critical';
+
+      // Positive alerts (scores above 80)
+      const positive = records.filter(record => record.mean >= 80);
+      updateAlertSection('positiveAlerts', positive, 'positive', 'No outstanding performance alerts yet.');
+      el('positiveBadge').textContent = positive.length + ' outstanding';
+
+      // On-track alerts (scores between 50-80)
+      const onTrack = records.filter(record => record.mean >= 50 && record.mean < 80);
+      updateAlertSection('onTrackAlerts', onTrack, 'info', 'No subjects currently on track.');
+      el('onTrackBadge').textContent = onTrack.length + ' on track';
+
+      // Simple recommendations
+      const recommendations = [];
+      if (critical.length > 0) {
+        recommendations.push({
+          title: 'Address Low Performance',
+          message: `${critical.length} subjects are performing below 40%. Consider targeted interventions.`
+        });
+      }
+      if (positive.length > 0) {
+        recommendations.push({
+          title: 'Leverage High Performers',
+          message: `${positive.length} subjects are excelling. Consider sharing best practices.`
+        });
+      }
+
+      updateRecommendations(recommendations);
+    }
+
+    function updateAlertSection(containerId, records, type, emptyMessage) {
+      const container = el(containerId);
+      
+      if (records.length === 0) {
+        container.innerHTML = `
+          <div class="empty-alert">
+            <div class="empty-icon">${type === 'critical' ? '✅' : '📊'}</div>
+            <p>${emptyMessage}</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = records.map(record => `
+        <div class="alert-item ${type}">
+          <div class="alert-icon">${type === 'critical' ? '⚠️' : '🎉'}</div>
+          <div class="alert-content">
+            <h4>${record.subject} - ${type === 'critical' ? 'Needs Attention' : 'Outstanding!'}</h4>
+            <p>Grade ${record.grade}, ${record.stream} - ${record.mean.toFixed(1)}%</p>
+          </div>
+          <span class="alert-tag">${type === 'critical' ? 'Critical' : 'Excellent'}</span>
+        </div>
+      `).join('');
+    }
+
+    function updateRecommendations(recommendations) {
+      const container = el('aiRecommendations');
+      
+      el('recommendationBadge').textContent = recommendations.length + ' recommendations';
+      
+      if (recommendations.length === 0) {
+        container.innerHTML = `
+          <div class="empty-recommendation">
+            <div class="empty-icon">🤖</div>
+            <p>Add more data and set targets to get AI recommendations.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = recommendations.map(rec => `
+        <div class="recommendation-item">
+          <div class="recommendation-icon">💡</div>
+          <div class="recommendation-content">
+            <h4>${rec.title}</h4>
+            <p>${rec.message}</p>
+          </div>
+        </div>
+      `).join('');
     }
 
     function showEmptyState() {
@@ -509,25 +617,30 @@
     }
 
     function showNotification(message) {
-      const notification = document.createElement('div');
-      notification.style.cssText = `
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        background: var(--primary);
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        z-index: 1000;
-        font-weight: 600;
-        box-shadow: var(--shadow);
-      `;
-      notification.textContent = message;
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        notification.remove();
-      }, 3000);
+      if (window.showAlert) {
+        window.showAlert(message, 'success');
+      } else {
+        // Fallback notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed;
+          top: 100px;
+          right: 20px;
+          background: var(--primary);
+          color: white;
+          padding: 12px 20px;
+          border-radius: 8px;
+          z-index: 1000;
+          font-weight: 600;
+          box-shadow: var(--shadow);
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 3000);
+      }
     }
 
     // ===== INITIALIZATION =====
@@ -540,11 +653,12 @@
       // Setup mobile navigation
       setupMobileSidebarAutoClose();
       
-      // Update teacher name
-      const teacherName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
-      const teacherNameElements = document.querySelectorAll('.teacher-name');
+      // Update teacher name using consistent storage keys
+      const teacherNameElements = document.querySelectorAll('.teacher-name, #currentTeacher');
+      const teacherFullName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
+      
       teacherNameElements.forEach(element => {
-        element.textContent = teacherName;
+        element.textContent = teacherFullName;
       });
       
       // Run analysis
