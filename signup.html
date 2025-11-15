@@ -124,249 +124,145 @@
   </header>
 
   <main class="content centered">
-    <div class="login-container">
-      <h2>✨ New Teacher Sign Up</h2>
-      <p class="login-subtitle">Create your account to enable cloud sync.</p>
+  <div class="login-container">
+    <h2>✍️ New Teacher Registration</h2>
+    <p class="login-subtitle">Create an account to save your data to the cloud.</p>
+    
+    <form id="cloudRegistrationForm" class="form-box">
       
-      <button onclick="handleGoogleSignIn()" class="btn btn-google full" style="margin-bottom: 20px;">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
-             style="width: 20px; height: 20px; margin-right: 10px;">
-        Sign Up with Google
+      <div class="form-group">
+        <label>First Name (Required for Reports)</label>
+        <input type="text" id="firstName" required placeholder="John">
+      </div>
+
+      <div class="form-group">
+        <label>Last Name (Required for Reports)</label>
+        <input type="text" id="lastName" required placeholder="Doe">
+      </div>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="email" required placeholder="your.email@school.com" onblur="this.value = this.value.toLowerCase().trim()">
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" required placeholder="Min 8 chars, incl. U/L/1/&">
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary full">✨ Create Cloud Account</button>
+      </div>
+    </form>
+    
+    <div class="form-actions" style="margin-top: 15px;">
+      <button type="button" onclick="window.location.href='./login.html'" class="btn btn-secondary full">
+        ⬅️ Already Registered? **Sign In**
       </button>
-      
-      <div class="divider">
-        <span>or register with email</span>
-      </div>
-
-      <form id="signupForm" class="form-box">
-        <div class="form-group">
-            <label>First Name *</label>
-            <input type="text" id="firstName" required placeholder="John">
-        </div>
-
-        <div class="form-group">
-            <label>Last Name *</label>
-            <input type="text" id="lastName" required placeholder="Doe">
-        </div>
-
-        <div class="form-group">
-          <label>Email Address *</label>
-          <input type="email" id="email" required placeholder="your.email@school.com">
-        </div>
-
-        <div class="form-group">
-          <label>Password *</label>
-          <input type="password" id="password" required placeholder="Create a password (min 6 chars)">
-        </div>
-
-        <div class="form-group">
-            <label>School Name (Optional)</label>
-            <input type="text" id="schoolName" placeholder="Your School Name">
-        </div>
-        
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary full">🚀 Create My Account</button>
-        </div>
-      </form>
-      
-      <div class="form-actions" style="margin-top: 15px;">
-        <button type="button" onclick="window.location.href='./login.html'" class="btn btn-secondary full">
-          👉 Already have an account? Sign In
-        </button>
-      </div>
-
-      <div class="login-features">
-        <h3>Why Sign Up?</h3>
-        <ul>
-          <li>☁️ **Cloud Sync:** Back up your data and access it from any device.</li>
-          <li>🎯 Set performance targets</li>
-          <li>📊 Track progress with AI insights</li>
-        </ul>
-      </div>
-
-      <p class="hint">Your password will be securely hashed by Firebase. We do not store your plain-text password.</p>
     </div>
-  </main>
 
-  <footer>SmartScores v3.0 © Kariuki 2025</footer>
+    <p class="hint text-center" style="margin-top: 20px;">Your name is used for personalized reports and data tracking.</p>
 
-  <script type="module">
-    // Import all modules
-    import firebaseAuth from './firebase-auth.js';
-    import firebaseSync from './firebase-sync.js'; // Needed for data migration
+  </div>
+</main>
 
-    // --- START OF COMMON FUNCTIONS (MIGRATION, ALERTS) ---
-    async function migrateExistingData(user) {
-      if (typeof firebaseSync === 'undefined') return;
-      
-      // Check if we've already migrated
-      const migrationKey = `data_migrated_${user.uid}`;
-      if (localStorage.getItem(migrationKey)) {
-        console.log('✅ Data already migrated');
-        return;
-      }
-      
-      console.log('🔄 Checking for existing data to migrate...');
-      
-      let migratedCount = 0;
-      
-      // Migrate records
-      const localRecords = localStorage.getItem('smartScoresRecords');
-      if (localRecords) {
-        const records = JSON.parse(localRecords);
-        if (records.length > 0) {
-          console.log(`📦 Migrating ${records.length} records to cloud...`);
-          await firebaseSync.saveRecords(records);
-          migratedCount += records.length;
-        }
-      }
-      
-      // Migrate targets
-      const localTargets = localStorage.getItem('smartScoresTargets');
-      if (localTargets) {
-        const targets = JSON.parse(localTargets);
-        if (targets.length > 0) {
-          console.log(`🎯 Migrating ${targets.length} targets to cloud...`);
-          await firebaseSync.saveTargets(targets);
-          migratedCount += targets.length;
-        }
-      }
-      
-      // Mark as migrated
-      localStorage.setItem(migrationKey, 'true');
-      console.log(`✅ Data migration completed: ${migratedCount} items migrated`);
-      
-      if (migratedCount > 0) {
-        showCustomAlert(`${migratedCount} existing items migrated to cloud!`, 'success');
-      }
+<script type="module">
+  import firebaseAuth from './firebase-auth.js';
+  import firebaseSync from './firebase-sync.js'; // Ensure this is imported if needed
+
+  function showCustomAlert(message, type = 'info', isHTML = false) {
+    const alertBox = document.getElementById('customAlert') || document.createElement('div');
+    if (!alertBox.id) {
+        alertBox.id = 'customAlert';
+        document.body.appendChild(alertBox);
     }
+    alertBox.className = `custom-alert alert-${type}`;
+    alertBox.innerHTML = isHTML ? message.replace(/\n/g, '<br>') : message;
+    alertBox.style.display = 'block';
+    setTimeout(() => alertBox.style.display = 'none', 7000); // Longer display for verification message
+  }
 
-    // Alert functions - must be defined here or globally in auth.js
-    function showCustomAlert(message, type = 'info') {
-      const existingAlerts = document.querySelectorAll('.custom-alert');
-      existingAlerts.forEach(alert => alert.remove());
-      
-      const alertDiv = document.createElement('div');
-      alertDiv.className = `custom-alert alert-${type}`;
-      alertDiv.textContent = message;
-      
-      document.body.appendChild(alertDiv);
-      
-      setTimeout(() => {
-        alertDiv.remove();
-      }, 4000);
+  function showSignupError(message) { showCustomAlert(message, 'error'); }
+  function showSignupSuccess(message, isHTML = false) { showCustomAlert(message, 'success', isHTML); }
+  
+  // --- START OF HANDLERS FOR BUTTONS/FORM ---
+  document.getElementById('cloudRegistrationForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    if (!firstName || !lastName || !email || !password) {
+      showSignupError('Please fill in all fields.');
+      return;
     }
     
-    function showSignupError(message) {
-      showCustomAlert(message, 'error');
-    }
+    // NEW: Password Strength Validation Check
+    // Requires min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-    function showSignupSuccess(message) {
-      showCustomAlert(message, 'success');
-    }
-    // --- END OF COMMON FUNCTIONS (MIGRATION, ALERTS) ---
-
-    // --- START OF HANDLERS FOR BUTTONS/FORM ---
-
-    // Global function for Google Sign In (retained from login.html)
-    async function handleGoogleSignIn() {
-      try {
-        showCustomAlert('Signing in with Google...', 'info');
-        const result = await firebaseAuth.loginWithGoogle();
-        if (result.success) {
-          showSignupSuccess(`Welcome! Setting up your account...`);
-          
-          setTimeout(async () => {
-            if (result.user && result.user.uid !== 'local-user') {
-              await migrateExistingData(result.user);
-            }
-            window.location.href = './index.html';
-          }, 1500);
-          
-        } else {
-          showSignupError(`Google Sign-In failed: ${result.error}`);
-        }
-      } catch (error) {
-        showSignupError('Google Sign-In error: ' + error.message);
-      }
-    }
-
-
-    // --- CRITICAL IMPLEMENTATION: Form submission for Email Sign Up ---
-    document.getElementById('signupForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const firstName = document.getElementById('firstName').value.trim();
-      const lastName = document.getElementById('lastName').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const schoolName = document.getElementById('schoolName').value.trim();
-      
-      if (password.length < 6) {
-        showSignupError('Password must be at least 6 characters long.');
+    if (!passwordRegex.test(password)) {
+        showSignupError('Password must be at least 8 characters long and contain one uppercase, one lowercase, one number, and one special character (@$!%*?&).');
         return;
-      }
-      
-      if (!firstName || !lastName || !email || !password) {
-        showSignupError('Please fill in all required fields.');
-        return;
-      }
-      
-      try {
-        showCustomAlert('Creating your account...', 'info');
-        // --- THIS IS THE CRITICAL CALL TO YOUR FIREBASE FUNCTION ---
-        const result = await firebaseAuth.registerWithEmail(email, password, firstName, lastName, schoolName); 
-        // -----------------------------------------------------------
-
-        if (result.success) {
-          const fullName = `${firstName} ${lastName}`;
-          showSignupSuccess(`Registration successful! Welcome ${fullName}! Setting up your cloud sync...`);
-          
-          // Data migration after successful registration
-          setTimeout(async () => {
-            if (result.user && result.user.uid !== 'local-user') {
-              await migrateExistingData(result.user);
-            }
-            window.location.href = './index.html';
-          }, 1500);
-          
-        } else {
-          // Firebase errors like 'auth/email-already-in-use'
-          showSignupError(`Registration failed: ${result.error}`);
-        }
-      } catch (error) {
-        showSignupError('An unexpected error occurred: ' + error.message);
-      }
-    });
-    // --- END OF HANDLERS FOR BUTTONS/FORM ---
-
-
-    // Auto-focus first name field
-    document.addEventListener('DOMContentLoaded', function() {
-      const firstNameInput = document.getElementById('firstName');
-      if (firstNameInput) {
-        setTimeout(() => firstNameInput.focus(), 100);
-      }
-    });
-
-    // Theme toggle function (retained)
-    function toggleDarkMode() {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      localStorage.setItem('themeMode', newTheme);
     }
 
-    // Load theme on page load (retained)
-    (function() {
-      const theme = localStorage.getItem('themeMode') || 'light';
-      document.documentElement.setAttribute('data-theme', theme);
-    })();
-    
-    // Make handlers globally accessible
-    window.handleGoogleSignIn = handleGoogleSignIn;
-    window.toggleDarkMode = toggleDarkMode; // Ensure theme toggle is available
-    
-  </script>
+    try {
+      showCustomAlert('Registering account...', 'info');
+      // Pass the name to the registration function
+      const result = await firebaseAuth.registerWithEmail(email, password, fullName); 
+
+      if (result.success) {
+        // Handle successful creation and SENT verification email
+        const message = `🎉 Success! Account created.
+          
+          A verification link has been sent to **${email}**. 
+          
+          Please click the link to confirm your email. You will be redirected to the login page.`;
+        
+        showSignupSuccess(message, true); // Show message with HTML
+        
+        await firebaseAuth.logout(); // Force sign-out so they have to log in again after verification.
+
+        setTimeout(() => {
+          window.location.href = './login.html';
+        }, 5000); // Redirect after 5 seconds
+        
+      } else {
+        showSignupError(`Registration failed: ${result.error.replace('Firebase: ', '')}`);
+      }
+    } catch (error) {
+      showSignupError('An unexpected error occurred: ' + error.message);
+    }
+  });
+
+  // REMOVE the handleGoogleSignIn function completely.
+
+  // Auto-focus first name field
+  document.addEventListener('DOMContentLoaded', function() {
+    const firstNameInput = document.getElementById('firstName');
+    if (firstNameInput) {
+      setTimeout(() => firstNameInput.focus(), 100);
+    }
+  });
+
+  // Theme toggle function (retained)
+  function toggleDarkMode() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('themeMode', newTheme);
+  }
+
+  // Load theme on page load (retained)
+  (function() {
+    const theme = localStorage.getItem('themeMode') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+  
+  // Export functions if needed, but no longer need window.handleGoogleSignIn
+</script>
 </body>
 </html>
