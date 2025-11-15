@@ -181,33 +181,59 @@
   // --- START OF HANDLERS FOR BUTTONS/FORM ---
   
   // Cloud Login Handler
-  document.getElementById('cloudLoginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
+ // Cloud Login Handler
+document.getElementById('cloudLoginForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
     
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
+  // Ensure the latest email and password are read from the form
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
 
-    try {
-      showCustomAlert('Signing in...', 'info');
-      const result = await firebaseAuth.loginWithEmail(email, password);
-      
-      if (result.success) {
-        showLoginSuccess(`Welcome back, ${result.user.name}! Syncing data...`);
+  try {
+    showCustomAlert('Signing in...', 'info');
+    // Attempt the cloud login
+    const result = await firebaseAuth.loginWithEmail(email, password);
+    
+    if (result.success) {
+      showLoginSuccess(`Welcome back, ${result.user.name}! Syncing data...`);
         
-        setTimeout(async () => {
-          if (result.user && result.user.uid !== 'local-user') {
-            await migrateExistingData(result.user);
-          }
-          window.location.href = './index.html';
-        }, 1500);
+      setTimeout(async () => {
+        // Only attempt data migration if the user successfully signed into a cloud account
+        if (result.user && result.user.uid !== 'local-user') {
+          await migrateExistingData(result.user);
+        }
+        window.location.href = './index.html';
+      }, 1500);
         
+    } else {
+      // --- START: IMPROVED ERROR HANDLING ---
+      const rawError = result.error;
+      let userMessage = '';
+
+      if (rawError.includes('auth/too-many-requests')) {
+        // Fix for "auth/too-many-requests"
+        userMessage = 'Too many failed login attempts. Your account is temporarily locked. Please wait 5 minutes or use the "Forgot Password?" link to reset your PIN.';
+      } else if (rawError.includes('auth/wrong-password')) {
+        // Fix for incorrect password
+        userMessage = 'Incorrect PIN. Try again or reset your password.';
+      } else if (rawError.includes('auth/user-not-found')) {
+        // Fix for non-existent user
+        userMessage = 'Account not found. Please check your email address or create a new account.';
+      } else if (rawError.includes('auth/invalid-email')) {
+        // Fix for invalid email format
+        userMessage = 'The email address format is invalid. Please check your input.';
       } else {
-        showLoginError(`Login failed: ${result.error.replace('Firebase: ', '')}`);
+        // Catch all other errors and clean the message
+        userMessage = rawError.replace('Firebase: ', '');
       }
-    } catch (error) {
-      showLoginError('An unexpected error occurred: ' + error.message);
+
+      showLoginError(`Login failed: ${userMessage}`);
+      // --- END: IMPROVED ERROR HANDLING ---
     }
-  });
+  } catch (error) {
+    showLoginError('An unexpected error occurred: ' + error.message);
+  }
+});
 
   // REMOVED: Local Login Handler (handleLocalLogin)
 
