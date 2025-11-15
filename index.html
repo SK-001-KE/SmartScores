@@ -104,6 +104,56 @@
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
   <script>
+    // Ensure mobile navigation works properly
+    document.addEventListener('DOMContentLoaded', function() {
+      // Mobile menu functionality
+      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      
+      if (mobileMenuToggle && mobileSidebar) {
+        mobileMenuToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          mobileSidebar.classList.toggle('closed');
+          mobileMenuToggle.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
+          
+          // Add click outside to close functionality
+          if (!mobileSidebar.classList.contains('closed')) {
+            setTimeout(() => {
+              document.addEventListener('click', closeMobileSidebarOnClickOutside);
+            }, 100);
+          }
+        });
+        
+        // Close sidebar when clicking on links
+        const mobileLinks = mobileSidebar.querySelectorAll('a, button');
+        mobileLinks.forEach(link => {
+          link.addEventListener('click', function() {
+            if (!mobileSidebar.classList.contains('closed')) {
+              mobileSidebar.classList.add('closed');
+              mobileMenuToggle.textContent = '☰';
+            }
+          });
+        });
+      }
+      
+      // Close mobile sidebar when clicking outside
+      function closeMobileSidebarOnClickOutside(event) {
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        
+        if (!mobileSidebar || !mobileMenuToggle) return;
+        
+        const isClickInsideSidebar = mobileSidebar.contains(event.target);
+        const isClickOnToggle = mobileMenuToggle.contains(event.target);
+        
+        if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
+          mobileSidebar.classList.add('closed');
+          mobileMenuToggle.textContent = '☰';
+          document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+        }
+      }
+    });
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('./service-worker.js')
