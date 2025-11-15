@@ -98,10 +98,10 @@
     <p>Teacher Performance Tracker</p>
   </header>
 
-  <main class="content centered">
+<main class="content centered">
   <div class="login-container">
     <h2>👋 Welcome Back!</h2>
-    <p class="login-subtitle">Sign in to sync your data.</p>
+    <p class="login-subtitle">Sign in to sync your data and prevent data loss.</p>
     
     <form id="cloudLoginForm" class="form-box">
       <div class="form-group">
@@ -125,41 +125,20 @@
     
     <div class="form-actions" style="margin-top: 15px;">
       <button type="button" onclick="window.location.href='./signup.html'" class="btn btn-secondary full">
-        ➕ New Teacher? **Sign Up Here**
+        ➕ New Teacher? **Create Account**
       </button>
     </div>
     
-    <div class="divider">
-      <span>or proceed locally</span>
-    </div>
-
-    <form id="localLoginForm" class="form-box" style="margin-top: 20px;">
-      <div class="form-group">
-        <label>First Name (For Local Use)</label>
-        <input type="text" id="localFirstName" required placeholder="John">
-      </div>
-      <div class="form-group">
-        <label>Last Name (For Local Use)</label>
-        <input type="text" id="localLastName" required placeholder="Doe">
-      </div>
-      
-      <div class="form-actions">
-        <button type="submit" onclick="handleLocalLogin(event)" class="btn btn-secondary full">
-          📱 Continue Locally Only
-        </button>
-      </div>
-    </form>
-
     <div class="login-features">
       <h3>Why Sign In?</h3>
       <ul>
         <li>☁️ **Cloud Sync:** Back up your data and access it from any device.</li>
-        <li>🎯 Set performance targets</li>
-        <li>📊 Track progress with AI insights</li>
+        <li>🛡️ **Data Safety:** Prevent data loss when clearing browsing history or changing devices.</li>
+        <li>🎯 Set performance targets & track progress.</li>
       </ul>
     </div>
 
-    <p class="hint">Signing in with Email/Password enables cloud backup.</p>
+    <p class="hint">Signing in with Email/Password enables secure cloud backup.</p>
   </div>
 </main>
 
@@ -214,38 +193,15 @@
         }, 1500);
         
       } else {
-        showLoginError(`Login failed: ${result.error}`);
+        showLoginError(`Login failed: ${result.error.replace('Firebase: ', '')}`);
       }
     } catch (error) {
       showLoginError('An unexpected error occurred: ' + error.message);
     }
   });
 
-  // Local Login Handler (Name Only)
-  window.handleLocalLogin = function(e) {
-    e.preventDefault();
-    
-    const firstName = document.getElementById('localFirstName').value.trim();
-    const lastName = document.getElementById('localLastName').value.trim();
-    const fullName = `${firstName} ${lastName}`.trim();
+  // REMOVED: Local Login Handler (handleLocalLogin)
 
-    if (!fullName) {
-      showLoginError('Please enter your full name for local use.');
-      return;
-    }
-
-    if (window.auth.login(fullName)) { // Use the global auth object
-      showLoginSuccess(`Welcome, ${firstName}! Continuing locally...`);
-      localStorage.removeItem('authMethod'); 
-      
-      setTimeout(() => {
-        window.location.href = './index.html';
-      }, 1000);
-    } else {
-        showLoginError('Local login failed. Please check your name input.');
-    }
-  };
-  
   // Password Reset Handler
   document.getElementById('forgotPasswordLink').addEventListener('click', async (e) => {
     e.preventDefault();
@@ -290,8 +246,7 @@
     document.documentElement.setAttribute('data-theme', theme);
   })();
   
-  // Make handlers globally accessible
-  window.handleLocalLogin = handleLocalLogin;
+  // REMOVED: window.handleLocalLogin = handleLocalLogin;
   
 </script>
 </body>
