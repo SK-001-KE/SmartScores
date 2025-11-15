@@ -8,27 +8,51 @@
   <link rel="stylesheet" href="./style.css" />
   <script src="./app.js" defer></script>
   <script src="./auth.js" defer></script>
-  <!-- Add this line to the head section of each HTML file -->
-<script type="module" src="./firebase-config.js"></script>
-  <!-- Add this line to the head section -->
-<script type="module" src="./firebase-sync.js"></script>
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="./firebase-sync.js"></script>
 </head>
 <body>
-  <!-- MOBILE MENU TOGGLE - ADDED -->
-  <button id="sidebarToggle" class="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <!-- TOP NAVIGATION BAR -->
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <img src="./icon-192x192.png" class="logo-small">
+      <span>SmartScores</span>
+    </div>
+    
+    <div class="nav-links">
+      <a href="./index.html" class="nav-link">📊 Dashboard</a>
+      <a href="./data-entry.html" class="nav-link">📝 Data Entry</a>
+      <a href="./recorded-scores.html" class="nav-link">📋 Scores</a>
+      <a href="./ai-insights.html" class="nav-link">🤖 AI Insights</a>
+      <a href="./averages.html" class="nav-link">📈 Averages</a>
+      <a href="./trends.html" class="nav-link">📊 Trends</a>
+      <a href="./grade-distribution.html" class="nav-link">📈 Distribution</a>
+      <a href="./set-targets.html" class="nav-link active">🎯 Targets</a>
+    </div>
+    
+    <div class="nav-user">
+      <span id="teacherName" class="teacher-name">Teacher</span>
+      <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
+    </div>
+  </nav>
 
- <aside id="sidebarMenu" class="sidebar closed">
+  <!-- MOBILE MENU TOGGLE (only show on mobile) -->
+  <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+
+  <!-- MOBILE SIDEBAR (only for mobile) -->
+  <aside id="mobileSidebar" class="mobile-sidebar closed">
     <a href="./index.html">📊 Dashboard</a>
     <a href="./data-entry.html">📝 Data Entry</a>
     <a href="./recorded-scores.html">📋 Recorded Scores</a>
     <a href="./ai-insights.html">🤖 AI Insights</a>
     <a href="./averages.html">📈 Averages</a>
     <a href="./trends.html">📊 Trends</a>
-    <a href="./set-targets.html" class="active">🎯 Set Targets</a>
     <a href="./grade-distribution.html">📈 Grade Distribution</a>
-    <button class="logout-btn">🚪 Logout</button>
-</aside>
+    <a href="./set-targets.html" class="active">🎯 Set Targets</a>
+    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+  </aside>
 
+  <!-- DARK MODE TOGGLE -->
   <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
   <header>
@@ -36,8 +60,7 @@
     <p>Set Performance Targets</p>
   </header>
 
-
-  <main class="content content-with-sidebar">
+  <main class="content">
     <section class="form-section">
       <h2>🎯 Set New Target</h2>
       <form id="targetsForm" class="form-box">
@@ -72,18 +95,19 @@
           </div>
         </div>
 
-       <div class="form-group">
-  <label>Stream *</label>
-  <select id="targetStream" required>
-    <option value="">Select Stream</option>
-    <option>Faith</option>
-    <option>Glory</option>
-    <option>Joy</option>
-    <option>Love</option>
-    <option>Peace</option>
-    <option>Unity</option>
-  </select>
-</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Stream *</label>
+            <select id="targetStream" required>
+              <option value="">Select Stream</option>
+              <option>Faith</option>
+              <option>Glory</option>
+              <option>Joy</option>
+              <option>Love</option>
+              <option>Peace</option>
+              <option>Unity</option>
+            </select>
+          </div>
 
           <div class="form-group">
             <label>Term *</label>
@@ -127,10 +151,16 @@
     </section>
 
     <section class="targets-section">
-      <h2>📋 Current Targets</h2>
-      
-      <div class="search-box">
-        <input type="text" id="targetSearch" placeholder="🔍 Search targets..." oninput="filterTargets()">
+      <div class="table-controls">
+        <div class="search-box">
+          <input type="text" id="targetSearch" placeholder="🔍 Search targets..." oninput="filterTargets()">
+          <span class="search-hint">Search by subject, grade, stream, term</span>
+        </div>
+        
+        <div class="table-actions">
+          <button onclick="exportTargets()" class="btn btn-secondary">📄 Export Targets</button>
+          <button onclick="clearAllTargets()" class="btn btn-danger">🗑️ Clear All Targets</button>
+        </div>
       </div>
 
       <div class="table-container">
@@ -146,8 +176,8 @@
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
-            <!-- Targets will be loaded here -->
+          <tbody id="targetsBody">
+            <!-- Targets will be loaded here by JavaScript -->
           </tbody>
         </table>
       </div>
@@ -156,42 +186,253 @@
         <div class="empty-icon">🎯</div>
         <h3>No targets set yet</h3>
         <p>Set your first target using the form above to start tracking performance against goals.</p>
+        <button onclick="document.getElementById('targetsForm').scrollIntoView()" class="btn btn-primary">➕ Set First Target</button>
       </div>
 
-      <div class="targets-summary">
-        <div class="summary-item">
-          <span class="summary-label">Total Targets:</span>
-          <span class="summary-value" id="totalTargets">0</span>
+      <div class="summary-stats">
+        <div class="stat-item">
+          <span class="stat-label">Total Targets:</span>
+          <span class="stat-value" id="totalTargets">0</span>
         </div>
-        <div class="summary-item">
-          <span class="summary-label">Average Target:</span>
-          <span class="summary-value" id="averageTarget">0%</span>
+        <div class="stat-item">
+          <span class="stat-label">Average Target:</span>
+          <span class="stat-value" id="averageTarget">0%</span>
         </div>
-        <div class="summary-item">
-          <span class="summary-label">Active Targets:</span>
-          <span class="summary-value" id="activeTargets">0</span>
+        <div class="stat-item">
+          <span class="stat-label">Targets Shown:</span>
+          <span class="stat-value" id="targetsShown">0</span>
         </div>
       </div>
     </section>
 
-    <section class="comparison-section">
-      <h2>📊 Target vs Actual Performance</h2>
-      <div id="targetComparison">
-        <div class="loading">Loading performance comparison...</div>
-      </div>
+    <!-- DEBUG INFO -->
+    <section style="background: var(--card); padding: 15px; border-radius: 8px; margin-top: 30px;">
+      <h3>🔧 Debug Information</h3>
+      <p><strong>Targets Found:</strong> <span id="debugTargets">0</span></p>
+      <p><strong>Last Updated:</strong> <span id="debugTime">--</span></p>
+      <p><strong>Screen Width:</strong> <span id="screenWidth">--</span></p>
+      <button onclick="refreshTargets()" class="btn" style="margin-top: 10px;">🔄 Refresh Targets</button>
     </section>
   </main>
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./service-worker.js')
-          .then(registration => console.log('SW registered: ', registration))
-          .catch(error => console.log('SW registration failed: ', error));
+    // ==================== TARGETS MANAGEMENT ====================
+    console.log('🎯 Set Targets page loaded!');
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🎯 Targets page initialized');
+      
+      // Update teacher name using the function from app.js
+      const teacherName = getTeacherName();
+      const teacherNameElements = document.querySelectorAll('.teacher-name');
+      teacherNameElements.forEach(element => {
+        element.textContent = teacherName;
       });
+
+      // Setup form submission
+      const targetsForm = document.getElementById('targetsForm');
+      if (targetsForm) {
+        targetsForm.addEventListener('submit', handleSaveTarget);
+      }
+
+      // Initial render
+      renderTargets();
+      updateDebugInfo();
+    });
+
+    function handleSaveTarget(event) {
+      if (event) event.preventDefault();
+      
+      // Check auth using app.js function
+      const teacherName = getTeacherName();
+      if (!teacherName || teacherName === 'Guest Teacher') {
+        showAlert('Please login first', 'error');
+        window.location.href = './login.html';
+        return;
+      }
+      
+      const target = {
+        teacher: teacherName,
+        subject: document.getElementById('targetSubject').value,
+        grade: document.getElementById('targetGrade').value,
+        stream: document.getElementById('targetStream').value,
+        term: document.getElementById('targetTerm').value,
+        examType: document.getElementById('targetExamType').value,
+        score: parseFloat(document.getElementById('targetScore').value)
+      };
+      
+      // Validate required fields
+      const requiredFields = ['subject', 'grade', 'stream', 'term', 'examType'];
+      const missingFields = requiredFields.filter(field => !target[field]);
+      
+      if (missingFields.length > 0) {
+        showAlert('Please fill all required fields', 'error');
+        return;
+      }
+      
+      if (isNaN(target.score) || target.score < 0 || target.score > 100) {
+        showAlert('Please enter a valid target score between 0 and 100', 'error');
+        return;
+      }
+      
+      const existingTargets = loadTargets();
+      
+      // Check for duplicate
+      const duplicate = existingTargets.find(t =>
+        t.teacher === target.teacher &&
+        t.subject === target.subject &&
+        t.grade === target.grade &&
+        t.stream === target.stream &&
+        t.term === target.term &&
+        t.examType === target.examType
+      );
+      
+      if (duplicate) {
+        showAlert('A target for this subject/grade/stream/term/exam combination already exists!', 'error');
+        return;
+      }
+      
+      existingTargets.push({
+        ...target,
+        id: Date.now(),
+        timestamp: new Date().toISOString()
+      });
+      
+      if (saveTargets(existingTargets)) {
+        showAlert('Target saved successfully!', 'success');
+        document.getElementById('targetsForm').reset();
+        renderTargets();
+      }
     }
+
+    function renderTargets() {
+      const tbody = document.getElementById('targetsBody');
+      const emptyTargets = document.getElementById('emptyTargets');
+      const targets = loadTargets();
+      
+      if (targets.length === 0) {
+        tbody.innerHTML = '';
+        if (emptyTargets) emptyTargets.style.display = 'block';
+        updateTargetsSummary(targets);
+        return;
+      }
+      
+      if (emptyTargets) emptyTargets.style.display = 'none';
+      
+      tbody.innerHTML = targets.map((target, index) => `
+        <tr>
+          <td>${target.subject}</td>
+          <td>${target.grade}</td>
+          <td>${target.stream}</td>
+          <td>${target.term}</td>
+          <td>${target.examType}</td>
+          <td style="font-weight: bold; color: var(--primary);">${target.score}%</td>
+          <td>
+            <button onclick="deleteTarget(${index})" class="btn btn-danger btn-small">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+      
+      updateTargetsSummary(targets);
+      updateDebugInfo();
+    }
+
+    function updateTargetsSummary(targets) {
+      const totalTargets = document.getElementById('totalTargets');
+      const averageTarget = document.getElementById('averageTarget');
+      const targetsShown = document.getElementById('targetsShown');
+      
+      if (totalTargets) totalTargets.textContent = targets.length;
+      if (targetsShown) targetsShown.textContent = targets.length;
+      
+      if (averageTarget && targets.length > 0) {
+        const avg = targets.reduce((sum, t) => sum + t.score, 0) / targets.length;
+        averageTarget.textContent = avg.toFixed(1) + '%';
+      } else if (averageTarget) {
+        averageTarget.textContent = '0%';
+      }
+    }
+
+    function filterTargets() {
+      const searchTerm = (document.getElementById('targetSearch')?.value || '').toLowerCase();
+      const tbody = document.getElementById('targetsBody');
+      
+      if (!tbody) return;
+      
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      let visibleCount = 0;
+      
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const isVisible = !searchTerm || text.includes(searchTerm);
+        row.style.display = isVisible ? '' : 'none';
+        if (isVisible) visibleCount++;
+      });
+      
+      const targetsShown = document.getElementById('targetsShown');
+      if (targetsShown) {
+        targetsShown.textContent = visibleCount;
+      }
+    }
+
+    function exportTargets() {
+      const targets = loadTargets();
+      if (targets.length === 0) {
+        showAlert('No targets to export', 'error');
+        return;
+      }
+      
+      // Simple CSV export
+      let csv = 'Subject,Grade,Stream,Term,Exam Type,Target Score\n';
+      
+      targets.forEach(target => {
+        csv += `"${target.subject}",${target.grade},"${target.stream}","${target.term}","${target.examType}",${target.score}\n`;
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `targets_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      showAlert('Targets exported successfully!', 'success');
+    }
+
+    function clearAllTargets() {
+      if (confirm('⚠️ ARE YOU SURE?\n\nThis will delete ALL your targets permanently. This action cannot be undone.')) {
+        localStorage.removeItem('smartScoresTargets');
+        showAlert('All targets have been cleared successfully.', 'success');
+        renderTargets();
+      }
+    }
+
+    function refreshTargets() {
+      console.log('🔄 Refreshing targets...');
+      renderTargets();
+      showAlert('Targets refreshed!');
+    }
+
+    function updateDebugInfo() {
+      const targets = loadTargets();
+      document.getElementById('debugTargets').textContent = targets.length;
+      document.getElementById('debugTime').textContent = new Date().toLocaleTimeString();
+      document.getElementById('screenWidth').textContent = window.innerWidth + 'px';
+    }
+
+    // Make functions available globally
+    window.handleSaveTarget = handleSaveTarget;
+    window.deleteTarget = deleteTarget;
+    window.filterTargets = filterTargets;
+    window.exportTargets = exportTargets;
+    window.clearAllTargets = clearAllTargets;
+    window.refreshTargets = refreshTargets;
   </script>
 </body>
 </html>
