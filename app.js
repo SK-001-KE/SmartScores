@@ -320,6 +320,39 @@ const getColorForScore = (score) => {
     if (score >= 50) return '#F59E0B';
     return '#EF4444';
 };
+const recentRecords = records
+        .sort((a, b) => new Date(b.timestamp || b.id) - new Date(a.timestamp || a.id))
+        .slice(0, 5);
+    
+    container.innerHTML = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Grade</th>
+                    <th>Stream</th>
+                    <th>Term</th>
+                    <th>Exam</th>
+                    <th>Mean Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${recentRecords.map(record => `
+                    <tr>
+                        <td>${record.subject}</td>
+                        <td>${record.grade}</td>
+                        <td>${record.stream}</td>
+                        <td>${record.term}</td>
+                        <td>${record.examType}</td>
+                        <td style="font-weight: bold; color: ${getColorForScore(record.mean)}">
+                            ${record.mean.toFixed(1)}%
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+};
 
 // Enhanced performance summary
 const updatePerformanceSummary = (learnerData) => {
