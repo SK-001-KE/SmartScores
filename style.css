@@ -40,7 +40,64 @@
   --gradient-primary: linear-gradient(135deg, #c53030, #e53e3e);
   --gradient-header: linear-gradient(135deg, #2d3748, #4a5568);
 }
+/* =========================================================
+   NAVIGATION BAR FIXES (Desktop Layout)
+========================================================= */
 
+/* 1. Base style for the entire navigation bar */
+.top-nav {
+  display: flex; /* Align items horizontally */
+  justify-content: space-between; /* Push the brand left and links right */
+  align-items: center;
+  padding: 15px 30px; /* Generous padding for desktop */
+  background: var(--card); 
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  position: sticky; /* Keep it visible at the top */
+  top: 0;
+  z-index: 1000; /* Ensure it floats above other content */
+}
+
+/* 2. Style for the container holding the links/buttons */
+.nav-links {
+  /* This is the crucial fix: ensure it's not hidden on desktop */
+  display: flex; 
+  gap: 25px; /* Spacing between the navigation links */
+}
+
+/* 3. Style for the individual links */
+.nav-link {
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 10px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.nav-link:hover {
+  background-color: var(--card); /* Light background on hover */
+  color: var(--primary);
+}
+
+.nav-link.active {
+  color: var(--button-text);
+  background-color: var(--primary); /* Highlight the active link */
+  font-weight: 600;
+}
+
+/* 4. Mobile adjustment (if you had a mobile sidebar hidden by default) */
+@media (max-width: 768px) {
+  /* In mobile view, typically the links should be hidden or part of a hamburger menu. 
+     If your desktop nav is disappearing, ensure there is no 'display: none' applied here 
+     or that the general nav-links rule above is not being overridden. */
+  .top-nav {
+    padding: 10px 15px;
+  }
+  .nav-links {
+    display: none; /* Hide the desktop links on small screens */
+  }
+}
 /* =========================================================
    RESET & BASE STYLES
 ========================================================= */
