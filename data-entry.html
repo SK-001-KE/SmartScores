@@ -187,7 +187,7 @@
 
     // Enhanced mobile menu functionality
     document.addEventListener('DOMContentLoaded', function() {
-      // Mobile menu functionality
+      // Mobile menu functionality - use the same setup as index.html
       const mobileMenuToggle = document.getElementById('mobileMenuToggle');
       const mobileSidebar = document.getElementById('mobileSidebar');
       
@@ -204,6 +204,7 @@
           }
         });
         
+        // Close sidebar when clicking on links
         const mobileLinks = mobileSidebar.querySelectorAll('a, button');
         mobileLinks.forEach(link => {
           link.addEventListener('click', function() {
@@ -215,6 +216,7 @@
         });
       }
       
+      // Close mobile sidebar when clicking outside
       function closeMobileSidebarOnClickOutside(event) {
         const mobileSidebar = document.getElementById('mobileSidebar');
         const mobileMenuToggle = document.getElementById('mobileMenuToggle');
@@ -248,11 +250,7 @@
       }
     });
 
-    // Mobile menu toggle function
-    function toggleMobileMenu() {
-      const sidebar = document.getElementById('mobileSidebar');
-      sidebar.classList.toggle('closed');
-    }
+    // REMOVED: Duplicate toggleMobileMenu function - using the one from app.js
 
     // Logout function
     function logout() {
