@@ -5,8 +5,9 @@ import {
   signInWithEmailAndPassword, 
   signOut,
   onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup
+  updateProfile,         // <-- ADDED: For setting display name
+  sendEmailVerification, // <-- ADDED: For email verification
+  sendPasswordResetEmail // <-- ADDED: For password reset
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 import { 
   doc, 
@@ -14,10 +15,11 @@ import {
   getDoc 
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
+
 class FirebaseAuthService {
   constructor() {
     this.isInitialized = false;
-    this.googleProvider = new GoogleAuthProvider();
+    // this.googleProvider = new GoogleAuthProvider(); // REMOVED Google provider
     this.init();
   }
 
@@ -25,188 +27,134 @@ class FirebaseAuthService {
     // Listen for auth state changes
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        console.log('User signed in:', user.email);
+        console.log('Cloud user signed in:', user.email);
         this.updateUI(true, user.displayName || user.email);
+        
+        // Update local storage on sign-in event (e.g., after verification link click)
+        if (user.displayName) {
+          localStorage.setItem('teacherFullName', user.displayName);
+        }
       } else {
-        console.log('User signed out');
+        console.log('Cloud user signed out');
         this.updateUI(false);
       }
       this.isInitialized = true;
     });
   }
 
-  // METHOD 1: Google Sign In - FIXED VERSION
-  async loginWithGoogle() {
-    try {
-      const result = await signInWithPopup(auth, this.googleProvider);
-      const user = result.user;
-      
-      // Store user info locally FIRST (immediate feedback)
-      localStorage.setItem('teacherFullName', user.displayName || 'Teacher');
-      localStorage.setItem('teacherEmail', user.email);
-      localStorage.setItem('teacherUID', user.uid);
-      localStorage.setItem('authMethod', 'google');
-      if (user.photoURL) {
-        localStorage.setItem('teacherPhoto', user.photoURL);
-      }
-      
-      // THEN try to create/update Firestore profile (non-blocking)
-      try {
-        await setDoc(doc(db, 'teachers', user.uid), {
-          name: user.displayName || 'Teacher',
-          email: user.email,
-          photoURL: user.photoURL,
-          authMethod: 'google',
-          lastLogin: new Date().toISOString(),
-          createdAt: new Date().toISOString()
-        }, { merge: true });
-        console.log('✅ Teacher profile updated in Firestore');
-      } catch (firestoreError) {
-        console.log('⚠️ Firestore update failed, but login continues:', firestoreError);
-        // Continue with login even if Firestore fails
-      }
-      
-      this.updateUI(true, user.displayName || user.email);
-      return { success: true, user };
-    } catch (error) {
-      console.error('Google Sign-In failed:', error);
-      // Clear local storage on failure
-      this.clearLocalStorage();
-      return { success: false, error: error.message };
-    }
+  // Helper to update local storage and UI after a successful login (or registration)
+  async handleSignInSuccess(user, fullName) {
+    // Store user data locally
+    localStorage.setItem('teacherFullName', fullName);
+    localStorage.setItem('teacherEmail', user.email);
+    localStorage.setItem('authMethod', 'email');
+    localStorage.setItem('lastActivityTime', new Date().toISOString());
+    this.updateUI(true, fullName);
+
+    // Ensure Firestore profile is up to date
+    await setDoc(doc(db, 'teachers', user.uid), {
+      name: fullName,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      lastLogin: new Date().toISOString()
+    }, { merge: true });
   }
 
-  // METHOD 2: Email & Password Registration - FIXED VERSION
-  async registerWithEmail(email, password, firstName, lastName, school) {
+  // REMOVED: METHOD 1: loginWithGoogle
+
+  // METHOD 2: Email/Password Registration (UPDATED for Name & Verification)
+  async registerWithEmail(email, password, fullName) { 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+
+      // 1. Set the user's display name in Firebase Auth
+      await updateProfile(user, {
+          displayName: fullName
+      });
+
+      // 2. CRITICAL STEP: Send the verification email
+      await sendEmailVerification(user);
+
+      // 3. Create/update teacher profile in Firestore
+      await setDoc(doc(db, 'teachers', user.uid), {
+        name: fullName, 
+        email: user.email,
+        emailVerified: user.emailVerified, // Will be false initially
+        createdAt: new Date().toISOString()
+      });
       
-      // Store locally FIRST
-      const fullName = `${firstName} ${lastName}`;
-      localStorage.setItem('teacherFullName', fullName);
-      localStorage.setItem('teacherEmail', email);
-      localStorage.setItem('teacherUID', user.uid);
-      localStorage.setItem('authMethod', 'email');
-      if (school) {
-        localStorage.setItem('teacherSchool', school);
-      }
+      // We do NOT call handleSignInSuccess here as the user must verify first.
+
+      return { success: true, user: user };
       
-      // THEN try Firestore (non-blocking)
-      try {
-        await setDoc(doc(db, 'teachers', user.uid), {
-          name: fullName,
-          email: user.email,
-          school: school || 'Unknown School',
-          authMethod: 'email',
-          lastLogin: new Date().toISOString(),
-          createdAt: new Date().toISOString()
-        }, { merge: true });
-        console.log('✅ Teacher profile created in Firestore');
-      } catch (firestoreError) {
-        console.log('⚠️ Firestore update failed, but registration continues:', firestoreError);
-        // Continue with registration even if Firestore fails
-      }
-      
-      this.updateUI(true, fullName);
-      return { success: true, user };
     } catch (error) {
-      console.error('Registration failed:', error);
-      // Clear local storage on failure
-      this.clearLocalStorage();
       return { success: false, error: error.message };
     }
   }
 
-  // METHOD 3: Email & Password Sign In - FIXED VERSION
+  // METHOD 3: Email/Password Login (UPDATED for Verification Check)
   async loginWithEmail(email, password) {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      // Update last login in Firestore (non-blocking)
-      try {
-        await setDoc(doc(db, 'teachers', user.uid), {
-          lastLogin: new Date().toISOString()
-        }, { merge: true });
-      } catch (firestoreError) {
-        console.log('Firestore update failed:', firestoreError);
+      // CRITICAL CHECK: Ensure email is verified
+      if (!user.emailVerified) {
+        // 1. Force the user out
+        await signOut(auth);
+        
+        // 2. Return an error message and resend verification link
+        await sendEmailVerification(user);
+        return { 
+          success: false, 
+          error: `Your email address has not been verified. A new verification link has been sent to ${email}.`
+        };
       }
       
-      // Get user profile to display name
-      let userData = null;
-      try {
-        const userDoc = await getDoc(doc(db, 'teachers', user.uid));
-        userData = userDoc.exists() ? userDoc.data() : null;
-      } catch (error) {
-        console.log('Failed to fetch user profile:', error);
-      }
-      
-      // Store locally
-      localStorage.setItem('teacherFullName', userData?.name || user.email);
-      localStorage.setItem('teacherEmail', user.email);
-      localStorage.setItem('teacherUID', user.uid);
-      localStorage.setItem('authMethod', 'email');
-      if (userData?.school) {
-        localStorage.setItem('teacherSchool', userData.school);
-      }
-      
-      this.updateUI(true, userData?.name || user.email);
-      return { success: true, user };
+      // If verified, continue the normal sign-in process
+      const fullName = user.displayName || 'Teacher';
+
+      await this.handleSignInSuccess(user, fullName);
+
+      return { success: true, user: this.getCurrentUser() }; // Return the local user object
     } catch (error) {
-      console.error('Email login failed:', error);
       return { success: false, error: error.message };
     }
   }
 
-  // METHOD 4: Local Only (No Firebase) - FIXED VERSION
-  loginLocalOnly(firstName, lastName) {
+  // METHOD 4: Password Reset (NEW)
+  async sendPasswordReset(email) {
     try {
-      const fullName = `${firstName} ${lastName}`;
-      localStorage.setItem('teacherFullName', fullName);
-      localStorage.setItem('teacherEmail', 'local@user.com');
-      localStorage.setItem('teacherUID', 'local-user');
-      localStorage.setItem('authMethod', 'local');
-      
-      this.updateUI(true, fullName);
-      return { success: true, local: true };
+      await sendPasswordResetEmail(auth, email);
+      return { success: true };
     } catch (error) {
-      console.error('Local login failed:', error);
       return { success: false, error: error.message };
     }
   }
 
-  // Logout - FIXED VERSION
+  // Logout function
   async logout() {
     try {
-      // Try Firebase logout if user is cloud user
-      const user = this.getCurrentUser();
-      if (user && user.uid !== 'local-user') {
+      if (auth.currentUser) {
         await signOut(auth);
       }
-    } catch (error) {
-      console.error('Firebase logout error:', error);
-    } finally {
-      // Always clear local storage
-      this.clearLocalStorage();
-      window.location.href = './login.html';
+    } catch(e) {
+      console.error("Error signing out of Firebase:", e);
     }
-  }
-
-  clearLocalStorage() {
-    const keysToKeep = ['smartScoresRecords', 'smartScoresTargets', 'themeMode']; // Keep your data!
-    const allKeys = Object.keys(localStorage);
     
-    allKeys.forEach(key => {
-      if (!keysToKeep.includes(key)) {
-        localStorage.removeItem(key);
-      }
-    });
+    // Clear all local data regardless of Firebase status
+    localStorage.removeItem('teacherFullName');
+    localStorage.removeItem('teacherEmail');
+    localStorage.removeItem('authMethod');
+    localStorage.removeItem('lastActivityTime');
+    localStorage.removeItem('teacherPhoto');
+    window.location.href = './login.html';
   }
 
-  updateUI(isLoggedIn, userName = '') {
-    // Update teacher name display across the app
-    const teacherNameElements = document.querySelectorAll('#teacherName, .teacher-name');
+  // UI update helper (Retained)
+  updateUI(isLoggedIn, userName) {
+    const teacherNameElements = document.querySelectorAll('.teacher-name, #teacherName');
     const teacherPhoto = localStorage.getItem('teacherPhoto');
     
     teacherNameElements.forEach(element => {
@@ -222,32 +170,34 @@ class FirebaseAuthService {
     });
   }
 
-  // Check if user is authenticated
+  // Check if user is authenticated (Retained)
   isAuthenticated() {
-    return auth.currentUser || localStorage.getItem('teacherFullName');
+    // Check local storage for local/cloud login
+    return !!localStorage.getItem('teacherFullName'); 
   }
 
+  // Get current user data (Retained)
   getCurrentUser() {
     if (auth.currentUser) {
       return {
         uid: auth.currentUser.uid,
         email: auth.currentUser.email,
-        name: localStorage.getItem('teacherFullName') || 'Teacher',
+        name: localStorage.getItem('teacherFullName') || auth.currentUser.displayName || 'Teacher',
         photoURL: auth.currentUser.photoURL,
         authMethod: localStorage.getItem('authMethod') || 'email'
       };
     } else if (localStorage.getItem('teacherFullName')) {
       return {
-        uid: localStorage.getItem('teacherUID') || 'local-user',
+        uid: 'local-user',
         email: localStorage.getItem('teacherEmail') || 'local@user.com',
         name: localStorage.getItem('teacherFullName'),
-        authMethod: localStorage.getItem('authMethod') || 'local'
+        authMethod: 'local'
       };
     }
     return null;
   }
 
-  // Check if user is using cloud auth
+  // Check if user is using cloud auth (Retained)
   isCloudUser() {
     const user = this.getCurrentUser();
     return user && user.uid !== 'local-user';
@@ -256,8 +206,4 @@ class FirebaseAuthService {
 
 // Create and export singleton instance
 const firebaseAuth = new FirebaseAuthService();
-
-// Make it available globally for HTML files
-window.firebaseAuth = firebaseAuth;
-
 export default firebaseAuth;
