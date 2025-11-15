@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>SmartScores - Learner Scores</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+  <script src="./auth.js" defer></script>
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="./firebase-sync.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+  <!-- TOP NAVIGATION BAR -->
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <img src="./icon-192x192.png" class="logo-small" style="height:32px;margin-right:10px;border-radius:6px;">
+      <span>SmartScores</span>
+    </div>
+    
+    <div class="nav-links">
+      <a href="./index.html" class="nav-link">📊 Dashboard</a>
+      <a href="./data-entry.html" class="nav-link">📝 Data Entry</a>
+      <a href="./recorded-scores.html" class="nav-link">📋 Scores</a>
+      <a href="./learner-scores.html" class="nav-link active">👨‍🎓 Learner Scores</a>
+      <a href="./ai-insights.html" class="nav-link">🤖 AI Insights</a>
+      <a href="./averages.html" class="nav-link">📈 Averages</a>
+      <a href="./trends.html" class="nav-link">📊 Trends</a>
+      <a href="./grade-distribution.html" class="nav-link">📈 Distribution</a>
+      <a href="./set-targets.html" class="nav-link">🎯 Targets</a>
+    </div>
+    
+    <div class="nav-user">
+      <span id="teacherName" class="teacher-name">Loading...</span>
+      <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
+    </div>
+  </nav>
+
+  <!-- MOBILE MENU TOGGLE -->
+  <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+
+  <!-- MOBILE SIDEBAR -->
+  <aside id="mobileSidebar" class="mobile-sidebar closed">
+    <a href="./index.html">📊 Dashboard</a>
+    <a href="./data-entry.html">📝 Data Entry</a>
+    <a href="./recorded-scores.html">📋 Recorded Scores</a>
+    <a href="./learner-scores.html" class="active">👨‍🎓 Learner Scores</a>
+    <a href="./ai-insights.html">🤖 AI Insights</a>
+    <a href="./averages.html">📈 Averages</a>
+    <a href="./trends.html">📊 Trends</a>
+    <a href="./grade-distribution.html">📈 Grade Distribution</a>
+    <a href="./set-targets.html">🎯 Set Targets</a>
+    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+  </aside>
+
+  <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
+
+  <header>
+    <h1>Learner Scores Management</h1>
+    <p>Track individual learner performance across terms with progress analysis</p>
+  </header>
+
+  <div class="content">
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <button onclick="showAddLearnerForm()" class="btn btn-primary">➕ Add Learner Score</button>
+      <button onclick="downloadTemplate()" class="btn btn-secondary">📥 Download Excel Template</button>
+      <button onclick="showUploadModal()" class="btn btn-info">📤 Upload Excel Data</button>
+      <button onclick="exportLearnerReport()" class="btn btn-success">📊 Export Report</button>
+      <button onclick="showCustomExportModal()" class="btn btn-warning">🎯 Custom Export</button>
+      <button onclick="showAnalytics()" class="btn btn-primary">📈 View Analytics</button>
+    </div>
+
+    <!-- Analytics Dashboard -->
+    <div id="analyticsDashboard" class="analytics-section" style="display: none;">
+      <div class="section-header">
+        <h2>Class Performance Analytics</h2>
+        <button onclick="hideAnalytics()" class="btn btn-small btn-danger">✕</button>
+      </div>
+      <div class="dashboard-cards">
+        <div class="dashboard-card" id="classAverageCard">
+          <h3>Class Average</h3>
+          <div class="card-value">-</div>
+          <p class="card-subtitle">Current Year</p>
+        </div>
+        <div class="dashboard-card" id="improvementCard">
+          <h3>Term Improvement</h3>
+          <div class="card-value">-</div>
+          <p class="card-subtitle">From Term 1 to 3</p>
+        </div>
+        <div class="dashboard-card" id="consistencyCard">
+          <h3>Consistency</h3>
+          <div class="card-value">-</div>
+          <p class="card-subtitle">Score Stability</p>
+        </div>
+        <div class="dashboard-card" id="topPerformerCard">
+          <h3>Top Performer</h3>
+          <div class="card-value">-</div>
+          <p class="card-subtitle">Best Average</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Learner Form -->
+    <div id="addLearnerForm" class="form-box" style="display: none; margin-bottom: 30px;">
+      <div class="form-header">
+        <h2>Add Learner Score</h2>
+        <button onclick="hideAddLearnerForm()" class="btn btn-small btn-danger" style="position: absolute; right: 20px; top: 20px;">✕</button>
+      </div>
+      
+      <form id="learnerScoreForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Learner Name *</label>
+            <input type="text" id="learnerName" required placeholder="Enter full name">
+          </div>
+          <div class="form-group">
+            <label>Admission Number *</label>
+            <input type="text" id="admissionNo" required placeholder="e.g., CLS001">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Grade *</label>
+            <select id="learnerGrade" required>
+              <option value="">Select Grade</option>
+              <option>4</option>
+              <option>5</option>
+              <option>6</option>
+              <option>7</option>
+              <option>8</option>
+              <option>9</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Stream *</label>
+            <select id="learnerStream" required>
+              <option value="">Select Stream</option>
+              <option>Faith</option>
+              <option>Glory</option>
+              <option>Joy</option>
+              <option>Love</option>
+              <option>Peace</option>
+              <option>Unity</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Term *</label>
+            <select id="learnerTerm" required>
+              <option value="">Select Term</option>
+              <option>Term 1</option>
+              <option>Term 2</option>
+              <option>Term 3</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Year *</label>
+            <input type="number" id="learnerYear" min="2000" max="2100" required value="2025">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Exam Type *</label>
+            <select id="learnerExamType" required>
+              <option value="">Select Exam Type</option>
+              <option>Opener Exam</option>
+              <option>Mid Term Exam</option>
+              <option>End Term Exam</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Subject *</label>
+            <select id="learnerSubject" required>
+              <option value="">Select Subject</option>
+              <option>Mathematics</option>
+              <option>English</option>
+              <option>Kiswahili</option>
+              <option>Science</option>
+              <option>Social Studies</option>
+              <option>CRE</option>
+              <option>Pre-Technical Studies</option>
+              <option>Creative Arts</option>
+              <option>Agriculture</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Score *</label>
+          <input type="number" id="learnerScore" min="0" max="100" step="0.1" required placeholder="Enter score (0-100)">
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary full">💾 Save Score</button>
+          <button type="reset" class="btn btn-secondary">🔄 Clear Form</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Enhanced Filters Section -->
+    <div class="filter-section">
+      <h3>Filter & Export Reports</h3>
+      <div class="filter-controls">
+        <div class="filter-group">
+          <label>Subject</label>
+          <select id="filterSubject">
+            <option value="">All Subjects</option>
+            <option>Mathematics</option>
+            <option>English</option>
+            <option>Kiswahili</option>
+            <option>Science</option>
+            <option>Social Studies</option>
+            <option>CRE</option>
+            <option>Pre-Technical Studies</option>
+            <option>Creative Arts</option>
+            <option>Agriculture</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Grade</label>
+          <select id="filterGrade">
+            <option value="">All Grades</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+            <option>9</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Stream</label>
+          <select id="filterStream">
+            <option value="">All Streams</option>
+            <option>Faith</option>
+            <option>Glory</option>
+            <option>Joy</option>
+            <option>Love</option>
+            <option>Peace</option>
+            <option>Unity</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Year</label>
+          <select id="filterYear">
+            <option value="">All Years</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button onclick="applyLearnerFilters()" class="btn btn-primary">Apply Filters</button>
+          <button onclick="resetLearnerFilters()" class="btn btn-secondary">Reset</button>
+          <button onclick="exportFilteredReport()" class="btn btn-success">📊 Export Filtered</button>
+          <button onclick="showCustomExportModal()" class="btn btn-info">🎯 Custom Export</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Summary -->
+    <div class="summary-cards" id="performanceSummary" style="display: none;">
+      <div class="summary-card">
+        <div class="summary-icon">📊</div>
+        <div class="summary-value" id="summaryClassAverage">-</div>
+        <div class="summary-label">Class Average</div>
+        <div class="summary-subtext" id="summaryLearnerCount">0 learners</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon">📈</div>
+        <div class="summary-value" id="summaryImprovement">-</div>
+        <div class="summary-label">Avg Improvement</div>
+        <div class="summary-subtext">Term 1 to 3</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon">✅</div>
+        <div class="summary-value" id="summaryPassRate">-</div>
+        <div class="summary-label">Pass Rate</div>
+        <div class="summary-subtext">≥50%</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon">🎯</div>
+        <div class="summary-value" id="summaryConsistency">-</div>
+        <div class="summary-label">Consistency</div>
+        <div class="summary-subtext">/10</div>
+      </div>
+    </div>
+
+    <!-- Learner Scores Table with Deviation Columns -->
+    <div class="table-container">
+      <div class="section-header">
+        <h2>Learner Performance Report with Progress Tracking</h2>
+        <div class="table-actions">
+          <span id="learnerRecordsShown">0</span> learners shown
+          <button onclick="toggleScoreVisibility()" class="btn btn-small btn-secondary">👁️ Toggle Scores</button>
+        </div>
+      </div>
+      
+      <table id="learnerScoresTable">
+        <thead>
+          <tr>
+            <th rowspan="2">Adm No</th>
+            <th rowspan="2">Learner Name</th>
+            <th rowspan="2">Grade</th>
+            <th rowspan="2">Stream</th>
+            
+            <!-- Term 1 -->
+            <th colspan="5" class="text-center term-header">Term 1</th>
+            
+            <!-- Term 2 -->
+            <th colspan="5" class="text-center term-header">Term 2</th>
+            
+            <!-- Term 3 -->
+            <th colspan="5" class="text-center term-header">Term 3</th>
+            
+            <th rowspan="2">Annual Avg</th>
+            <th rowspan="2">Progress</th>
+            <th rowspan="2">Rubric</th>
+          </tr>
+          <tr>
+            <!-- Term 1 Columns -->
+            <th>Opener</th>
+            <th>Mid Term</th>
+            <th>End Term</th>
+            <th>Term Avg</th>
+            <th>Deviation</th>
+            
+            <!-- Term 2 Columns -->
+            <th>Opener</th>
+            <th>Mid Term</th>
+            <th>End Term</th>
+            <th>Term Avg</th>
+            <th>Deviation</th>
+            
+            <!-- Term 3 Columns -->
+            <th>Opener</th>
+            <th>Mid Term</th>
+            <th>End Term</th>
+            <th>Term Avg</th>
+            <th>Deviation</th>
+          </tr>
+        </thead>
+        <tbody id="learnerScoresBody">
+          <!-- Data will be populated by JavaScript -->
+        </tbody>
+      </table>
+      
+      <div id="emptyLearnerState" class="empty-state" style="display: none;">
+        <div class="empty-icon">📊</div>
+        <h3>No Learner Scores Found</h3>
+        <p>Add your first learner score or upload Excel data to get started.</p>
+        <button onclick="showAddLearnerForm()" class="btn btn-primary">Add First Score</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div id="uploadModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Upload Excel Data</h3>
+        <button onclick="hideUploadModal()" class="btn btn-small btn-danger">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="file" id="excelFile" accept=".xlsx, .xls">
+        <div class="form-info">
+          <p><strong>Template Format:</strong></p>
+          <p>Admission No, Learner Name, Grade, Stream, Term, Year, Exam Type, Subject, Score</p>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button onclick="processExcelFile()" class="btn btn-primary">Process File</button>
+        <button onclick="hideUploadModal()" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Export Modal -->
+  <div id="customExportModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Custom Report Export</h3>
+        <button onclick="hideCustomExportModal()" class="btn btn-small btn-danger">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Subject *</label>
+            <select id="exportSubject" required>
+              <option value="">Select Subject</option>
+              <option>Mathematics</option>
+              <option>English</option>
+              <option>Kiswahili</option>
+              <option>Science</option>
+              <option>Social Studies</option>
+              <option>CRE</option>
+              <option>Pre-Technical Studies</option>
+              <option>Creative Arts</option>
+              <option>Agriculture</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Grade *</label>
+            <select id="exportGrade" required>
+              <option value="">Select Grade</option>
+              <option>4</option>
+              <option>5</option>
+              <option>6</option>
+              <option>7</option>
+              <option>8</option>
+              <option>9</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Stream *</label>
+            <select id="exportStream" required>
+              <option value="">Select Stream</option>
+              <option>Faith</option>
+              <option>Glory</option>
+              <option>Joy</option>
+              <option>Love</option>
+              <option>Peace</option>
+              <option>Unity</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Year</label>
+            <select id="exportYear">
+              <option value="">Current Year</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Export Format</label>
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <label style="display: flex; align-items: center; gap: 5px;">
+              <input type="radio" name="exportFormat" value="excel" checked> Excel
+            </label>
+            <label style="display: flex; align-items: center; gap: 5px;">
+              <input type="radio" name="exportFormat" value="pdf"> PDF
+            </label>
+          </div>
+        </div>
+        
+        <div class="form-info">
+          <p><strong>Report Includes:</strong></p>
+          <p>• All learners in selected class/stream</p>
+          <p>• All three terms with individual exam scores</p>
+          <p>• Term averages and deviation analysis</p>
+          <p>• Progress tracking and performance rubrics</p>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button onclick="generateCustomReport()" class="btn btn-primary full">Generate Report</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>SmartScores v3.0 © Kariuki 2025</footer>
+
+  <style>
+    .term-header {
+      background: var(--primary) !important;
+      color: white !important;
+      font-weight: bold !important;
+    }
+    
+    .deviation-positive {
+      color: #10b981;
+      font-weight: bold;
+    }
+    
+    .deviation-negative {
+      color: #ef4444;
+      font-weight: bold;
+    }
+    
+    .deviation-neutral {
+      color: #6b7280;
+      font-weight: bold;
+    }
+    
+    .progress-improving {
+      color: #10b981;
+      font-weight: bold;
+    }
+    
+    .progress-declining {
+      color: #ef4444;
+      font-weight: bold;
+    }
+    
+    .progress-stable {
+      color: #f59e0b;
+      font-weight: bold;
+    }
+    
+    .analytics-section {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      margin: 25px 0;
+      box-shadow: var(--shadow);
+    }
+    
+    @media (max-width: 768px) {
+      .table-container {
+        overflow-x: auto;
+      }
+      
+      #learnerScoresTable {
+        min-width: 1200px;
+      }
+    }
+  </style>
+
+  <script>
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeLearnerPage();
+    });
+
+    function initializeLearnerPage() {
+      // Set teacher name
+      const teacherName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
+      document.getElementById('teacherName').textContent = teacherName;
+      
+      // Load and render learner data
+      renderLearnerScores();
+      
+      // Populate year filter
+      populateYearFilter();
+      
+      // Setup form submission
+      const form = document.getElementById('learnerScoreForm');
+      if (form) {
+        form.addEventListener('submit', handleSaveLearnerScore);
+      }
+    }
+
+    // Toggle analytics dashboard
+    function showAnalytics() {
+      const analytics = document.getElementById('analyticsDashboard');
+      analytics.style.display = 'block';
+      updateAnalyticsDashboard();
+    }
+
+    function hideAnalytics() {
+      document.getElementById('analyticsDashboard').style.display = 'none';
+    }
+
+    // Toggle score visibility
+    function toggleScoreVisibility() {
+      const table = document.getElementById('learnerScoresTable');
+      table.classList.toggle('scores-hidden');
+    }
+  </script>
+</body>
+</html>
