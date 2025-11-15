@@ -288,7 +288,7 @@
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
- <script>
+  <script>
     // ==================== GRADE DISTRIBUTION MANAGEMENT ====================
     console.log('📊 Grade Distribution page loaded!');
 
@@ -298,51 +298,64 @@
     // Storage key for distributions
     const DISTRIBUTION_KEY = 'smartScoresDistributions';
 
-    // ===== MOBILE NAVIGATION SETUP =====
-    function initializeMobileNavigation() {
-      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-      const mobileSidebar = document.getElementById('mobileSidebar');
-      
-      if (mobileMenuToggle && mobileSidebar) {
-        mobileMenuToggle.addEventListener('click', function(e) {
-          e.stopPropagation();
-          mobileSidebar.classList.toggle('closed');
-          mobileMenuToggle.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
-          
-          if (!mobileSidebar.classList.contains('closed')) {
-            setTimeout(() => {
-              document.addEventListener('click', closeMobileSidebarOnClickOutside);
-            }, 100);
-          }
-        });
+    // ===== NAVIGATION & THEME FUNCTIONS =====
+    function toggleMobileMenu() {
+      if (window.toggleMobileMenu) {
+        window.toggleMobileMenu();
+      } else {
+        // Fallback implementation
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const toggleBtn = document.getElementById('mobileMenuToggle');
         
-        // Close sidebar when clicking on links
-        const mobileLinks = mobileSidebar.querySelectorAll('a, button');
-        mobileLinks.forEach(link => {
-          link.addEventListener('click', function() {
-            if (!mobileSidebar.classList.contains('closed')) {
-              mobileSidebar.classList.add('closed');
-              mobileMenuToggle.textContent = '☰';
-            }
-          });
-        });
+        if (mobileSidebar) {
+          mobileSidebar.classList.toggle('closed');
+          if (toggleBtn) {
+            toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
+          }
+        }
       }
     }
-    
-    // Close mobile sidebar when clicking outside
-    function closeMobileSidebarOnClickOutside(event) {
-      const mobileSidebar = document.getElementById('mobileSidebar');
-      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-      
-      if (!mobileSidebar || !mobileMenuToggle) return;
-      
-      const isClickInsideSidebar = mobileSidebar.contains(event.target);
-      const isClickOnToggle = mobileMenuToggle.contains(event.target);
-      
-      if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
-        mobileSidebar.classList.add('closed');
-        mobileMenuToggle.textContent = '☰';
-        document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+
+    function toggleDarkMode() {
+      if (window.toggleDarkMode) {
+        window.toggleDarkMode();
+      } else {
+        // Fallback implementation
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('themeMode', newTheme);
+      }
+    }
+
+    function logout() {
+      if (window.logout) {
+        window.logout();
+      } else {
+        console.log('Logout function not available');
+        // Fallback redirect
+        window.location.href = './login.html';
+      }
+    }
+
+    // ===== UTILITY FUNCTIONS =====
+    function getTeacherName() {
+      // Use app.js function if available, otherwise fallback
+      if (window.getTeacherName) {
+        return window.getTeacherName();
+      } else {
+        return localStorage.getItem('teacherFullName') || 
+               localStorage.getItem('teacherFirstName') + ' ' + localStorage.getItem('teacherLastName') || 
+               'Guest Teacher';
+      }
+    }
+
+    function showAlert(message, type = 'info') {
+      // Use app.js function if available, otherwise fallback
+      if (window.showAlert) {
+        window.showAlert(message, type);
+      } else {
+        alert(message);
       }
     }
 
@@ -651,12 +664,27 @@
       showAlert('Data refreshed!');
     }
 
+    // ===== MOBILE NAVIGATION SETUP =====
+    function setupMobileNavigation() {
+      // Close mobile sidebar when clicking on links
+      const mobileLinks = document.querySelectorAll('.mobile-sidebar a');
+      mobileLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          const mobileSidebar = document.getElementById('mobileSidebar');
+          if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
+            mobileSidebar.classList.add('closed');
+            const toggleBtn = document.getElementById('mobileMenuToggle');
+            if (toggleBtn) {
+              toggleBtn.textContent = '☰';
+            }
+          }
+        });
+      });
+    }
+
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
       console.log('📊 Grade Distribution initialized!');
-      
-      // Initialize mobile navigation
-      initializeMobileNavigation();
       
       // Update teacher name using the function from app.js
       const teacherName = getTeacherName();
@@ -674,6 +702,9 @@
       // Setup input listeners for real-time calculations
       setupInputListeners();
       
+      // Setup mobile navigation
+      setupMobileNavigation();
+      
       // Auto-fill current year
       const yearInput = el('distYear');
       if (yearInput && !yearInput.value) {
@@ -690,43 +721,15 @@
     });
 
     // Make functions available globally
-    window.toggleMobileMenu = function() {
-      const mobileSidebar = document.getElementById('mobileSidebar');
-      const toggleBtn = document.getElementById('mobileMenuToggle');
-      
-      if (mobileSidebar) {
-        mobileSidebar.classList.toggle('closed');
-        if (toggleBtn) {
-          toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
-        }
-      }
-    };
-
-    window.toggleDarkMode = function() {
-      if (window.toggleDarkMode) {
-        window.toggleDarkMode();
-      } else {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('themeMode', newTheme);
-      }
-    };
-
-    window.logout = function() {
-      if (window.logout) {
-        window.logout();
-      } else {
-        window.location.href = './login.html';
-      }
-    };
-
+    window.toggleMobileMenu = toggleMobileMenu;
+    window.toggleDarkMode = toggleDarkMode;
+    window.logout = logout;
     window.deleteDistribution = deleteDistribution;
     window.filterDistributions = filterDistributions;
     window.exportDistributionReport = exportDistributionReport;
     window.clearAllDistributions = clearAllDistributions;
     window.refreshData = refreshData;
-</script>
+  </script>
 
   <style>
     /* Additional styles specific to grade distribution */
