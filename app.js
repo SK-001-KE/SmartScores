@@ -1458,7 +1458,7 @@ window.downloadPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const teacherName = localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Teacher';
+    const teacherName = getTeacherName();  || 'Teacher';
     const records = loadRecords();
     
     let y = 20;
@@ -1639,25 +1639,25 @@ window.exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Scores');
-    
-    const summaryData = [
-        ['SmartScores Export Summary'],
-        ['Generated', new Date().toLocaleString()],
-        ['Teacher', localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Unknown'],
-        ['Total Records', records.length],
-        [''],
-        ['Rubric Key'],
-        ...RUBRIC_MAP.map(r => [r.code, `${r.min}-${r.max}`])
-    ];
+   
+const summaryData = [
+    ['SmartScores Export Summary'],
+    ['Generated', new Date().toLocaleString()],
+    ['Teacher', getTeacherName() || 'Unknown'],
+    ['Total Records', records.length],
+    [''],
+    ['Rubric Key'],
+    ...RUBRIC_MAP.map(r => [r.code, `${r.min}-${r.max}`])
+];
     
     const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-    XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
-    
-    const teacherName = localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Teacher';
-    const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
-    XLSX.writeFile(workbook, `SmartScores_Export_${safeName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
-    
-    showAlert('Excel file exported successfully!', 'success');
+XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+
+const teacherName = getTeacherName() || 'Teacher';
+const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
+XLSX.writeFile(workbook, `SmartScores_Export_${safeName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+
+showAlert('Excel file exported successfully!', 'success');
 };
 
 window.exportBackup = () => {
