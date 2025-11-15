@@ -32,7 +32,7 @@ class FirebaseAuthService {
         
         // Update local storage on sign-in event (e.g., after verification link click)
         if (user.displayName) {
-          localStorage.setItem('teacherFullName', user.displayName);
+          this.storeTeacherName(user.displayName);
         }
       } else {
         console.log('Cloud user signed out');
@@ -42,10 +42,20 @@ class FirebaseAuthService {
     });
   }
 
-// Helper to update local storage and UI after a successful login (or registration)
-async handleSignInSuccess(user, fullName) {
-    // Store user data locally
+  // NEW: Helper to store teacher name consistently
+  storeTeacherName(fullName) {
+    const firstName = fullName.split(' ')[0] || '';
+    const lastName = fullName.split(' ').slice(1).join(' ') || '';
+    
     localStorage.setItem('teacherFullName', fullName);
+    localStorage.setItem('teacherFirstName', firstName);
+    localStorage.setItem('teacherLastName', lastName);
+  }
+
+  // Helper to update local storage and UI after a successful login (or registration)
+  async handleSignInSuccess(user, fullName) {
+    // Store user data locally using consistent keys
+    this.storeTeacherName(fullName);
     localStorage.setItem('teacherEmail', user.email);
     localStorage.setItem('authMethod', 'email');
     localStorage.setItem('lastActivityTime', new Date().toISOString());
@@ -55,6 +65,8 @@ async handleSignInSuccess(user, fullName) {
     try {
         await setDoc(doc(db, 'teachers', user.uid), {
           name: fullName,
+          firstName: fullName.split(' ')[0],
+          lastName: fullName.split(' ').slice(1).join(' '),
           email: user.email,
           emailVerified: user.emailVerified,
           lastLogin: new Date().toISOString()
@@ -64,7 +76,7 @@ async handleSignInSuccess(user, fullName) {
         // by Firebase Auth and should be allowed to proceed.
         console.error("Warning: Firestore profile update failed, but user is authenticated:", firestoreError);
     }
-}
+  }
 
   // REMOVED: METHOD 1: loginWithGoogle
 
@@ -84,7 +96,9 @@ async handleSignInSuccess(user, fullName) {
 
       // 3. Create/update teacher profile in Firestore
       await setDoc(doc(db, 'teachers', user.uid), {
-        name: fullName, 
+        name: fullName,
+        firstName: fullName.split(' ')[0],
+        lastName: fullName.split(' ').slice(1).join(' '),
         email: user.email,
         emailVerified: user.emailVerified, // Will be false initially
         createdAt: new Date().toISOString()
@@ -151,6 +165,8 @@ async handleSignInSuccess(user, fullName) {
     
     // Clear all local data regardless of Firebase status
     localStorage.removeItem('teacherFullName');
+    localStorage.removeItem('teacherFirstName');
+    localStorage.removeItem('teacherLastName');
     localStorage.removeItem('teacherEmail');
     localStorage.removeItem('authMethod');
     localStorage.removeItem('lastActivityTime');
@@ -182,13 +198,15 @@ async handleSignInSuccess(user, fullName) {
     return !!localStorage.getItem('teacherFullName'); 
   }
 
-  // Get current user data (Retained)
+  // Get current user data (UPDATED for consistent name storage)
   getCurrentUser() {
     if (auth.currentUser) {
       return {
         uid: auth.currentUser.uid,
         email: auth.currentUser.email,
         name: localStorage.getItem('teacherFullName') || auth.currentUser.displayName || 'Teacher',
+        firstName: localStorage.getItem('teacherFirstName') || auth.currentUser.displayName?.split(' ')[0] || 'Teacher',
+        lastName: localStorage.getItem('teacherLastName') || auth.currentUser.displayName?.split(' ').slice(1).join(' ') || '',
         photoURL: auth.currentUser.photoURL,
         authMethod: localStorage.getItem('authMethod') || 'email'
       };
@@ -197,6 +215,8 @@ async handleSignInSuccess(user, fullName) {
         uid: 'local-user',
         email: localStorage.getItem('teacherEmail') || 'local@user.com',
         name: localStorage.getItem('teacherFullName'),
+        firstName: localStorage.getItem('teacherFirstName') || localStorage.getItem('teacherFullName').split(' ')[0],
+        lastName: localStorage.getItem('teacherLastName') || localStorage.getItem('teacherFullName').split(' ').slice(1).join(' '),
         authMethod: 'local'
       };
     }
