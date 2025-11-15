@@ -10,12 +10,157 @@
   <script src="./auth.js" defer></script>
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./firebase-sync.js"></script>
+  <style>
+    /* ===== TARGETS SPECIFIC STYLES ===== */
+    .form-section {
+      margin: 25px 0;
+    }
+
+    .targets-section {
+      margin: 30px 0;
+    }
+
+    .quick-stats {
+      margin: 25px 0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .stat-item {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      text-align: center;
+      border-top: 4px solid var(--primary);
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-item:hover {
+      transform: translateY(-3px);
+    }
+
+    .stat-value {
+      font-size: 2.5em;
+      font-weight: bold;
+      margin: 10px 0;
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .stat-subtext {
+      font-size: 0.85em;
+      color: var(--secondary);
+    }
+
+    /* Filter Section */
+    .filter-section {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      margin: 25px 0;
+      box-shadow: var(--shadow);
+    }
+
+    .filter-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      align-items: end;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .filter-group label {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+
+    .filter-group select {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      align-items: end;
+    }
+
+    /* Table Section */
+    .table-section {
+      margin: 30px 0;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Loading and Empty States */
+    .loading-cell {
+      padding: 40px 20px;
+      color: var(--secondary);
+      font-style: italic;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .section-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+      }
+
+      .table-actions {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .btn-small {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+      }
+    }
+  </style>
 </head>
 <body>
   <!-- TOP NAVIGATION BAR -->
   <nav class="top-nav">
     <div class="nav-brand">
-      <img src="./icon-192x192.png" class="logo-small">
+      <img src="./icon-192x192.png" class="logo-small" style="height:32px;margin-right:10px;border-radius:6px;">
       <span>SmartScores</span>
     </div>
     
@@ -32,15 +177,15 @@
     </div>
     
     <div class="nav-user">
-      <span id="teacherName" class="teacher-name">Teacher</span>
+      <span id="teacherName" class="teacher-name">Loading...</span>
       <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
     </div>
   </nav>
 
-  <!-- MOBILE MENU TOGGLE (only show on mobile) -->
+  <!-- MOBILE MENU TOGGLE -->
   <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
 
-  <!-- MOBILE SIDEBAR (only for mobile) -->
+  <!-- MOBILE SIDEBAR -->
   <aside id="mobileSidebar" class="mobile-sidebar closed">
     <a href="./index.html">📊 Dashboard</a>
     <a href="./data-entry.html">📝 Data Entry</a>
@@ -54,7 +199,6 @@
     <button class="logout-btn" onclick="logout()">🚪 Logout</button>
   </aside>
 
-  <!-- DARK MODE TOGGLE -->
   <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
   <header>
@@ -62,7 +206,40 @@
     <p>Set Performance Targets</p>
   </header>
 
-  <main class="content">
+  <div class="content content-with-sidebar">
+    <div class="form-header">
+      <h2>Targets Management</h2>
+      <p class="teacher-info">Teacher: <span id="currentTeacher">Loading...</span></p>
+    </div>
+
+    <!-- QUICK STATS -->
+    <section class="quick-stats">
+      <h2>Targets Summary</h2>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value" id="totalTargets">--</div>
+          <div class="stat-label">Total Targets</div>
+          <div class="stat-subtext">Across all subjects</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="averageTarget">--</div>
+          <div class="stat-label">Average Target</div>
+          <div class="stat-subtext">All targets</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="activeTargets">--</div>
+          <div class="stat-label">Active Targets</div>
+          <div class="stat-subtext">Currently set</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="targetsShown">--</div>
+          <div class="stat-label">Targets Shown</div>
+          <div class="stat-subtext">After filtering</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SET TARGET FORM -->
     <section class="form-section">
       <h2>🎯 Set New Target</h2>
       <form id="targetsForm" class="form-box">
@@ -152,16 +329,20 @@
       </form>
     </section>
 
+    <!-- TARGETS TABLE -->
     <section class="targets-section">
+      <div class="section-header">
+        <h2>Current Targets</h2>
+        <div class="table-actions">
+          <button onclick="exportTargets()" class="btn btn-secondary">📄 Export Targets</button>
+          <button onclick="clearAllTargets()" class="btn btn-danger">🗑️ Clear All Targets</button>
+        </div>
+      </div>
+
       <div class="table-controls">
         <div class="search-box">
           <input type="text" id="targetSearch" placeholder="🔍 Search targets..." oninput="filterTargets()">
           <span class="search-hint">Search by subject, grade, stream, term</span>
-        </div>
-        
-        <div class="table-actions">
-          <button onclick="exportTargets()" class="btn btn-secondary">📄 Export Targets</button>
-          <button onclick="clearAllTargets()" class="btn btn-danger">🗑️ Clear All Targets</button>
         </div>
       </div>
 
@@ -178,8 +359,10 @@
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="targetsBody">
-            <!-- Targets will be loaded here by JavaScript -->
+          <tbody>
+            <tr>
+              <td colspan="7" class="text-center loading-cell">Loading targets data...</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -190,116 +373,133 @@
         <p>Set your first target using the form above to start tracking performance against goals.</p>
         <button onclick="document.getElementById('targetsForm').scrollIntoView()" class="btn btn-primary">➕ Set First Target</button>
       </div>
-
-      <div class="summary-stats">
-        <div class="stat-item">
-          <span class="stat-label">Total Targets:</span>
-          <span class="stat-value" id="totalTargets">0</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">Average Target:</span>
-          <span class="stat-value" id="averageTarget">0%</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">Targets Shown:</span>
-          <span class="stat-value" id="targetsShown">0</span>
-        </div>
-      </div>
     </section>
 
     <!-- DEBUG INFO -->
-    <section style="background: var(--card); padding: 15px; border-radius: 8px; margin-top: 30px;">
+    <section class="debug-section">
       <h3>🔧 Debug Information</h3>
       <p><strong>Targets Found:</strong> <span id="debugTargets">0</span></p>
       <p><strong>Last Updated:</strong> <span id="debugTime">--</span></p>
       <p><strong>Screen Width:</strong> <span id="screenWidth">--</span></p>
-      <button onclick="refreshTargets()" class="btn" style="margin-top: 10px;">🔄 Refresh Targets</button>
+      <p><strong>Navigation State:</strong> <span id="navState">--</span></p>
+      <button onclick="refreshTargets()" class="btn btn-primary" style="margin-top: 10px; margin-right: 10px;">🔄 Refresh Targets</button>
+      <button onclick="testNavigation()" class="btn btn-secondary" style="margin-top: 10px;">🧪 Test Navigation</button>
     </section>
-  </main>
+  </div>
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
- <script>
-    // ==================== TARGETS MANAGEMENT ====================
-    console.log('🎯 Set Targets page loaded!');
+  <script>
+    // ==================== TARGETS WITH UPDATED NAVIGATION ====================
+    console.log('🎯 Targets with Updated Navigation loaded!');
 
-    // ===== MOBILE NAVIGATION SETUP =====
-    function initializeMobileNavigation() {
-      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    // Simple DOM helper
+    const el = id => document.getElementById(id);
+
+    // ===== NAVIGATION MANAGEMENT =====
+    function toggleMobileMenu() {
       const mobileSidebar = document.getElementById('mobileSidebar');
+      const toggleBtn = document.getElementById('mobileMenuToggle');
       
-      if (mobileMenuToggle && mobileSidebar) {
-        mobileMenuToggle.addEventListener('click', function(e) {
-          e.stopPropagation();
-          mobileSidebar.classList.toggle('closed');
-          mobileMenuToggle.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
-          
-          if (!mobileSidebar.classList.contains('closed')) {
-            setTimeout(() => {
-              document.addEventListener('click', closeMobileSidebarOnClickOutside);
-            }, 100);
-          }
-        });
+      if (mobileSidebar) {
+        mobileSidebar.classList.toggle('closed');
+        if (toggleBtn) {
+          toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
+        }
         
-        // Close sidebar when clicking on links
-        const mobileLinks = mobileSidebar.querySelectorAll('a, button');
-        mobileLinks.forEach(link => {
-          link.addEventListener('click', function() {
-            if (!mobileSidebar.classList.contains('closed')) {
-              mobileSidebar.classList.add('closed');
-              mobileMenuToggle.textContent = '☰';
-            }
-          });
-        });
+        // Add/remove click outside listener
+        if (!mobileSidebar.classList.contains('closed')) {
+          setTimeout(() => {
+            document.addEventListener('click', closeMobileSidebarOnClickOutside);
+          }, 100);
+        } else {
+          document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+        }
+        
+        updateNavDebugInfo();
       }
     }
-    
-    // Close mobile sidebar when clicking outside
+
     function closeMobileSidebarOnClickOutside(event) {
       const mobileSidebar = document.getElementById('mobileSidebar');
-      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+      const toggleBtn = document.getElementById('mobileMenuToggle');
       
-      if (!mobileSidebar || !mobileMenuToggle) return;
+      if (!mobileSidebar || !toggleBtn) return;
       
       const isClickInsideSidebar = mobileSidebar.contains(event.target);
-      const isClickOnToggle = mobileMenuToggle.contains(event.target);
+      const isClickOnToggle = toggleBtn.contains(event.target);
       
       if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
         mobileSidebar.classList.add('closed');
-        mobileMenuToggle.textContent = '☰';
+        toggleBtn.textContent = '☰';
         document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+        updateNavDebugInfo();
       }
     }
 
-    // Initialize when DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('🎯 Targets page initialized');
-      
-      // Initialize mobile navigation
-      initializeMobileNavigation();
-      
-      // Update teacher name using the function from app.js
-      const teacherName = getTeacherName();
-      const teacherNameElements = document.querySelectorAll('.teacher-name');
-      teacherNameElements.forEach(element => {
-        element.textContent = teacherName;
+    // Auto-close mobile sidebar when navigating
+    function setupMobileSidebarAutoClose() {
+      const mobileSidebarLinks = document.querySelectorAll('.mobile-sidebar a, .mobile-sidebar button');
+      mobileSidebarLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          const mobileSidebar = document.getElementById('mobileSidebar');
+          const toggleBtn = document.getElementById('mobileMenuToggle');
+          
+          if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
+            mobileSidebar.classList.add('closed');
+            if (toggleBtn) {
+              toggleBtn.textContent = '☰';
+            }
+            document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+            updateNavDebugInfo();
+          }
+        });
       });
+    }
 
-      // Setup form submission
-      const targetsForm = document.getElementById('targetsForm');
-      if (targetsForm) {
-        targetsForm.addEventListener('submit', handleSaveTarget);
+    // ===== THEME MANAGEMENT =====
+    function toggleDarkMode() {
+      if (window.toggleDarkMode) {
+        window.toggleDarkMode();
+      } else {
+        // Fallback implementation
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('themeMode', newTheme);
       }
+    }
 
-      // Initial render
-      renderTargets();
-      updateDebugInfo();
-    });
+    function loadTheme() {
+      const theme = localStorage.getItem('themeMode') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
 
+    // ===== AUTH MANAGEMENT =====
+    function logout() {
+      if (window.logout) {
+        window.logout();
+      } else {
+        console.log('Logout function not available');
+        // Fallback redirect
+        window.location.href = './login.html';
+      }
+    }
+
+    function checkAuth() {
+      const teacher = localStorage.getItem('teacherFullName');
+      if (!teacher) {
+        window.location.href = './login.html';
+        return false;
+      }
+      return true;
+    }
+
+    // ===== TARGETS MANAGEMENT =====
     function handleSaveTarget(event) {
       if (event) event.preventDefault();
       
-      // Check auth using app.js function
+      // Use app.js function to check auth and get teacher name
       const teacherName = getTeacherName();
       if (!teacherName || teacherName === 'Guest Teacher') {
         showAlert('Please login first', 'error');
@@ -309,12 +509,12 @@
       
       const target = {
         teacher: teacherName,
-        subject: document.getElementById('targetSubject').value,
-        grade: document.getElementById('targetGrade').value,
-        stream: document.getElementById('targetStream').value,
-        term: document.getElementById('targetTerm').value,
-        examType: document.getElementById('targetExamType').value,
-        score: parseFloat(document.getElementById('targetScore').value)
+        subject: el('targetSubject').value,
+        grade: el('targetGrade').value,
+        stream: el('targetStream').value,
+        term: el('targetTerm').value,
+        examType: el('targetExamType').value,
+        score: parseFloat(el('targetScore').value)
       };
       
       // Validate required fields
@@ -331,6 +531,7 @@
         return;
       }
       
+      // Use app.js functions for data management
       const existingTargets = loadTargets();
       
       // Check for duplicate
@@ -356,18 +557,27 @@
       
       if (saveTargets(existingTargets)) {
         showAlert('Target saved successfully!', 'success');
-        document.getElementById('targetsForm').reset();
+        el('targetsForm').reset();
         renderTargets();
       }
     }
 
     function renderTargets() {
-      const tbody = document.getElementById('targetsBody');
-      const emptyTargets = document.getElementById('emptyTargets');
-      const targets = loadTargets();
+      console.log('🎯 Rendering targets...');
       
+      if (!checkAuth()) return;
+      
+      // Use app.js function to load targets
+      const targets = loadTargets();
+      const tbody = document.querySelector('#targetsTable tbody');
+      const emptyTargets = el('emptyTargets');
+      
+      // Update debug info
+      el('debugTargets').textContent = targets.length;
+      el('debugTime').textContent = new Date().toLocaleTimeString();
+
       if (targets.length === 0) {
-        tbody.innerHTML = '';
+        if (tbody) tbody.innerHTML = '';
         if (emptyTargets) emptyTargets.style.display = 'block';
         updateTargetsSummary(targets);
         return;
@@ -375,43 +585,41 @@
       
       if (emptyTargets) emptyTargets.style.display = 'none';
       
-      tbody.innerHTML = targets.map((target, index) => `
-        <tr>
-          <td>${target.subject}</td>
-          <td>${target.grade}</td>
-          <td>${target.stream}</td>
-          <td>${target.term}</td>
-          <td>${target.examType}</td>
-          <td style="font-weight: bold; color: var(--primary);">${target.score}%</td>
-          <td>
-            <button onclick="deleteTarget(${index})" class="btn btn-danger btn-small">Delete</button>
-          </td>
-        </tr>
-      `).join('');
+      if (tbody) {
+        tbody.innerHTML = targets.map((target, index) => `
+          <tr>
+            <td>${target.subject}</td>
+            <td>${target.grade}</td>
+            <td>${target.stream}</td>
+            <td>${target.term}</td>
+            <td>${target.examType}</td>
+            <td style="font-weight: bold; color: var(--primary);">${target.score}%</td>
+            <td>
+              <button onclick="deleteTarget(${index})" class="btn btn-danger btn-small">Delete</button>
+            </td>
+          </tr>
+        `).join('');
+      }
       
       updateTargetsSummary(targets);
-      updateDebugInfo();
     }
 
     function updateTargetsSummary(targets) {
-      const totalTargets = document.getElementById('totalTargets');
-      const averageTarget = document.getElementById('averageTarget');
-      const targetsShown = document.getElementById('targetsShown');
+      el('totalTargets').textContent = targets.length;
+      el('activeTargets').textContent = targets.length;
+      el('targetsShown').textContent = targets.length;
       
-      if (totalTargets) totalTargets.textContent = targets.length;
-      if (targetsShown) targetsShown.textContent = targets.length;
-      
-      if (averageTarget && targets.length > 0) {
+      if (targets.length > 0) {
         const avg = targets.reduce((sum, t) => sum + t.score, 0) / targets.length;
-        averageTarget.textContent = avg.toFixed(1) + '%';
-      } else if (averageTarget) {
-        averageTarget.textContent = '0%';
+        el('averageTarget').textContent = avg.toFixed(1) + '%';
+      } else {
+        el('averageTarget').textContent = '0%';
       }
     }
 
     function filterTargets() {
-      const searchTerm = (document.getElementById('targetSearch')?.value || '').toLowerCase();
-      const tbody = document.getElementById('targetsBody');
+      const searchTerm = (el('targetSearch')?.value || '').toLowerCase();
+      const tbody = document.querySelector('#targetsTable tbody');
       
       if (!tbody) return;
       
@@ -425,41 +633,45 @@
         if (isVisible) visibleCount++;
       });
       
-      const targetsShown = document.getElementById('targetsShown');
-      if (targetsShown) {
-        targetsShown.textContent = visibleCount;
-      }
+      el('targetsShown').textContent = visibleCount;
     }
 
     function exportTargets() {
-      const targets = loadTargets();
-      if (targets.length === 0) {
-        showAlert('No targets to export', 'error');
-        return;
+      // Use app.js function if available
+      if (window.exportToExcel) {
+        // Export targets specifically
+        const targets = loadTargets();
+        if (targets.length === 0) {
+          showAlert('No targets to export', 'error');
+          return;
+        }
+        
+        // Simple CSV export as fallback
+        let csv = 'Subject,Grade,Stream,Term,Exam Type,Target Score\n';
+        
+        targets.forEach(target => {
+          csv += `"${target.subject}",${target.grade},"${target.stream}","${target.term}","${target.examType}",${target.score}\n`;
+        });
+        
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `targets_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showAlert('Targets exported successfully!', 'success');
+      } else {
+        showAlert('Export function not available', 'error');
       }
-      
-      // Simple CSV export
-      let csv = 'Subject,Grade,Stream,Term,Exam Type,Target Score\n';
-      
-      targets.forEach(target => {
-        csv += `"${target.subject}",${target.grade},"${target.stream}","${target.term}","${target.examType}",${target.score}\n`;
-      });
-      
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `targets_${new Date().toISOString().slice(0, 10)}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      showAlert('Targets exported successfully!', 'success');
     }
 
     function clearAllTargets() {
       if (confirm('⚠️ ARE YOU SURE?\n\nThis will delete ALL your targets permanently. This action cannot be undone.')) {
+        // Use app.js function
         localStorage.removeItem('smartScoresTargets');
         showAlert('All targets have been cleared successfully.', 'success');
         renderTargets();
@@ -469,54 +681,99 @@
     function refreshTargets() {
       console.log('🔄 Refreshing targets...');
       renderTargets();
-      showAlert('Targets refreshed!');
+      showNotification('Targets refreshed!');
     }
 
-    function updateDebugInfo() {
-      const targets = loadTargets();
-      document.getElementById('debugTargets').textContent = targets.length;
-      document.getElementById('debugTime').textContent = new Date().toLocaleTimeString();
-      document.getElementById('screenWidth').textContent = window.innerWidth + 'px';
+    function testNavigation() {
+      showNotification('Navigation test completed!');
+      updateNavDebugInfo();
     }
+
+    // ===== UTILITY FUNCTIONS =====
+    function showNotification(message) {
+      if (window.showAlert) {
+        window.showAlert(message, 'success');
+      } else {
+        // Fallback notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed;
+          top: 100px;
+          right: 20px;
+          background: var(--primary);
+          color: white;
+          padding: 12px 20px;
+          border-radius: 8px;
+          z-index: 1000;
+          font-weight: 600;
+          box-shadow: var(--shadow);
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 3000);
+      }
+    }
+
+    function updateNavDebugInfo() {
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      if (mobileSidebar) {
+        const isClosed = mobileSidebar.classList.contains('closed');
+        el('navState').textContent = isClosed ? 'Mobile Menu Closed' : 'Mobile Menu Open';
+      }
+    }
+
+    // ===== INITIALIZATION =====
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🎯 Targets with Updated Navigation initialized!');
+      
+      // Load theme
+      loadTheme();
+      
+      // Setup mobile navigation
+      setupMobileSidebarAutoClose();
+      
+      // Update teacher name using consistent storage keys
+      const teacherNameElements = document.querySelectorAll('.teacher-name, #currentTeacher');
+      const teacherFullName = getTeacherName();
+      
+      teacherNameElements.forEach(element => {
+        element.textContent = teacherFullName;
+      });
+      
+      // Setup form submission
+      const targetsForm = el('targetsForm');
+      if (targetsForm) {
+        targetsForm.addEventListener('submit', handleSaveTarget);
+      }
+      
+      // Initial render
+      renderTargets();
+      updateNavDebugInfo();
+
+      // Set initial navigation state
+      setTimeout(() => {
+        if (window.innerWidth >= 1024) {
+          el('navState').textContent = 'Desktop Navigation Active';
+        } else {
+          el('navState').textContent = 'Mobile Navigation Ready';
+        }
+      }, 100);
+    });
 
     // Make functions available globally
-    window.toggleMobileMenu = function() {
-      const mobileSidebar = document.getElementById('mobileSidebar');
-      const toggleBtn = document.getElementById('mobileMenuToggle');
-      
-      if (mobileSidebar) {
-        mobileSidebar.classList.toggle('closed');
-        if (toggleBtn) {
-          toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
-        }
-      }
-    };
-
-    window.toggleDarkMode = function() {
-      if (window.toggleDarkMode) {
-        window.toggleDarkMode();
-      } else {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('themeMode', newTheme);
-      }
-    };
-
-    window.logout = function() {
-      if (window.logout) {
-        window.logout();
-      } else {
-        window.location.href = './login.html';
-      }
-    };
-
+    window.toggleMobileMenu = toggleMobileMenu;
+    window.toggleDarkMode = toggleDarkMode;
+    window.logout = logout;
     window.handleSaveTarget = handleSaveTarget;
     window.deleteTarget = deleteTarget;
     window.filterTargets = filterTargets;
     window.exportTargets = exportTargets;
     window.clearAllTargets = clearAllTargets;
     window.refreshTargets = refreshTargets;
-</script>
+    window.testNavigation = testNavigation;
+  </script>
 </body>
 </html>
