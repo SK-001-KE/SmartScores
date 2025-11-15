@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartScores - Sign Up</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./favicon.ico" />
+  <link rel="apple-touch-icon" href="./icon-192x192.png" />
+  <link rel="stylesheet" href="./style.css" />
+  
+  <script src="./auth.js" defer></script> 
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="./firebase-auth.js"></script>
+  <script type="module" src="./firebase-sync.js"></script>
+  
+  <style>
+    .btn-google {
+      background: white;
+      color: #333;
+      border: 2px solid #ddd;
+      font-weight: 600;
+    }
+
+    .btn-google:hover {
+      background: #f8f9fa;
+      border-color: #ccc;
+      transform: translateY(-2px);
+    }
+
+    .divider {
+      text-align: center;
+      margin: 25px 0;
+      position: relative;
+      color: #666;
+    }
+
+    .divider::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .divider span {
+      background: var(--bg);
+      padding: 0 15px;
+      position: relative;
+    }
+
+    .form-options {
+      margin: 20px 0;
+      padding: 15px;
+      background: rgba(139, 0, 0, 0.05);
+      border-radius: 8px;
+      border-left: 4px solid var(--primary);
+    }
+
+    .form-options label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .form-options input[type="checkbox"] {
+      width: auto;
+      transform: scale(1.2);
+    }
+
+    .form-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .form-actions {
+        gap: 10px;
+      }
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .custom-alert {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+      z-index: 10000;
+      max-width: 300px;
+      box-shadow: var(--shadow);
+      animation: slideIn 0.3s ease;
+    }
+
+    .alert-success { background: #10B981; }
+    .alert-error { background: #EF4444; }
+    .alert-warning { background: #F59E0B; }
+    .alert-info { background: #3B82F6; }
+  </style>
+</head>
+<body>
+  <button onclick="toggleDarkMode()" class="floating-top-btn">🌙 Dark Mode</button>
+
+  <header>
+    <h1>
+      <img src="./icon-192x192.png" class="logo-small" style="height:40px;margin-right:10px;border-radius:8px;">
+      SmartScores
+    </h1>
+    <p>Teacher Performance Tracker</p>
+  </header>
+
+  <main class="content centered">
+    <div class="login-container">
+      <h2>✨ New Teacher Sign Up</h2>
+      <p class="login-subtitle">Create your account to enable cloud sync.</p>
+      
+      <button onclick="handleGoogleSignIn()" class="btn btn-google full" style="margin-bottom: 20px;">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+             style="width: 20px; height: 20px; margin-right: 10px;">
+        Sign Up with Google
+      </button>
+      
+      <div class="divider">
+        <span>or register with email</span>
+      </div>
+
+      <form id="signupForm" class="form-box">
+        <div class="form-group">
+            <label>First Name *</label>
+            <input type="text" id="firstName" required placeholder="John">
+        </div>
+
+        <div class="form-group">
+            <label>Last Name *</label>
+            <input type="text" id="lastName" required placeholder="Doe">
+        </div>
+
+        <div class="form-group">
+          <label>Email Address *</label>
+          <input type="email" id="email" required placeholder="your.email@school.com">
+        </div>
+
+        <div class="form-group">
+          <label>Password *</label>
+          <input type="password" id="password" required placeholder="Create a password (min 6 chars)">
+        </div>
+
+        <div class="form-group">
+            <label>School Name (Optional)</label>
+            <input type="text" id="schoolName" placeholder="Your School Name">
+        </div>
+        
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary full">🚀 Create My Account</button>
+        </div>
+      </form>
+      
+      <div class="form-actions" style="margin-top: 15px;">
+        <button type="button" onclick="window.location.href='./login.html'" class="btn btn-secondary full">
+          👉 Already have an account? Sign In
+        </button>
+      </div>
+
+      <div class="login-features">
+        <h3>Why Sign Up?</h3>
+        <ul>
+          <li>☁️ **Cloud Sync:** Back up your data and access it from any device.</li>
+          <li>🎯 Set performance targets</li>
+          <li>📊 Track progress with AI insights</li>
+        </ul>
+      </div>
+
+      <p class="hint">Your password will be securely hashed by Firebase. We do not store your plain-text password.</p>
+    </div>
+  </main>
+
+  <footer>SmartScores v3.0 © Kariuki 2025</footer>
+
+  <script type="module">
+    // Import all modules
+    import firebaseAuth from './firebase-auth.js';
+    import firebaseSync from './firebase-sync.js'; // Needed for data migration
+
+    // --- START OF COMMON FUNCTIONS (MIGRATION, ALERTS) ---
+    async function migrateExistingData(user) {
+      if (typeof firebaseSync === 'undefined') return;
+      
+      // Check if we've already migrated
+      const migrationKey = `data_migrated_${user.uid}`;
+      if (localStorage.getItem(migrationKey)) {
+        console.log('✅ Data already migrated');
+        return;
+      }
+      
+      console.log('🔄 Checking for existing data to migrate...');
+      
+      let migratedCount = 0;
+      
+      // Migrate records
+      const localRecords = localStorage.getItem('smartScoresRecords');
+      if (localRecords) {
+        const records = JSON.parse(localRecords);
+        if (records.length > 0) {
+          console.log(`📦 Migrating ${records.length} records to cloud...`);
+          await firebaseSync.saveRecords(records);
+          migratedCount += records.length;
+        }
+      }
+      
+      // Migrate targets
+      const localTargets = localStorage.getItem('smartScoresTargets');
+      if (localTargets) {
+        const targets = JSON.parse(localTargets);
+        if (targets.length > 0) {
+          console.log(`🎯 Migrating ${targets.length} targets to cloud...`);
+          await firebaseSync.saveTargets(targets);
+          migratedCount += targets.length;
+        }
+      }
+      
+      // Mark as migrated
+      localStorage.setItem(migrationKey, 'true');
+      console.log(`✅ Data migration completed: ${migratedCount} items migrated`);
+      
+      if (migratedCount > 0) {
+        showCustomAlert(`${migratedCount} existing items migrated to cloud!`, 'success');
+      }
+    }
+
+    // Alert functions - must be defined here or globally in auth.js
+    function showCustomAlert(message, type = 'info') {
+      const existingAlerts = document.querySelectorAll('.custom-alert');
+      existingAlerts.forEach(alert => alert.remove());
+      
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `custom-alert alert-${type}`;
+      alertDiv.textContent = message;
+      
+      document.body.appendChild(alertDiv);
+      
+      setTimeout(() => {
+        alertDiv.remove();
+      }, 4000);
+    }
+    
+    function showSignupError(message) {
+      showCustomAlert(message, 'error');
+    }
+
+    function showSignupSuccess(message) {
+      showCustomAlert(message, 'success');
+    }
+    // --- END OF COMMON FUNCTIONS (MIGRATION, ALERTS) ---
+
+    // --- START OF HANDLERS FOR BUTTONS/FORM ---
+
+    // Global function for Google Sign In (retained from login.html)
+    async function handleGoogleSignIn() {
+      try {
+        showCustomAlert('Signing in with Google...', 'info');
+        const result = await firebaseAuth.loginWithGoogle();
+        if (result.success) {
+          showSignupSuccess(`Welcome! Setting up your account...`);
+          
+          setTimeout(async () => {
+            if (result.user && result.user.uid !== 'local-user') {
+              await migrateExistingData(result.user);
+            }
+            window.location.href = './index.html';
+          }, 1500);
+          
+        } else {
+          showSignupError(`Google Sign-In failed: ${result.error}`);
+        }
+      } catch (error) {
+        showSignupError('Google Sign-In error: ' + error.message);
+      }
+    }
+
+
+    // --- CRITICAL IMPLEMENTATION: Form submission for Email Sign Up ---
+    document.getElementById('signupForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const schoolName = document.getElementById('schoolName').value.trim();
+      
+      if (password.length < 6) {
+        showSignupError('Password must be at least 6 characters long.');
+        return;
+      }
+      
+      if (!firstName || !lastName || !email || !password) {
+        showSignupError('Please fill in all required fields.');
+        return;
+      }
+      
+      try {
+        showCustomAlert('Creating your account...', 'info');
+        // --- THIS IS THE CRITICAL CALL TO YOUR FIREBASE FUNCTION ---
+        const result = await firebaseAuth.registerWithEmail(email, password, firstName, lastName, schoolName); 
+        // -----------------------------------------------------------
+
+        if (result.success) {
+          const fullName = `${firstName} ${lastName}`;
+          showSignupSuccess(`Registration successful! Welcome ${fullName}! Setting up your cloud sync...`);
+          
+          // Data migration after successful registration
+          setTimeout(async () => {
+            if (result.user && result.user.uid !== 'local-user') {
+              await migrateExistingData(result.user);
+            }
+            window.location.href = './index.html';
+          }, 1500);
+          
+        } else {
+          // Firebase errors like 'auth/email-already-in-use'
+          showSignupError(`Registration failed: ${result.error}`);
+        }
+      } catch (error) {
+        showSignupError('An unexpected error occurred: ' + error.message);
+      }
+    });
+    // --- END OF HANDLERS FOR BUTTONS/FORM ---
+
+
+    // Auto-focus first name field
+    document.addEventListener('DOMContentLoaded', function() {
+      const firstNameInput = document.getElementById('firstName');
+      if (firstNameInput) {
+        setTimeout(() => firstNameInput.focus(), 100);
+      }
+    });
+
+    // Theme toggle function (retained)
+    function toggleDarkMode() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('themeMode', newTheme);
+    }
+
+    // Load theme on page load (retained)
+    (function() {
+      const theme = localStorage.getItem('themeMode') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+    
+    // Make handlers globally accessible
+    window.handleGoogleSignIn = handleGoogleSignIn;
+    window.toggleDarkMode = toggleDarkMode; // Ensure theme toggle is available
+    
+  </script>
+</body>
+</html>
