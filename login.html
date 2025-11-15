@@ -111,7 +111,16 @@
 
       <div class="form-group">
         <label>Password</label>
-        <input type="password" id="password" required placeholder="Your password">
+       <input 
+  type="text" 
+  id="password" 
+  required 
+  placeholder="Your 6-digit PIN" 
+  minlength="6" 
+  maxlength="6" 
+  pattern="\d{6}"
+  inputmode="numeric"
+>
       </div>
       
       <div class="form-actions">
