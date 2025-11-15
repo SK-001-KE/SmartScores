@@ -1,5 +1,5 @@
 /* =========================================================
-   SMARTSCORES AUTHENTICATION v3.0
+   SMARTSCORES AUTHENTICATION v3.0 - FIXED VERSION
    Handles login, logout, and session management
 ========================================================= */
 
@@ -11,6 +11,42 @@ const AUTH_KEYS = {
 
 // DOM Helper
 const el = id => document.getElementById(id);
+
+// Simple fallback auth system
+const simpleAuth = {
+  login: function(teacherName) {
+    if (!teacherName || teacherName.trim() === '') return false;
+    try {
+      localStorage.setItem('teacherFullName', teacherName.trim());
+      localStorage.setItem('teacherUID', 'local-user');
+      localStorage.setItem('authMethod', 'local');
+      return true;
+    } catch (error) {
+      console.error('Simple auth login failed:', error);
+      return false;
+    }
+  },
+  
+  logout: function() {
+    const keysToKeep = ['smartScoresRecords', 'smartScoresTargets', 'themeMode'];
+    const allKeys = Object.keys(localStorage);
+    
+    allKeys.forEach(key => {
+      if (!keysToKeep.includes(key)) {
+        localStorage.removeItem(key);
+      }
+    });
+    window.location.href = './login.html';
+  },
+  
+  isAuthenticated: function() {
+    return !!localStorage.getItem('teacherFullName');
+  },
+  
+  getCurrentTeacher: function() {
+    return localStorage.getItem('teacherFullName') || 'Guest Teacher';
+  }
+};
 
 // Authentication state management
 const auth = {
@@ -37,9 +73,8 @@ const auth = {
     
     // Logout function
     logout: function() {
-        localStorage.removeItem(AUTH_KEYS.TEACHER);
-        localStorage.removeItem(AUTH_KEYS.LAST_ACTIVITY);
-        window.location.href = './login.html';
+        // Use simple auth logout as it's more reliable
+        simpleAuth.logout();
     },
     
     // Check authentication and redirect if needed
@@ -149,6 +184,11 @@ const auth = {
 
 // ==================== LOGIN PAGE SPECIFIC FUNCTIONS ====================
 
+// Check if Firebase is available
+function isFirebaseAvailable() {
+    return typeof firebaseAuth !== 'undefined' && firebaseAuth !== null;
+}
+
 // Enhanced login form handler
 window.handleLogin = function(event) {
     if (event) event.preventDefault();
@@ -168,7 +208,8 @@ window.handleLogin = function(event) {
     
     const fullName = `${firstName} ${lastName}`;
     
-    if (auth.login(fullName)) {
+    // Use simple auth as primary method
+    if (simpleAuth.login(fullName)) {
         showLoginSuccess(`Welcome ${fullName}! Redirecting to your dashboard...`);
         
         // Add slight delay for better UX
@@ -388,29 +429,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup login form if on login page
     const loginForm = el('loginForm');
     if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
+        // Use the enhanced form handler from login.html instead
+        console.log('Login form found - using enhanced handler from login.html');
         
         // Auto-focus first name field
         const firstNameInput = el('firstName');
         if (firstNameInput) {
             setTimeout(() => firstNameInput.focus(), 100);
         }
-        
-        // Enter key support for login
-        const inputs = loginForm.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (this.id === 'lastName') {
-                        handleLogin(e);
-                    } else {
-                        const nextInput = this.parentElement.nextElementSibling?.querySelector('input');
-                        if (nextInput) nextInput.focus();
-                    }
-                }
-            });
-        });
     }
     
     // Check for session timeout every minute
@@ -423,10 +449,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Make auth functions available globally
 window.auth = auth;
+window.simpleAuth = simpleAuth;
 window.logout = () => auth.logout();
 window.getCurrentTeacher = () => auth.getCurrentTeacher();
+window.isFirebaseAvailable = isFirebaseAvailable;
 
 // Export for module systems (if needed)
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { auth, AUTH_KEYS };
+    module.exports = { auth, AUTH_KEYS, simpleAuth };
 }
