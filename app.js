@@ -157,6 +157,543 @@ setInterval(updateSyncStatus, 5000);
 window.addEventListener('online', updateSyncStatus);
 window.addEventListener('offline', updateSyncStatus);
 
+// ==================== ENHANCED LEARNER SCORES WITH DEVIATION ====================
+
+const calculateDeviation = (term) => {
+    const scores = [term.opener, term.mid, term.end].filter(score => score !== null);
+    
+    if (scores.length < 2) return null;
+    
+    // Calculate deviation between last two available exams
+    const availableScores = [];
+    if (term.end !== null) availableScores.push(term.end);
+    if (term.mid !== null) availableScores.push(term.mid);
+    if (term.opener !== null) availableScores.push(term.opener);
+    
+    // Take the last two scores
+    const recentScores = availableScores.slice(0, 2);
+    if (recentScores.length === 2) {
+        return recentScores[0] - recentScores[1];
+    }
+    
+    return null;
+};
+
+const formatDeviation = (deviation) => {
+    if (deviation === null) return '–';
+    
+    const sign = deviation >= 0 ? '+' : '';
+    const className = deviation > 0 ? 'deviation-positive' : 
+                     deviation < 0 ? 'deviation-negative' : 'deviation-neutral';
+    
+    return `<span class="${className}">${sign}${deviation.toFixed(1)}</span>`;
+};
+
+const calculateProgress = (term1Avg, term3Avg) => {
+    if (term1Avg === null || term3Avg === null) return '–';
+    
+    const progress = term3Avg - term1Avg;
+    const className = progress > 2 ? 'progress-improving' : 
+                     progress < -2 ? 'progress-declining' : 'progress-stable';
+    const sign = progress >= 0 ? '+' : '';
+    const icon = progress > 2 ? '📈' : progress < -2 ? '📉' : '➡️';
+    
+    return `<span class="${className}">${icon} ${sign}${progress.toFixed(1)}</span>`;
+};
+
+// Enhanced grouping function with deviation calculation
+const groupLearnerScores = (scores) => {
+    const learnerMap = {};
+    
+    scores.forEach(score => {
+        const key = `${score.admissionNo}-${score.year}`;
+        if (!learnerMap[key]) {
+            learnerMap[key] = {
+                admissionNo: score.admissionNo,
+                learnerName: score.learnerName,
+                grade: score.grade,
+                stream: score.stream,
+                year: score.year,
+                terms: {
+                    'Term 1': { opener: null, mid: null, end: null },
+                    'Term 2': { opener: null, mid: null, end: null },
+                    'Term 3': { opener: null, mid: null, end: null }
+                }
+            };
+        }
+        
+        // Assign scores to appropriate term and exam type
+        if (score.term in learnerMap[key].terms) {
+            if (score.examType.includes('Opener')) {
+                learnerMap[key].terms[score.term].opener = score.score;
+            } else if (score.examType.includes('Mid')) {
+                learnerMap[key].terms[score.term].mid = score.score;
+            } else if (score.examType.includes('End')) {
+                learnerMap[key].terms[score.term].end = score.score;
+            }
+        }
+    });
+    
+    return learnerMap;
+};
+
+// Enhanced table generation with deviation columns
+const generateLearnerTableHTML = (learnerData) => {
+    return Object.values(learnerData).map(learner => {
+        const term1 = learner.terms['Term 1'];
+        const term2 = learner.terms['Term 2'];
+        const term3 = learner.terms['Term 3'];
+        
+        const term1Avg = calculateTermAverage(term1);
+        const term2Avg = calculateTermAverage(term2);
+        const term3Avg = calculateTermAverage(term3);
+        
+        const term1Deviation = calculateDeviation(term1);
+        const term2Deviation = calculateDeviation(term2);
+        const term3Deviation = calculateDeviation(term3);
+        
+        const annualAvg = calculateAnnualAverage([term1Avg, term2Avg, term3Avg]);
+        const rubricBadge = formatRubricBadge(annualAvg);
+        const progress = calculateProgress(term1Avg, term3Avg);
+        
+        return `
+            <tr>
+                <td>${learner.admissionNo}</td>
+                <td><strong>${learner.learnerName}</strong></td>
+                <td>${learner.grade}</td>
+                <td>${learner.stream}</td>
+                
+                <!-- Term 1 -->
+                <td>${formatScore(term1.opener)}</td>
+                <td>${formatScore(term1.mid)}</td>
+                <td>${formatScore(term1.end)}</td>
+                <td style="font-weight: bold; color: ${getColorForScore(term1Avg)}">${formatScore(term1Avg)}</td>
+                <td>${formatDeviation(term1Deviation)}</td>
+                
+                <!-- Term 2 -->
+                <td>${formatScore(term2.opener)}</td>
+                <td>${formatScore(term2.mid)}</td>
+                <td>${formatScore(term2.end)}</td>
+                <td style="font-weight: bold; color: ${getColorForScore(term2Avg)}">${formatScore(term2Avg)}</td>
+                <td>${formatDeviation(term2Deviation)}</td>
+                
+                <!-- Term 3 -->
+                <td>${formatScore(term3.opener)}</td>
+                <td>${formatScore(term3.mid)}</td>
+                <td>${formatScore(term3.end)}</td>
+                <td style="font-weight: bold; color: ${getColorForScore(term3Avg)}">${formatScore(term3Avg)}</td>
+                <td>${formatDeviation(term3Deviation)}</td>
+                
+                <!-- Annual Summary -->
+                <td style="font-weight: bold; color: ${getColorForScore(annualAvg)}">${formatScore(annualAvg)}</td>
+                <td>${progress}</td>
+                <td>${rubricBadge}</td>
+            </tr>
+        `;
+    }).join('');
+};
+
+// Enhanced performance summary
+const updatePerformanceSummary = (learnerData) => {
+    const learners = Object.values(learnerData);
+    
+    if (learners.length === 0) {
+        document.getElementById('performanceSummary').style.display = 'none';
+        return;
+    }
+    
+    document.getElementById('performanceSummary').style.display = 'grid';
+    
+    // Calculate summary statistics
+    let totalAnnual = 0;
+    let passCount = 0;
+    let totalImprovement = 0;
+    let improvementCount = 0;
+    const termAverages = { term1: 0, term2: 0, term3: 0 };
+    let termCounts = { term1: 0, term2: 0, term3: 0 };
+    
+    learners.forEach(learner => {
+        const term1Avg = calculateTermAverage(learner.terms['Term 1']);
+        const term3Avg = calculateTermAverage(learner.terms['Term 3']);
+        const annualAvg = calculateAnnualAverage([term1Avg, term2Avg, term3Avg]);
+        
+        if (annualAvg !== null) {
+            totalAnnual += annualAvg;
+            if (annualAvg >= 50) passCount++;
+        }
+        
+        // Track term averages
+        [['Term 1', term1Avg], ['Term 2', term2Avg], ['Term 3', term3Avg]].forEach(([term, avg]) => {
+            if (avg !== null) {
+                termAverages[term.toLowerCase().replace(' ', '')] += avg;
+                termCounts[term.toLowerCase().replace(' ', '')]++;
+            }
+        });
+        
+        // Track improvement
+        if (term1Avg !== null && term3Avg !== null) {
+            totalImprovement += (term3Avg - term1Avg);
+            improvementCount++;
+        }
+    });
+    
+    const classAverage = totalAnnual / learners.length;
+    const passRate = (passCount / learners.length) * 100;
+    const avgImprovement = improvementCount > 0 ? totalImprovement / improvementCount : 0;
+    
+    // Calculate consistency (variance between terms)
+    const validTermAverages = Object.values(termAverages).filter((avg, index) => termCounts[Object.keys(termAverages)[index]] > 0);
+    const mean = validTermAverages.reduce((a, b) => a + b, 0) / validTermAverages.length;
+    const variance = validTermAverages.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / validTermAverages.length;
+    const consistencyScore = Math.max(0, 10 - Math.sqrt(variance) / 3);
+    
+    // Update summary cards
+    document.getElementById('summaryClassAverage').textContent = classAverage.toFixed(1) + '%';
+    document.getElementById('summaryLearnerCount').textContent = `${learners.length} learners`;
+    document.getElementById('summaryImprovement').textContent = (avgImprovement >= 0 ? '+' : '') + avgImprovement.toFixed(1) + '%';
+    document.getElementById('summaryPassRate').textContent = passRate.toFixed(1) + '%';
+    document.getElementById('summaryConsistency').textContent = consistencyScore.toFixed(1);
+};
+
+// Enhanced analytics dashboard
+const updateAnalyticsDashboard = async () => {
+    const scores = await loadLearnerScores();
+    const learnerData = groupLearnerScores(scores);
+    const learners = Object.values(learnerData);
+    
+    if (learners.length === 0) {
+        document.getElementById('classAverageCard').querySelector('.card-value').textContent = 'N/A';
+        document.getElementById('improvementCard').querySelector('.card-value').textContent = 'N/A';
+        document.getElementById('consistencyCard').querySelector('.card-value').textContent = 'N/A';
+        document.getElementById('topPerformerCard').querySelector('.card-value').textContent = 'N/A';
+        return;
+    }
+    
+    // Calculate analytics
+    let totalAnnual = 0;
+    let totalImprovement = 0;
+    let improvementCount = 0;
+    let topPerformer = { name: 'N/A', average: 0 };
+    const termAverages = { term1: 0, term2: 0, term3: 0 };
+    let termCounts = { term1: 0, term2: 0, term3: 0 };
+    
+    learners.forEach(learner => {
+        const term1Avg = calculateTermAverage(learner.terms['Term 1']);
+        const term2Avg = calculateTermAverage(learner.terms['Term 2']);
+        const term3Avg = calculateTermAverage(learner.terms['Term 3']);
+        const annualAvg = calculateAnnualAverage([term1Avg, term2Avg, term3Avg]);
+        
+        if (annualAvg !== null) {
+            totalAnnual += annualAvg;
+            
+            // Track top performer
+            if (annualAvg > topPerformer.average) {
+                topPerformer = { 
+                    name: learner.learnerName, 
+                    average: annualAvg 
+                };
+            }
+        }
+        
+        // Track term averages for consistency
+        [['term1', term1Avg], ['term2', term2Avg], ['term3', term3Avg]].forEach(([term, avg]) => {
+            if (avg !== null) {
+                termAverages[term] += avg;
+                termCounts[term]++;
+            }
+        });
+        
+        // Track improvement
+        if (term1Avg !== null && term3Avg !== null) {
+            totalImprovement += (term3Avg - term1Avg);
+            improvementCount++;
+        }
+    });
+    
+    const classAverage = totalAnnual / learners.length;
+    const avgImprovement = improvementCount > 0 ? totalImprovement / improvementCount : 0;
+    
+    // Calculate consistency
+    const validTermAverages = Object.entries(termAverages)
+        .filter(([term,]) => termCounts[term] > 0)
+        .map(([term, total]) => total / termCounts[term]);
+    
+    const mean = validTermAverages.reduce((a, b) => a + b, 0) / validTermAverages.length;
+    const variance = validTermAverages.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / validTermAverages.length;
+    const consistencyScore = Math.max(0, 10 - Math.sqrt(variance) / 3);
+    
+    // Update dashboard cards
+    document.getElementById('classAverageCard').querySelector('.card-value').textContent = classAverage.toFixed(1) + '%';
+    document.getElementById('improvementCard').querySelector('.card-value').textContent = (avgImprovement >= 0 ? '+' : '') + avgImprovement.toFixed(1) + '%';
+    document.getElementById('consistencyCard').querySelector('.card-value').textContent = consistencyScore.toFixed(1) + '/10';
+    document.getElementById('topPerformerCard').querySelector('.card-value').textContent = topPerformer.average.toFixed(1) + '%';
+    document.getElementById('topPerformerCard').querySelector('.card-subtitle').textContent = topPerformer.name;
+};
+
+// Enhanced rendering with performance summary
+const renderLearnerScores = async () => {
+    const tbody = el('learnerScoresBody');
+    const emptyState = el('emptyLearnerState');
+    
+    if (!tbody) return;
+    
+    const scores = await loadLearnerScores();
+    
+    // Apply filters
+    let filteredScores = scores;
+    const subjectFilter = el('filterSubject')?.value;
+    const gradeFilter = el('filterGrade')?.value;
+    const streamFilter = el('filterStream')?.value;
+    const yearFilter = el('filterYear')?.value;
+    
+    if (subjectFilter) {
+        filteredScores = filteredScores.filter(score => score.subject === subjectFilter);
+    }
+    if (gradeFilter) {
+        filteredScores = filteredScores.filter(score => score.grade === gradeFilter);
+    }
+    if (streamFilter) {
+        filteredScores = filteredScores.filter(score => score.stream === streamFilter);
+    }
+    if (yearFilter) {
+        filteredScores = filteredScores.filter(score => score.year.toString() === yearFilter);
+    }
+    
+    if (filteredScores.length === 0) {
+        tbody.innerHTML = '';
+        if (emptyState) emptyState.style.display = 'block';
+        updateLearnerRecordsCount(0);
+        document.getElementById('performanceSummary').style.display = 'none';
+        return;
+    }
+    
+    if (emptyState) emptyState.style.display = 'none';
+    
+    // Group and display filtered scores
+    const learnerData = groupLearnerScores(filteredScores);
+    tbody.innerHTML = generateLearnerTableHTML(learnerData);
+    updateLearnerRecordsCount(Object.keys(learnerData).length);
+    updatePerformanceSummary(learnerData);
+};
+
+// Enhanced export with deviation data
+const exportSubjectReportExcel = async (scores, subject, grade, stream, year) => {
+    if (scores.length === 0) {
+        showAlert('No data to export', 'error');
+        return;
+    }
+    
+    // Group data by learner
+    const learnerData = groupLearnerScores(scores);
+    const learners = Object.values(learnerData);
+    
+    // Prepare data for Excel with deviation columns
+    const excelData = learners.map(learner => {
+        const term1 = learner.terms['Term 1'];
+        const term2 = learner.terms['Term 2'];
+        const term3 = learner.terms['Term 3'];
+        
+        const term1Avg = calculateTermAverage(term1);
+        const term2Avg = calculateTermAverage(term2);
+        const term3Avg = calculateTermAverage(term3);
+        
+        const term1Deviation = calculateDeviation(term1);
+        const term2Deviation = calculateDeviation(term2);
+        const term3Deviation = calculateDeviation(term3);
+        
+        const annualAvg = calculateAnnualAverage([term1Avg, term2Avg, term3Avg]);
+        const rubric = annualAvg !== null ? getRubric(annualAvg) : { code: 'N/A', text: 'N/A' };
+        const progress = term1Avg !== null && term3Avg !== null ? term3Avg - term1Avg : null;
+        
+        return {
+            'Admission No': learner.admissionNo,
+            'Learner Name': learner.learnerName,
+            'Grade': learner.grade,
+            'Stream': learner.stream,
+            'Year': learner.year,
+            
+            // Term 1 Scores
+            'Term 1 Opener': term1.opener,
+            'Term 1 Mid Term': term1.mid,
+            'Term 1 End Term': term1.end,
+            'Term 1 Average': term1Avg,
+            'Term 1 Deviation': term1Deviation,
+            
+            // Term 2 Scores
+            'Term 2 Opener': term2.opener,
+            'Term 2 Mid Term': term2.mid,
+            'Term 2 End Term': term2.end,
+            'Term 2 Average': term2Avg,
+            'Term 2 Deviation': term2Deviation,
+            
+            // Term 3 Scores
+            'Term 3 Opener': term3.opener,
+            'Term 3 Mid Term': term3.mid,
+            'Term 3 End Term': term3.end,
+            'Term 3 Average': term3Avg,
+            'Term 3 Deviation': term3Deviation,
+            
+            // Annual Summary
+            'Annual Average': annualAvg,
+            'Progress (T1 to T3)': progress,
+            'Performance Rubric': rubric.code,
+            'Rubric Description': rubric.text,
+            'Teacher': learner.teacher || getTeacherName()
+        };
+    });
+    
+    // Calculate class statistics with deviation analysis
+    const classStats = calculateClassStatistics(learners);
+    
+    // Create workbook with multiple sheets
+    const workbook = XLSX.utils.book_new();
+    
+    // Main data sheet
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Learner Scores');
+    
+    // Summary sheet with deviation analysis
+    const summaryData = [
+        ['SMARTSCORES PERFORMANCE REPORT WITH PROGRESS TRACKING'],
+        [''],
+        ['Report Details:', '', '', '', 'Progress Analysis:', '', ''],
+        [`Subject: ${subject}`, '', '', '', `Average Improvement: ${classStats.avgImprovement.toFixed(1)}%`],
+        [`Grade: ${grade}`, '', '', '', `Consistent Improvers: ${classStats.consistentImprovers}`],
+        [`Stream: ${stream}`, '', '', '', `Declining Learners: ${classStats.decliningLearners}`],
+        [`Year: ${year}`, '', '', '', `Stable Performers: ${classStats.stablePerformers}`],
+        [`Teacher: ${getTeacherName()}`, '', '', '', `Best Progress: ${classStats.bestProgress}`],
+        [`Generated: ${new Date().toLocaleString()}`, '', '', '', `Needs Attention: ${classStats.needsAttention}`],
+        [''],
+        ['Deviation Analysis (Last Two Exams)'],
+        ['Term', 'Positive Deviation', 'Negative Deviation', 'Neutral', 'Avg Deviation'],
+        ['Term 1', classStats.deviationAnalysis.term1.positive, classStats.deviationAnalysis.term1.negative, classStats.deviationAnalysis.term1.neutral, classStats.deviationAnalysis.term1.average],
+        ['Term 2', classStats.deviationAnalysis.term2.positive, classStats.deviationAnalysis.term2.negative, classStats.deviationAnalysis.term2.neutral, classStats.deviationAnalysis.term2.average],
+        ['Term 3', classStats.deviationAnalysis.term3.positive, classStats.deviationAnalysis.term3.negative, classStats.deviationAnalysis.term3.neutral, classStats.deviationAnalysis.term3.average],
+        [''],
+        ['Performance Distribution'],
+        ['Rubric', 'Count', 'Percentage'],
+        ...classStats.rubricDistribution.map(r => [r.rubric, r.count, `${r.percentage}%`])
+    ];
+    
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(workbook, summarySheet, 'Progress Summary');
+    
+    // Generate filename
+    const safeSubject = subject.replace(/[^a-zA-Z0-9]/g, '_');
+    const safeTeacher = getTeacherName().replace(/[^a-zA-Z0-9]/g, '_');
+    const filename = `Progress_Report_${safeSubject}_Grade${grade}_${stream}_${year}_${safeTeacher}.xlsx`;
+    
+    XLSX.writeFile(workbook, filename);
+    showAlert(`Progress report exported successfully! ${learners.length} learners included.`, 'success');
+};
+
+// Enhanced class statistics with deviation analysis
+const calculateClassStatistics = (learners) => {
+    const stats = {
+        totalLearners: learners.length,
+        classAverage: 0,
+        avgImprovement: 0,
+        consistentImprovers: 0,
+        decliningLearners: 0,
+        stablePerformers: 0,
+        bestProgress: 'N/A',
+        needsAttention: 0,
+        deviationAnalysis: {
+            term1: { positive: 0, negative: 0, neutral: 0, average: 0 },
+            term2: { positive: 0, negative: 0, neutral: 0, average: 0 },
+            term3: { positive: 0, negative: 0, neutral: 0, average: 0 }
+        },
+        rubricDistribution: []
+    };
+    
+    if (learners.length === 0) return stats;
+    
+    let totalAnnual = 0;
+    let totalImprovement = 0;
+    let improvementCount = 0;
+    const rubricCount = {};
+    let bestProgressValue = -100;
+    let bestProgressName = 'N/A';
+    
+    // Track deviations per term
+    const termDeviations = { term1: [], term2: [], term3: [] };
+    
+    learners.forEach(learner => {
+        const term1 = learner.terms['Term 1'];
+        const term2 = learner.terms['Term 2'];
+        const term3 = learner.terms['Term 3'];
+        
+        const term1Avg = calculateTermAverage(term1);
+        const term2Avg = calculateTermAverage(term2);
+        const term3Avg = calculateTermAverage(term3);
+        const annualAvg = calculateAnnualAverage([term1Avg, term2Avg, term3Avg]);
+        
+        if (annualAvg !== null) {
+            totalAnnual += annualAvg;
+            
+            // Count rubrics
+            const rubric = getRubric(annualAvg).code;
+            rubricCount[rubric] = (rubricCount[rubric] || 0) + 1;
+        }
+        
+        // Track progress
+        if (term1Avg !== null && term3Avg !== null) {
+            const progress = term3Avg - term1Avg;
+            totalImprovement += progress;
+            improvementCount++;
+            
+            // Track progress categories
+            if (progress > 5) stats.consistentImprovers++;
+            else if (progress < -5) stats.decliningLearners++;
+            else stats.stablePerformers++;
+            
+            // Track best progress
+            if (progress > bestProgressValue) {
+                bestProgressValue = progress;
+                bestProgressName = learner.learnerName;
+            }
+            
+            // Track needs attention
+            if (term3Avg < 40) stats.needsAttention++;
+        }
+        
+        // Calculate and track deviations
+        [['term1', term1], ['term2', term2], ['term3', term3]].forEach(([term, termData]) => {
+            const deviation = calculateDeviation(termData);
+            if (deviation !== null) {
+                termDeviations[term].push(deviation);
+                
+                // Count deviation categories
+                if (deviation > 0) stats.deviationAnalysis[term].positive++;
+                else if (deviation < 0) stats.deviationAnalysis[term].negative++;
+                else stats.deviationAnalysis[term].neutral++;
+            }
+        });
+    });
+    
+    // Calculate averages
+    stats.classAverage = totalAnnual / learners.length;
+    stats.avgImprovement = improvementCount > 0 ? totalImprovement / improvementCount : 0;
+    stats.bestProgress = bestProgressName !== 'N/A' ? `${bestProgressName} (+${bestProgressValue.toFixed(1)}%)` : 'N/A';
+    
+    // Calculate average deviations
+    Object.keys(termDeviations).forEach(term => {
+        const deviations = termDeviations[term];
+        if (deviations.length > 0) {
+            stats.deviationAnalysis[term].average = deviations.reduce((a, b) => a + b, 0) / deviations.length;
+        }
+    });
+    
+    // Rubric distribution
+    stats.rubricDistribution = Object.entries(rubricCount).map(([rubric, count]) => ({
+        rubric,
+        count,
+        percentage: ((count / learners.length) * 100).toFixed(1)
+    }));
+    
+    return stats;
+};
+
 // ==================== DATA MIGRATION ====================
 const migrateExistingData = async () => {
     if (typeof firebaseSync === 'undefined' || typeof firebaseAuth === 'undefined') return;
