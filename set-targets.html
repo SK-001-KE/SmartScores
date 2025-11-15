@@ -219,13 +219,64 @@
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
-  <script>
+ <script>
     // ==================== TARGETS MANAGEMENT ====================
     console.log('🎯 Set Targets page loaded!');
+
+    // ===== MOBILE NAVIGATION SETUP =====
+    function initializeMobileNavigation() {
+      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      
+      if (mobileMenuToggle && mobileSidebar) {
+        mobileMenuToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          mobileSidebar.classList.toggle('closed');
+          mobileMenuToggle.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
+          
+          if (!mobileSidebar.classList.contains('closed')) {
+            setTimeout(() => {
+              document.addEventListener('click', closeMobileSidebarOnClickOutside);
+            }, 100);
+          }
+        });
+        
+        // Close sidebar when clicking on links
+        const mobileLinks = mobileSidebar.querySelectorAll('a, button');
+        mobileLinks.forEach(link => {
+          link.addEventListener('click', function() {
+            if (!mobileSidebar.classList.contains('closed')) {
+              mobileSidebar.classList.add('closed');
+              mobileMenuToggle.textContent = '☰';
+            }
+          });
+        });
+      }
+    }
+    
+    // Close mobile sidebar when clicking outside
+    function closeMobileSidebarOnClickOutside(event) {
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+      
+      if (!mobileSidebar || !mobileMenuToggle) return;
+      
+      const isClickInsideSidebar = mobileSidebar.contains(event.target);
+      const isClickOnToggle = mobileMenuToggle.contains(event.target);
+      
+      if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
+        mobileSidebar.classList.add('closed');
+        mobileMenuToggle.textContent = '☰';
+        document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+      }
+    }
 
     // Initialize when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
       console.log('🎯 Targets page initialized');
+      
+      // Initialize mobile navigation
+      initializeMobileNavigation();
       
       // Update teacher name using the function from app.js
       const teacherName = getTeacherName();
@@ -429,12 +480,43 @@
     }
 
     // Make functions available globally
+    window.toggleMobileMenu = function() {
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      const toggleBtn = document.getElementById('mobileMenuToggle');
+      
+      if (mobileSidebar) {
+        mobileSidebar.classList.toggle('closed');
+        if (toggleBtn) {
+          toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
+        }
+      }
+    };
+
+    window.toggleDarkMode = function() {
+      if (window.toggleDarkMode) {
+        window.toggleDarkMode();
+      } else {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('themeMode', newTheme);
+      }
+    };
+
+    window.logout = function() {
+      if (window.logout) {
+        window.logout();
+      } else {
+        window.location.href = './login.html';
+      }
+    };
+
     window.handleSaveTarget = handleSaveTarget;
     window.deleteTarget = deleteTarget;
     window.filterTargets = filterTargets;
     window.exportTargets = exportTargets;
     window.clearAllTargets = clearAllTargets;
     window.refreshTargets = refreshTargets;
-  </script>
+</script>
 </body>
 </html>
