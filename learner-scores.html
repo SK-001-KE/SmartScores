@@ -511,6 +511,49 @@
       box-shadow: var(--shadow);
     }
     
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    
+    .modal-content {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 15px;
+    }
+    
+    .modal-body {
+      margin-bottom: 20px;
+    }
+    
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    
     @media (max-width: 768px) {
       .table-container {
         overflow-x: auto;
@@ -519,15 +562,334 @@
       #learnerScoresTable {
         min-width: 1200px;
       }
+      
+      .modal-content {
+        width: 95%;
+        padding: 20px;
+      }
     }
   </style>
 
   <script>
-    // Initialize when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-      initializeLearnerPage();
-    });
+    // ===== NAVIGATION MANAGEMENT =====
+    function toggleMobileMenu() {
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      const toggleBtn = document.getElementById('mobileMenuToggle');
+      
+      if (mobileSidebar) {
+        mobileSidebar.classList.toggle('closed');
+        if (toggleBtn) {
+          toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
+        }
+        
+        if (!mobileSidebar.classList.contains('closed')) {
+          setTimeout(() => {
+            document.addEventListener('click', closeMobileSidebarOnClickOutside);
+          }, 100);
+        } else {
+          document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+        }
+      }
+    }
 
+    function closeMobileSidebarOnClickOutside(event) {
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      const toggleBtn = document.getElementById('mobileMenuToggle');
+      
+      if (!mobileSidebar || !toggleBtn) return;
+      
+      const isClickInsideSidebar = mobileSidebar.contains(event.target);
+      const isClickOnToggle = toggleBtn.contains(event.target);
+      
+      if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
+        mobileSidebar.classList.add('closed');
+        toggleBtn.textContent = '☰';
+        document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+      }
+    }
+
+    function setupMobileSidebarAutoClose() {
+      const mobileSidebarLinks = document.querySelectorAll('.mobile-sidebar a, .mobile-sidebar button');
+      mobileSidebarLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          const mobileSidebar = document.getElementById('mobileSidebar');
+          const toggleBtn = document.getElementById('mobileMenuToggle');
+          
+          if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
+            mobileSidebar.classList.add('closed');
+            if (toggleBtn) {
+              toggleBtn.textContent = '☰';
+            }
+            document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+          }
+        });
+      });
+    }
+
+    // ===== THEME MANAGEMENT =====
+    function toggleDarkMode() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('themeMode', newTheme);
+    }
+
+    function loadTheme() {
+      const theme = localStorage.getItem('themeMode') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+
+    // ===== AUTH MANAGEMENT =====
+    function logout() {
+      if (window.logout) {
+        window.logout();
+      } else {
+        // Fallback logout
+        localStorage.removeItem('teacherFullName');
+        localStorage.removeItem('teacherFirstName');
+        localStorage.removeItem('teacherLastName');
+        window.location.href = './login.html';
+      }
+    }
+
+    function checkAuth() {
+      const teacher = localStorage.getItem('teacherFullName');
+      if (!teacher) {
+        window.location.href = './login.html';
+        return false;
+      }
+      return true;
+    }
+
+    // ===== LEARNER SCORES SPECIFIC FUNCTIONS =====
+    function showAddLearnerForm() {
+      document.getElementById('addLearnerForm').style.display = 'block';
+    }
+
+    function hideAddLearnerForm() {
+      document.getElementById('addLearnerForm').style.display = 'none';
+    }
+
+    function showUploadModal() {
+      document.getElementById('uploadModal').style.display = 'flex';
+    }
+
+    function hideUploadModal() {
+      document.getElementById('uploadModal').style.display = 'none';
+    }
+
+    function showCustomExportModal() {
+      document.getElementById('customExportModal').style.display = 'flex';
+    }
+
+    function hideCustomExportModal() {
+      document.getElementById('customExportModal').style.display = 'none';
+    }
+
+    function showAnalytics() {
+      const analytics = document.getElementById('analyticsDashboard');
+      analytics.style.display = 'block';
+      updateAnalyticsDashboard();
+    }
+
+    function hideAnalytics() {
+      document.getElementById('analyticsDashboard').style.display = 'none';
+    }
+
+    function toggleScoreVisibility() {
+      const table = document.getElementById('learnerScoresTable');
+      table.classList.toggle('scores-hidden');
+    }
+
+    function downloadTemplate() {
+      showNotification('Download template function would be implemented here');
+    }
+
+    function exportLearnerReport() {
+      showNotification('Export learner report function would be implemented here');
+    }
+
+    function applyLearnerFilters() {
+      showNotification('Applying learner filters');
+      renderLearnerScores();
+    }
+
+    function resetLearnerFilters() {
+      document.getElementById('filterSubject').value = '';
+      document.getElementById('filterGrade').value = '';
+      document.getElementById('filterStream').value = '';
+      document.getElementById('filterYear').value = '';
+      showNotification('Filters reset');
+      renderLearnerScores();
+    }
+
+    function exportFilteredReport() {
+      showNotification('Exporting filtered report');
+    }
+
+    function processExcelFile() {
+      showNotification('Processing Excel file function would be implemented here');
+    }
+
+    function generateCustomReport() {
+      showNotification('Generating custom report function would be implemented here');
+    }
+
+    // ===== DATA MANAGEMENT =====
+    function loadLearnerScores() {
+      try {
+        const data = localStorage.getItem('smartScoresLearnerRecords');
+        return data ? JSON.parse(data) : [];
+      } catch (error) {
+        console.error('Error loading learner scores:', error);
+        return [];
+      }
+    }
+
+    function saveLearnerScore(score) {
+      try {
+        const scores = loadLearnerScores();
+        scores.push({
+          ...score,
+          id: Date.now(),
+          timestamp: new Date().toISOString()
+        });
+        localStorage.setItem('smartScoresLearnerRecords', JSON.stringify(scores));
+        return true;
+      } catch (error) {
+        console.error('Error saving learner score:', error);
+        return false;
+      }
+    }
+
+    function handleSaveLearnerScore(event) {
+      event.preventDefault();
+      
+      if (!checkAuth()) return;
+      
+      const score = {
+        admissionNo: document.getElementById('admissionNo').value.trim(),
+        learnerName: document.getElementById('learnerName').value.trim(),
+        grade: document.getElementById('learnerGrade').value,
+        stream: document.getElementById('learnerStream').value,
+        term: document.getElementById('learnerTerm').value,
+        year: parseInt(document.getElementById('learnerYear').value),
+        examType: document.getElementById('learnerExamType').value,
+        subject: document.getElementById('learnerSubject').value,
+        score: parseFloat(document.getElementById('learnerScore').value)
+      };
+
+      if (saveLearnerScore(score)) {
+        showNotification('Learner score saved successfully!', 'success');
+        document.getElementById('learnerScoreForm').reset();
+        hideAddLearnerForm();
+        renderLearnerScores();
+      } else {
+        showNotification('Error saving learner score', 'error');
+      }
+    }
+
+    function populateYearFilter() {
+      const yearSelect = document.getElementById('filterYear');
+      if (!yearSelect) return;
+      
+      const currentYear = new Date().getFullYear();
+      yearSelect.innerHTML = '<option value="">All Years</option>';
+      
+      for (let year = currentYear; year >= currentYear - 5; year--) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearSelect.appendChild(option);
+      }
+    }
+
+    function updateLearnerRecordsCount(count) {
+      const element = document.getElementById('learnerRecordsShown');
+      if (element) {
+        element.textContent = count;
+      }
+    }
+
+    function renderLearnerScores() {
+      const tbody = document.getElementById('learnerScoresBody');
+      const emptyState = document.getElementById('emptyLearnerState');
+      
+      if (!tbody) return;
+      
+      const scores = loadLearnerScores();
+      
+      if (scores.length === 0) {
+        tbody.innerHTML = '';
+        if (emptyState) emptyState.style.display = 'block';
+        updateLearnerRecordsCount(0);
+        document.getElementById('performanceSummary').style.display = 'none';
+        return;
+      }
+      
+      if (emptyState) emptyState.style.display = 'none';
+      
+      // Simple rendering for demonstration
+      tbody.innerHTML = scores.map(score => `
+        <tr>
+          <td>${score.admissionNo}</td>
+          <td><strong>${score.learnerName}</strong></td>
+          <td>${score.grade}</td>
+          <td>${score.stream}</td>
+          <td colspan="15" style="text-align: center; color: var(--secondary);">
+            Data grouping and calculations would be implemented here
+          </td>
+        </tr>
+      `).join('');
+      
+      updateLearnerRecordsCount(scores.length);
+      updatePerformanceSummary(scores);
+    }
+
+    function updatePerformanceSummary(scores) {
+      // Simple implementation
+      const learners = [...new Set(scores.map(s => s.admissionNo))];
+      document.getElementById('performanceSummary').style.display = 'grid';
+      document.getElementById('summaryLearnerCount').textContent = `${learners.length} learners`;
+    }
+
+    function updateAnalyticsDashboard() {
+      // Simple implementation
+      document.getElementById('classAverageCard').querySelector('.card-value').textContent = '75.2%';
+      document.getElementById('improvementCard').querySelector('.card-value').textContent = '+5.1%';
+      document.getElementById('consistencyCard').querySelector('.card-value').textContent = '7.8/10';
+      document.getElementById('topPerformerCard').querySelector('.card-value').textContent = '89.5%';
+    }
+
+    // ===== UTILITY FUNCTIONS =====
+    function showNotification(message, type = 'info') {
+      if (window.showAlert) {
+        window.showAlert(message, type);
+      } else {
+        // Fallback notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed;
+          top: 100px;
+          right: 20px;
+          background: ${type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#3B82F6'};
+          color: white;
+          padding: 12px 20px;
+          border-radius: 8px;
+          z-index: 1000;
+          font-weight: 600;
+          box-shadow: var(--shadow);
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 3000);
+      }
+    }
+
+    // ===== INITIALIZATION =====
     function initializeLearnerPage() {
       // Set teacher name
       const teacherName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
@@ -544,24 +906,41 @@
       if (form) {
         form.addEventListener('submit', handleSaveLearnerScore);
       }
+      
+      // Setup mobile navigation
+      setupMobileSidebarAutoClose();
     }
 
-    // Toggle analytics dashboard
-    function showAnalytics() {
-      const analytics = document.getElementById('analyticsDashboard');
-      analytics.style.display = 'block';
-      updateAnalyticsDashboard();
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('👨‍🎓 Learner Scores initialized!');
+      
+      // Load theme
+      loadTheme();
+      
+      // Initialize the page
+      initializeLearnerPage();
+    });
 
-    function hideAnalytics() {
-      document.getElementById('analyticsDashboard').style.display = 'none';
-    }
-
-    // Toggle score visibility
-    function toggleScoreVisibility() {
-      const table = document.getElementById('learnerScoresTable');
-      table.classList.toggle('scores-hidden');
-    }
+    // Make functions available globally
+    window.toggleMobileMenu = toggleMobileMenu;
+    window.toggleDarkMode = toggleDarkMode;
+    window.logout = logout;
+    window.showAddLearnerForm = showAddLearnerForm;
+    window.hideAddLearnerForm = hideAddLearnerForm;
+    window.showUploadModal = showUploadModal;
+    window.hideUploadModal = hideUploadModal;
+    window.showCustomExportModal = showCustomExportModal;
+    window.hideCustomExportModal = hideCustomExportModal;
+    window.showAnalytics = showAnalytics;
+    window.hideAnalytics = hideAnalytics;
+    window.toggleScoreVisibility = toggleScoreVisibility;
+    window.downloadTemplate = downloadTemplate;
+    window.exportLearnerReport = exportLearnerReport;
+    window.applyLearnerFilters = applyLearnerFilters;
+    window.resetLearnerFilters = resetLearnerFilters;
+    window.exportFilteredReport = exportFilteredReport;
+    window.processExcelFile = processExcelFile;
+    window.generateCustomReport = generateCustomReport;
   </script>
 </body>
 </html>
