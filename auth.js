@@ -3,10 +3,13 @@
    Handles login, logout, and session management
 ========================================================= */
 
-// Storage key for teacher name
+// Storage key for teacher name - UPDATED FOR CONSISTENCY
 const AUTH_KEYS = {
-    TEACHER: 'teacherFullName',
-    LAST_ACTIVITY: 'lastActivityTime' // Used for session timeout
+    TEACHER_FULL_NAME: 'teacherFullName',
+    TEACHER_FIRST_NAME: 'teacherFirstName', 
+    TEACHER_LAST_NAME: 'teacherLastName',
+    TEACHER_EMAIL: 'teacherEmail',
+    LAST_ACTIVITY: 'lastActivityTime'
 };
 
 // DOM Helper
@@ -16,29 +19,51 @@ const el = id => document.getElementById(id);
 const auth = {
     // Check if user is authenticated
     isAuthenticated: function() {
-        return !!localStorage.getItem(AUTH_KEYS.TEACHER);
+        return !!localStorage.getItem(AUTH_KEYS.TEACHER_FULL_NAME);
     },
     
-    // Get current teacher name
+    // Get current teacher name - UPDATED
     getCurrentTeacher: function() {
-        return localStorage.getItem(AUTH_KEYS.TEACHER) || 'Guest Teacher';
+        return localStorage.getItem(AUTH_KEYS.TEACHER_FULL_NAME) || 'Guest Teacher';
     },
     
-    // Login function (used by local login)
+    // Get teacher first name - NEW
+    getTeacherFirstName: function() {
+        return localStorage.getItem(AUTH_KEYS.TEACHER_FIRST_NAME) || 
+               this.getCurrentTeacher().split(' ')[0] || 
+               'Teacher';
+    },
+    
+    // Get teacher last name - NEW
+    getTeacherLastName: function() {
+        return localStorage.getItem(AUTH_KEYS.TEACHER_LAST_NAME) || 
+               this.getCurrentTeacher().split(' ').slice(1).join(' ') || 
+               '';
+    },
+    
+    // Login function (used by local login) - UPDATED
     login: function(teacherName) {
         if (!teacherName || teacherName.trim() === '') {
             return false;
         }
         
-        localStorage.setItem(AUTH_KEYS.TEACHER, teacherName.trim());
-        localStorage.setItem(AUTH_KEYS.LAST_ACTIVITY, new Date().toISOString()); // <-- Update activity time
+        const firstName = teacherName.split(' ')[0] || '';
+        const lastName = teacherName.split(' ').slice(1).join(' ') || '';
+        
+        localStorage.setItem(AUTH_KEYS.TEACHER_FULL_NAME, teacherName.trim());
+        localStorage.setItem(AUTH_KEYS.TEACHER_FIRST_NAME, firstName);
+        localStorage.setItem(AUTH_KEYS.TEACHER_LAST_NAME, lastName);
+        localStorage.setItem(AUTH_KEYS.LAST_ACTIVITY, new Date().toISOString());
         return true;
     },
     
-    // Logout function
+    // Logout function - UPDATED
     logout: function() {
-        // We only clear local storage here, the firebaseAuth.logout handles cloud sign out
-        localStorage.removeItem(AUTH_KEYS.TEACHER);
+        // Clear all teacher data
+        localStorage.removeItem(AUTH_KEYS.TEACHER_FULL_NAME);
+        localStorage.removeItem(AUTH_KEYS.TEACHER_FIRST_NAME);
+        localStorage.removeItem(AUTH_KEYS.TEACHER_LAST_NAME);
+        localStorage.removeItem(AUTH_KEYS.TEACHER_EMAIL);
         localStorage.removeItem(AUTH_KEYS.LAST_ACTIVITY);
         // Do not redirect here, the caller (firebase-auth.js) will handle it.
     },
@@ -90,12 +115,17 @@ document.addEventListener('keypress', updateActivityTime);
 document.addEventListener('scroll', updateActivityTime);
 document.addEventListener('click', updateActivityTime);
 
-
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async () => {
     auth.checkAuth();
     
-    // REMOVED old login form setup logic, as it is now handled in login.html / signup.html
+    // Update teacher name display on all pages
+    const teacherNameElements = document.querySelectorAll('.teacher-name, #teacherName');
+    const teacherFullName = auth.getCurrentTeacher();
+    
+    teacherNameElements.forEach(element => {
+        element.textContent = teacherFullName;
+    });
     
     // Check for session timeout every minute
     setInterval(() => {
@@ -118,3 +148,5 @@ window.logout = async () => {
     }
 }; 
 window.getCurrentTeacher = () => auth.getCurrentTeacher();
+window.getTeacherFirstName = () => auth.getTeacherFirstName();
+window.getTeacherLastName = () => auth.getTeacherLastName();
