@@ -376,23 +376,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => emailInput.focus(), 100);
         }
         
-        // Enter key support for login
-        const inputs = loginForm.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (this.id === 'password') {
-                        // Trigger form submission which is handled in login.html
-                        loginForm.querySelector('button[type="submit"]').click();
-                    } else {
-                        const nextInput = this.parentElement.nextElementSibling?.querySelector('input');
-                        if (nextInput) nextInput.focus();
-                    }
-                }
-            });
-        });
-    }
+        
     
     // Check for session timeout every minute
     setInterval(() => {
