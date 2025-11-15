@@ -4,11 +4,12 @@
    Focus: Data management, rendering, calculations
 ========================================================= */
 
-// STORAGE KEYS
 const STORAGE_KEYS = {
     RECORDS: 'smartScoresRecords',
     TARGETS: 'smartScoresTargets', 
-    TEACHER: 'teacherFullName',
+    TEACHER_FULL_NAME: 'teacherFullName',
+    TEACHER_FIRST_NAME: 'teacherFirstName', 
+    TEACHER_LAST_NAME: 'teacherLastName',
     THEME: 'themeMode'
 };
 
@@ -308,18 +309,32 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 // ==================== DATA ENTRY ====================
+// Update the teacher name retrieval throughout app.js
+const getTeacherName = () => {
+    return localStorage.getItem(STORAGE_KEYS.TEACHER_FULL_NAME) || 
+           localStorage.getItem('teacherFullName') || 
+           'Guest Teacher';
+};
+
+const getTeacherFirstName = () => {
+    return localStorage.getItem(STORAGE_KEYS.TEACHER_FIRST_NAME) || 
+           localStorage.getItem('teacherFirstName') || 
+           'Teacher';
+};
+
+// Update the handleSaveRecord function to use the full name
 const handleSaveRecord = async (event) => {
     if (event) event.preventDefault();
     
-    const teacherName = localStorage.getItem(STORAGE_KEYS.TEACHER);
-    if (!teacherName) {
+    const teacherName = getTeacherName(); // Use the new function
+    if (!teacherName || teacherName === 'Guest Teacher') {
         showAlert('Please login first', 'error');
         window.location.href = './login.html';
         return;
     }
     
     const record = {
-        teacher: teacherName,
+        teacher: teacherName, // This will now be "First Last" format
         subject: el('subject')?.value?.trim(),
         grade: el('grade')?.value?.trim(),
         stream: el('stream')?.value?.trim(),
