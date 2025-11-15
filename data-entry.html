@@ -31,15 +31,15 @@
     </div>
     
     <div class="nav-user">
-      <span id="currentTeacher" class="teacher-name">Loading...</span>
+      <span id="teacherName" class="teacher-name">Loading...</span>
       <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
     </div>
   </nav>
 
-  <!-- MOBILE MENU TOGGLE (only show on mobile) -->
+  <!-- MOBILE MENU TOGGLE -->
   <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
 
-  <!-- MOBILE SIDEBAR (only for mobile) -->
+  <!-- MOBILE SIDEBAR -->
   <aside id="mobileSidebar" class="mobile-sidebar closed">
     <a href="./index.html">📊 Dashboard</a>
     <a href="./data-entry.html" class="active">📝 Data Entry</a>
@@ -52,7 +52,6 @@
     <button class="logout-btn" onclick="logout()">🚪 Logout</button>
   </aside>
 
-  <!-- DARK MODE TOGGLE -->
   <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
   <header>
@@ -60,13 +59,14 @@
     <p>Record Student Mean Scores</p>
   </header>
 
-  <main class="content">
+  <div class="content content-with-sidebar">
     <div class="form-header">
       <h2>Enter Score Data</h2>
-      <p class="teacher-info">Teacher: <span id="currentTeacherDisplay">Loading...</span></p>
+      <p class="teacher-info">Teacher: <span id="currentTeacher">Loading...</span></p>
     </div>
 
     <form id="dataEntryForm" class="form-box">
+      <!-- Your existing form fields remain the same -->
       <div class="form-row">
         <div class="form-group">
           <label>Subject *</label>
@@ -153,7 +153,7 @@
 
       <div class="form-info">
         <p>Record your scores</p>
-        <p>Get in-depth Analysis</p>
+        <p>Get indepth Analysis</p>
         <p>Use it to improve</p>
       </div>
     </form>
@@ -172,7 +172,7 @@
         <span id="yearRecords">0</span>
       </div>
     </div>
-  </main>
+  </div>
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
@@ -183,6 +183,83 @@
           .then(registration => console.log('SW registered: ', registration))
           .catch(error => console.log('SW registration failed: ', error));
       });
+    }
+
+    // Enhanced mobile menu functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      // Mobile menu functionality
+      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      
+      if (mobileMenuToggle && mobileSidebar) {
+        mobileMenuToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          mobileSidebar.classList.toggle('closed');
+          mobileMenuToggle.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
+          
+          if (!mobileSidebar.classList.contains('closed')) {
+            setTimeout(() => {
+              document.addEventListener('click', closeMobileSidebarOnClickOutside);
+            }, 100);
+          }
+        });
+        
+        const mobileLinks = mobileSidebar.querySelectorAll('a, button');
+        mobileLinks.forEach(link => {
+          link.addEventListener('click', function() {
+            if (!mobileSidebar.classList.contains('closed')) {
+              mobileSidebar.classList.add('closed');
+              mobileMenuToggle.textContent = '☰';
+            }
+          });
+        });
+      }
+      
+      function closeMobileSidebarOnClickOutside(event) {
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        
+        if (!mobileSidebar || !mobileMenuToggle) return;
+        
+        const isClickInsideSidebar = mobileSidebar.contains(event.target);
+        const isClickOnToggle = mobileMenuToggle.contains(event.target);
+        
+        if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
+          mobileSidebar.classList.add('closed');
+          mobileMenuToggle.textContent = '☰';
+          document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+        }
+      }
+
+      // Update teacher name display using the full name from storage
+      const teacherNameElement = document.getElementById('teacherName');
+      const currentTeacherElement = document.getElementById('currentTeacher');
+      
+      // Get teacher name from localStorage (set during login/signup)
+      const teacherFullName = localStorage.getItem('teacherFullName') || 
+                             localStorage.getItem('smartScoresTeacher') || 
+                             'Guest Teacher';
+      
+      if (teacherNameElement) {
+        teacherNameElement.textContent = teacherFullName;
+      }
+      if (currentTeacherElement) {
+        currentTeacherElement.textContent = teacherFullName;
+      }
+    });
+
+    // Mobile menu toggle function
+    function toggleMobileMenu() {
+      const sidebar = document.getElementById('mobileSidebar');
+      sidebar.classList.toggle('closed');
+    }
+
+    // Logout function
+    function logout() {
+      // Add your logout logic here
+      console.log('Logout clicked');
+      // Example: Redirect to login page
+      // window.location.href = './login.html';
     }
   </script>
 </body>
