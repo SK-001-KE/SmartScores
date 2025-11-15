@@ -59,83 +59,11 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.btn-google {
-  background: white;
-  color: #333;
-  border: 2px solid #ddd;
-  font-weight: 600;
-}
-
-.btn-google:hover {
-  background: #f8f9fa;
-  border-color: #ccc;
-  transform: translateY(-2px);
-}
-
-.divider {
-  text-align: center;
-  margin: 25px 0;
-  position: relative;
-  color: #666;
-}
-
-.divider::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--border);
-}
-
-.divider span {
-  background: var(--bg);
-  padding: 0 15px;
-  position: relative;
-}
-
-.form-options {
-  margin: 20px 0;
-  padding: 15px;
-  background: rgba(139, 0, 0, 0.05);
-  border-radius: 8px;
-  border-left: 4px solid var(--primary);
-}
-
-.form-options label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.form-options input[type="checkbox"] {
-  width: auto;
-  transform: scale(1.2);
-}
-
-.form-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .form-actions {
-    gap: 10px;
-  }
-}
-
 /* =========================================================
-   TOP NAVIGATION STYLES
+   TOP NAVIGATION STYLES - FIXED VERSION
 ========================================================= */
 
-/* Top Navigation Bar */
+/* Top Navigation Bar - ALWAYS VISIBLE ON DESKTOP */
 .top-nav {
   display: flex;
   justify-content: space-between;
@@ -172,6 +100,7 @@ body {
   transition: all 0.3s ease;
   font-weight: 500;
   font-size: 0.9em;
+  white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -195,7 +124,7 @@ body {
   font-weight: 500;
 }
 
-/* Mobile Menu Toggle */
+/* Mobile Menu Toggle - HIDDEN ON DESKTOP */
 .mobile-menu-toggle {
   display: none;
   position: fixed;
@@ -212,7 +141,7 @@ body {
   box-shadow: var(--shadow);
 }
 
-/* Mobile Sidebar */
+/* Mobile Sidebar - HIDDEN ON DESKTOP */
 .mobile-sidebar {
   display: none;
   position: fixed;
@@ -279,11 +208,37 @@ body {
 /* Adjust header position to account for fixed nav */
 header {
   margin-top: 60px; /* Push header down below fixed nav */
+  text-align: center;
+  padding: 25px 20px;
+  background: var(--gradient-header);
+  color: white;
+  box-shadow: var(--shadow);
+  position: relative;
+  z-index: 100;
+}
+
+header h1 {
+  font-size: 2.2em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+header p {
+  font-size: 1.1em;
+  opacity: 0.9;
+  font-weight: 300;
+  letter-spacing: 0.5px;
 }
 
 /* Adjust main content padding */
 .content {
-  padding-top: 20px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 /* =========================================================
@@ -293,19 +248,19 @@ header {
 /* Desktop styles (default) - Top nav always visible */
 @media (min-width: 1024px) {
   .top-nav {
-    display: flex;
+    display: flex !important; /* Force display on desktop */
   }
   
   .nav-links {
-    display: flex;
+    display: flex !important; /* Force display on desktop */
   }
   
   .mobile-menu-toggle {
-    display: none;
+    display: none !important; /* Hide on desktop */
   }
   
   .mobile-sidebar {
-    display: none;
+    display: none !important; /* Hide on desktop */
   }
 }
 
@@ -317,15 +272,15 @@ header {
   }
   
   .nav-links {
-    display: none; /* Hide navigation links on mobile */
+    display: none !important; /* Hide navigation links on mobile */
   }
   
   .mobile-menu-toggle {
-    display: block;
+    display: block !important; /* Show mobile menu toggle */
   }
   
   .mobile-sidebar {
-    display: block;
+    display: block !important; /* Show mobile sidebar */
   }
   
   .nav-user {
@@ -340,6 +295,7 @@ header {
     font-size: 0.9em;
   }
 }
+
 
 /* =========================================================
    UPDATE EXISTING STYLES
