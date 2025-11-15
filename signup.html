@@ -211,10 +211,10 @@
     
     // NEW: Password Strength Validation Check
     // NEW: Password Strength Validation Check
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+const passwordRegex = /^\d{6}$/;
 
 if (!passwordRegex.test(password)) {
-    showSignupError('Password must be at least 8 characters long and contain one uppercase, one lowercase, one number, and one special character (@$!%*?&).');
+    showSignupError('Password must be exactly 6 digits.');
     return;
 }
     try {
