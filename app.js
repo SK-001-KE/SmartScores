@@ -1729,6 +1729,10 @@ const renderAll = async () => { // ADDED ASYNC
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async () => {
+   // NEW: Run the session check on every page load immediately
+    if (window.auth && window.auth.checkSessionTimeout) {
+        window.auth.checkSessionTimeout();
+    }
     loadTheme();
     autoFillYear();
     
