@@ -53,7 +53,7 @@
     <button class="logout-btn" onclick="logout()">🚪 Logout</button>
   </aside>
 
-  <!-- DARK MODE -->
+  <!-- DARK MODE TOGGLE -->
   <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
   <header>
@@ -62,7 +62,7 @@
   </header>
 
   <main class="content">
-    <!-- Your existing dashboard content remains the same -->
+    <!-- Dashboard Stats Cards -->
     <div class="dashboard-cards">
       <div class="dashboard-card total-avg-card" id="totalAvgCard">
         <h3>Overall Average</h3>
@@ -78,6 +78,7 @@
       </div>
     </div>
 
+    <!-- Quick Actions -->
     <div class="quick-actions">
       <button onclick="location.href='./data-entry.html'" class="btn-action">➕ Add New Scores</button>
       <button onclick="location.href='./set-targets.html'" class="btn-action">🎯 Set Targets</button>
@@ -85,11 +86,13 @@
       <button onclick="exportToExcel()" class="btn-action">📊 Export Excel</button>
     </div>
 
+    <!-- Performance Trend Chart -->
     <div class="chart-container">
       <h3>Performance Trend</h3>
       <canvas id="progressChart"></canvas>
     </div>
 
+    <!-- Recent Records -->
     <div class="recent-records">
       <h3>Recent Scores</h3>
       <div id="recentRecordsTable">
