@@ -1,5 +1,5 @@
 /* =========================================================
-   SMARTSCORES AUTHENTICATION v3.0 - FIXED VERSION
+   SMARTSCORES AUTHENTICATION v3.0
    Handles login, logout, and session management
 ========================================================= */
 
@@ -12,43 +12,7 @@ const AUTH_KEYS = {
 // DOM Helper
 const el = id => document.getElementById(id);
 
-// Simple fallback auth system
-const simpleAuth = {
-  login: function(teacherName) {
-    if (!teacherName || teacherName.trim() === '') return false;
-    try {
-      localStorage.setItem('teacherFullName', teacherName.trim());
-      localStorage.setItem('teacherUID', 'local-user');
-      localStorage.setItem('authMethod', 'local');
-      return true;
-    } catch (error) {
-      console.error('Simple auth login failed:', error);
-      return false;
-    }
-  },
-  
-  logout: function() {
-    const keysToKeep = ['smartScoresRecords', 'smartScoresTargets', 'themeMode'];
-    const allKeys = Object.keys(localStorage);
-    
-    allKeys.forEach(key => {
-      if (!keysToKeep.includes(key)) {
-        localStorage.removeItem(key);
-      }
-    });
-    window.location.href = './login.html';
-  },
-  
-  isAuthenticated: function() {
-    return !!localStorage.getItem('teacherFullName');
-  },
-  
-  getCurrentTeacher: function() {
-    return localStorage.getItem('teacherFullName') || 'Guest Teacher';
-  }
-};
-
-// Authentication state management
+// Authentication state management (Retained all original methods)
 const auth = {
     // Check if user is authenticated
     isAuthenticated: function() {
@@ -73,8 +37,9 @@ const auth = {
     
     // Logout function
     logout: function() {
-        // Use simple auth logout as it's more reliable
-        simpleAuth.logout();
+        localStorage.removeItem(AUTH_KEYS.TEACHER);
+        localStorage.removeItem(AUTH_KEYS.LAST_ACTIVITY);
+        window.location.href = './login.html';
     },
     
     // Check authentication and redirect if needed
@@ -184,46 +149,9 @@ const auth = {
 
 // ==================== LOGIN PAGE SPECIFIC FUNCTIONS ====================
 
-// Check if Firebase is available
-function isFirebaseAvailable() {
-    return typeof firebaseAuth !== 'undefined' && firebaseAuth !== null;
-}
+// Removed the unused window.handleLogin function
 
-// Enhanced login form handler
-window.handleLogin = function(event) {
-    if (event) event.preventDefault();
-    
-    const firstName = el('firstName')?.value?.trim();
-    const lastName = el('lastName')?.value?.trim();
-    
-    if (!firstName || !lastName) {
-        showLoginError('Please enter both first and last name');
-        return false;
-    }
-    
-    if (firstName.length < 2 || lastName.length < 2) {
-        showLoginError('Names must be at least 2 characters long');
-        return false;
-    }
-    
-    const fullName = `${firstName} ${lastName}`;
-    
-    // Use simple auth as primary method
-    if (simpleAuth.login(fullName)) {
-        showLoginSuccess(`Welcome ${fullName}! Redirecting to your dashboard...`);
-        
-        // Add slight delay for better UX
-        setTimeout(() => {
-            window.location.href = './index.html';
-        }, 1500);
-    } else {
-        showLoginError('Login failed. Please try again.');
-    }
-    
-    return false;
-};
-
-// Login error display
+// Login error display (Retained)
 function showLoginError(message) {
     // Remove any existing error messages
     const existingError = document.querySelector('.login-error');
@@ -253,7 +181,13 @@ function showLoginError(message) {
     
     const form = el('loginForm');
     if (form) {
-        form.insertBefore(errorDiv, form.querySelector('button'));
+        // Find the correct insertion point (before the form-actions)
+        const formActions = form.querySelector('.form-actions');
+        if (formActions) {
+            form.insertBefore(errorDiv, formActions);
+        } else {
+            form.appendChild(errorDiv); // Fallback
+        }
     }
     
     // Shake animation for error
@@ -265,7 +199,7 @@ function showLoginError(message) {
     });
 }
 
-// Login success display
+// Login success display (Retained)
 function showLoginSuccess(message) {
     // Remove any existing messages
     const existingError = document.querySelector('.login-error');
@@ -295,7 +229,12 @@ function showLoginSuccess(message) {
     
     const form = el('loginForm');
     if (form) {
-        form.insertBefore(successDiv, form.querySelector('button'));
+        const formActions = form.querySelector('.form-actions');
+        if (formActions) {
+            form.insertBefore(successDiv, formActions);
+        } else {
+            form.appendChild(successDiv); // Fallback
+        }
     }
     
     // Disable form inputs after successful login
@@ -305,7 +244,7 @@ function showLoginSuccess(message) {
     });
 }
 
-// ==================== SIDEBAR MANAGEMENT ====================
+// ==================== SIDEBAR MANAGEMENT (Retained all original methods) ====================
 
 // Enhanced sidebar toggle function
 window.toggleSidebar = function() {
@@ -356,7 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupSidebarAutoClose();
 });
 
-// ==================== SESSION MANAGEMENT ====================
+// ==================== SESSION MANAGEMENT (Retained all original methods) ====================
 
 // Auto-save draft data (optional enhancement)
 function setupAutoSave() {
@@ -410,7 +349,7 @@ function loadDraftData() {
     }
 }
 
-// ==================== INITIALIZATION ====================
+// ==================== INITIALIZATION (FIXED) ====================
 
 // Initialize authentication when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -429,14 +368,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup login form if on login page
     const loginForm = el('loginForm');
     if (loginForm) {
-        // Use the enhanced form handler from login.html instead
-        console.log('Login form found - using enhanced handler from login.html');
+        // !!! FIX APPLIED: REMOVED CONFLICTING loginForm.addEventListener('submit', handleLogin); !!!
         
-        // Auto-focus first name field
-        const firstNameInput = el('firstName');
-        if (firstNameInput) {
-            setTimeout(() => firstNameInput.focus(), 100);
+        // Auto-focus email field (was firstName)
+        const emailInput = el('email');
+        if (emailInput) {
+            setTimeout(() => emailInput.focus(), 100);
         }
+        
+        // Enter key support for login
+        const inputs = loginForm.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (this.id === 'password') {
+                        // Trigger form submission which is handled in login.html
+                        loginForm.querySelector('button[type="submit"]').click();
+                    } else {
+                        const nextInput = this.parentElement.nextElementSibling?.querySelector('input');
+                        if (nextInput) nextInput.focus();
+                    }
+                }
+            });
+        });
     }
     
     // Check for session timeout every minute
@@ -445,16 +400,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 60000); // Check every minute
 });
 
-// ==================== GLOBAL EXPORTS ====================
+// ==================== GLOBAL EXPORTS (Retained) ====================
 
 // Make auth functions available globally
 window.auth = auth;
-window.simpleAuth = simpleAuth;
 window.logout = () => auth.logout();
 window.getCurrentTeacher = () => auth.getCurrentTeacher();
-window.isFirebaseAvailable = isFirebaseAvailable;
 
 // Export for module systems (if needed)
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { auth, AUTH_KEYS, simpleAuth };
+    module.exports = { auth, AUTH_KEYS };
 }
