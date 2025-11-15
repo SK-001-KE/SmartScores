@@ -147,7 +147,16 @@
 
       <div class="form-group">
         <label>Password</label>
-        <input type="password" id="password" required placeholder="Min 8 chars, incl. U/L/1/&">
+        <input 
+  type="text" 
+  id="password" 
+  required 
+  placeholder="Create a 6-digit PIN" 
+  minlength="6" 
+  maxlength="6" 
+  pattern="\d{6}"
+  inputmode="numeric"
+>
       </div>
       
       <div class="form-actions">
@@ -201,14 +210,13 @@
     }
     
     // NEW: Password Strength Validation Check
-    // Requires min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    // NEW: Password Strength Validation Check
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-    if (!passwordRegex.test(password)) {
-        showSignupError('Password must be at least 8 characters long and contain one uppercase, one lowercase, one number, and one special character (@$!%*?&).');
-        return;
-    }
-
+if (!passwordRegex.test(password)) {
+    showSignupError('Password must be at least 8 characters long and contain one uppercase, one lowercase, one number, and one special character (@$!%*?&).');
+    return;
+}
     try {
       showCustomAlert('Registering account...', 'info');
       // Pass the name to the registration function
