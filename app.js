@@ -292,6 +292,34 @@ const generateLearnerTableHTML = (learnerData) => {
         `;
     }).join('');
 };
+// Add this function to calculate term averages
+const calculateTermAverage = (term) => {
+    const scores = [term.opener, term.mid, term.end].filter(score => score !== null);
+    if (scores.length === 0) return null;
+    return scores.reduce((sum, score) => sum + score, 0) / scores.length;
+};
+
+// Add this function to calculate annual average
+const calculateAnnualAverage = (termAverages) => {
+    const validAverages = termAverages.filter(avg => avg !== null);
+    if (validAverages.length === 0) return null;
+    return validAverages.reduce((sum, avg) => sum + avg, 0) / validAverages.length;
+};
+
+// Add this function to format scores
+const formatScore = (score) => {
+    if (score === null || score === undefined) return '–';
+    return score.toFixed(1);
+};
+
+// Add this function to get color for score
+const getColorForScore = (score) => {
+    if (score === null) return '#666';
+    if (score >= 80) return '#10B981';
+    if (score >= 60) return '#3B82F6';
+    if (score >= 50) return '#F59E0B';
+    return '#EF4444';
+};
 
 // Enhanced performance summary
 const updatePerformanceSummary = (learnerData) => {
@@ -2236,16 +2264,18 @@ window.clearAllData = () => {
 };
 
 // ==================== MAIN RENDER FUNCTION ====================
-const renderAll = async () => { // ADDED ASYNC
+
+const renderAll = async () => {
     const currentPage = window.location.pathname.split('/').pop();
     
-    await renderRecords(); // CHANGED TO AWAIT
+    await renderRecords();
     
-    if (currentPage === 'index.html') {
-        updateDashboardStats();
+    if (currentPage === 'index.html' || currentPage === '' || currentPage === 'index.html#') {
+        await updateDashboardStats();
+        await renderRecentRecords();
         renderProgressChart();
     } else if (currentPage === 'set-targets.html') {
-        await renderTargets(); // CHANGED TO AWAIT
+        await renderTargets();
     } else if (currentPage === 'ai-insights.html') {
         updateAIInsights();
     } else if (currentPage === 'averages.html') {
@@ -2255,10 +2285,10 @@ const renderAll = async () => { // ADDED ASYNC
     } else if (currentPage === 'data-entry.html') {
         const teacherDisplay = el('currentTeacher');
         if (teacherDisplay) {
-            teacherDisplay.textContent = localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Not logged in';
+            teacherDisplay.textContent = getTeacherName() || 'Not logged in';
         }
         
-        const records = await loadRecords(); // CHANGED TO AWAIT
+        const records = await loadRecords();
         const totalRecords = el('totalRecords');
         const termRecords = el('termRecords');
         const yearRecords = el('yearRecords');
@@ -2266,7 +2296,7 @@ const renderAll = async () => { // ADDED ASYNC
         if (totalRecords) totalRecords.textContent = records.length;
         
         if (termRecords) {
-            const currentTerm = 'Term 1';
+            const currentTerm = 'Term 1'; // You might want to make this dynamic
             const termCount = records.filter(r => r.term === currentTerm).length;
             termRecords.textContent = termCount;
         }
@@ -2278,7 +2308,6 @@ const renderAll = async () => { // ADDED ASYNC
         }
     }
 };
-
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async () => {
    // NEW: Run the session check on every page load immediately
