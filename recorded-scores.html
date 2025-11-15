@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>SmartScores - Recorded Scores</title>
-  <link rel="manifest" href="./manifest.json" />
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./style.css">
   <script src="./app.js" defer></script>
   <script src="./auth.js" defer></script>
   <script type="module" src="./firebase-config.js"></script>
@@ -31,15 +31,15 @@
     </div>
     
     <div class="nav-user">
-      <span id="teacherName" class="teacher-name">Teacher</span>
+      <span id="teacherName" class="teacher-name">Loading...</span>
       <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
     </div>
   </nav>
 
-  <!-- MOBILE MENU TOGGLE (only show on mobile) -->
+  <!-- MOBILE MENU TOGGLE -->
   <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
 
-  <!-- MOBILE SIDEBAR (only for mobile) -->
+  <!-- MOBILE SIDEBAR -->
   <aside id="mobileSidebar" class="mobile-sidebar closed">
     <a href="./index.html">📊 Dashboard</a>
     <a href="./data-entry.html">📝 Data Entry</a>
@@ -52,7 +52,6 @@
     <button class="logout-btn" onclick="logout()">🚪 Logout</button>
   </aside>
 
-  <!-- DARK MODE -->
   <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
   <header>
@@ -60,7 +59,12 @@
     <p>All Recorded Scores</p>
   </header>
 
-  <main class="content">
+  <div class="content content-with-sidebar">
+    <div class="form-header">
+      <h2>Recorded Scores</h2>
+      <p class="teacher-info">Teacher: <span id="currentTeacher">Loading...</span></p>
+    </div>
+
     <div class="table-controls">
       <div class="search-box">
         <input type="text" id="searchInput" placeholder="🔍 Search records..." oninput="filterRecords()">
@@ -119,7 +123,7 @@
         <span class="stat-value" id="recordsShown">0</span>
       </div>
     </div>
-  </main>
+  </div>
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
@@ -132,19 +136,96 @@
       });
     }
 
-    // Mobile menu toggle function
-    function toggleMobileMenu() {
-      const sidebar = document.getElementById('mobileSidebar');
-      sidebar.classList.toggle('closed');
+    // Enhanced mobile menu functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      // Mobile menu functionality - use the same setup as data-entry.html
+      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      
+      if (mobileMenuToggle && mobileSidebar) {
+        mobileMenuToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          mobileSidebar.classList.toggle('closed');
+          mobileMenuToggle.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
+          
+          if (!mobileSidebar.classList.contains('closed')) {
+            setTimeout(() => {
+              document.addEventListener('click', closeMobileSidebarOnClickOutside);
+            }, 100);
+          }
+        });
+        
+        // Close sidebar when clicking on links
+        const mobileLinks = mobileSidebar.querySelectorAll('a, button');
+        mobileLinks.forEach(link => {
+          link.addEventListener('click', function() {
+            if (!mobileSidebar.classList.contains('closed')) {
+              mobileSidebar.classList.add('closed');
+              mobileMenuToggle.textContent = '☰';
+            }
+          });
+        });
+      }
+      
+      // Close mobile sidebar when clicking outside
+      function closeMobileSidebarOnClickOutside(event) {
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        
+        if (!mobileSidebar || !mobileMenuToggle) return;
+        
+        const isClickInsideSidebar = mobileSidebar.contains(event.target);
+        const isClickOnToggle = mobileMenuToggle.contains(event.target);
+        
+        if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
+          mobileSidebar.classList.add('closed');
+          mobileMenuToggle.textContent = '☰';
+          document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+        }
+      }
+
+      // UPDATED: Get teacher name using the new consistent storage keys
+      const teacherNameElement = document.getElementById('teacherName');
+      const currentTeacherElement = document.getElementById('currentTeacher');
+      
+      // Get teacher name from localStorage using consistent keys
+      const teacherFullName = localStorage.getItem('teacherFullName') || 
+                             'Guest Teacher';
+      
+      if (teacherNameElement) {
+        teacherNameElement.textContent = teacherFullName;
+      }
+      if (currentTeacherElement) {
+        currentTeacherElement.textContent = teacherFullName;
+      }
+    });
+
+    // Logout function - UPDATED to use global logout
+    function logout() {
+      if (window.logout) {
+        window.logout();
+      } else {
+        console.log('Logout function not available');
+        // Fallback redirect
+        window.location.href = './login.html';
+      }
     }
 
-    // Logout function
-    function logout() {
-      // Add your logout logic here
-      console.log('Logout clicked');
-      // Example: Redirect to login page
-      // window.location.href = './login.html';
+    // UPDATED: Use the global toggleDarkMode function if available
+    function toggleDarkMode() {
+      if (window.toggleDarkMode) {
+        window.toggleDarkMode();
+      } else {
+        // Fallback implementation
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('themeMode', newTheme);
+      }
     }
+
+    // UPDATED: Use the global toggleMobileMenu function from app.js
+    // No need to redefine it here - it's already available from app.js
   </script>
 </body>
 </html>
