@@ -233,13 +233,12 @@
         }
       }
 
-      // Update teacher name display using the full name from storage
+      // UPDATED: Get teacher name using the new consistent storage keys
       const teacherNameElement = document.getElementById('teacherName');
       const currentTeacherElement = document.getElementById('currentTeacher');
       
-      // Get teacher name from localStorage (set during login/signup)
+      // Get teacher name from localStorage using consistent keys
       const teacherFullName = localStorage.getItem('teacherFullName') || 
-                             localStorage.getItem('smartScoresTeacher') || 
                              'Guest Teacher';
       
       if (teacherNameElement) {
@@ -248,17 +247,50 @@
       if (currentTeacherElement) {
         currentTeacherElement.textContent = teacherFullName;
       }
+
+      // UPDATED: Auto-fill year if empty
+      const yearInput = document.getElementById('year');
+      if (yearInput && !yearInput.value.trim()) {
+        yearInput.value = new Date().getFullYear();
+      }
+
+      // UPDATED: Form submission will now use the proper teacher name from storage
+      const dataEntryForm = document.getElementById('dataEntryForm');
+      if (dataEntryForm) {
+        dataEntryForm.addEventListener('submit', function(event) {
+          // The actual saving is handled by app.js handleSaveRecord function
+          // which now uses getTeacherName() that reads from teacherFullName
+          console.log('Form submitted - teacher name will be:', teacherFullName);
+        });
+      }
     });
 
-    // REMOVED: Duplicate toggleMobileMenu function - using the one from app.js
-
-    // Logout function
+    // Logout function - UPDATED to use global logout
     function logout() {
-      // Add your logout logic here
-      console.log('Logout clicked');
-      // Example: Redirect to login page
-      // window.location.href = './login.html';
+      if (window.logout) {
+        window.logout();
+      } else {
+        console.log('Logout function not available');
+        // Fallback redirect
+        window.location.href = './login.html';
+      }
     }
+
+    // UPDATED: Use the global toggleDarkMode function if available
+    function toggleDarkMode() {
+      if (window.toggleDarkMode) {
+        window.toggleDarkMode();
+      } else {
+        // Fallback implementation
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('themeMode', newTheme);
+      }
+    }
+
+    // UPDATED: Use the global toggleMobileMenu function from app.js
+    // No need to redefine it here - it's already available from app.js
   </script>
 </body>
 </html>
