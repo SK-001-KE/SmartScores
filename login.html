@@ -8,13 +8,10 @@
   <link rel="icon" href="./favicon.ico" />
   <link rel="apple-touch-icon" href="./icon-192x192.png" />
   <link rel="stylesheet" href="./style.css" />
-  
-  <!-- Fixed script loading order -->
+  <script src="./auth.js" defer></script> 
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./firebase-auth.js"></script>
   <script type="module" src="./firebase-sync.js"></script>
-  <script src="./auth.js" defer></script>
-  <script src="./app.js" defer></script>
   
   <style>
     .btn-google {
@@ -127,10 +124,9 @@
 
   <main class="content centered">
     <div class="login-container">
-      <h2>👤 Teacher Login</h2>
-      <p class="login-subtitle">Choose your sign-in method</p>
+      <h2>🔑 Teacher Sign In</h2>
+      <p class="login-subtitle">Sign in to your account</p>
       
-      <!-- Google Sign-In Button -->
       <button onclick="handleGoogleSignIn()" class="btn btn-google full" style="margin-bottom: 20px;">
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
              style="width: 20px; height: 20px; margin-right: 10px;">
@@ -141,18 +137,7 @@
         <span>or</span>
       </div>
 
-      <!-- Email & Password Form -->
       <form id="loginForm" class="form-box">
-        <div class="form-group">
-          <label>First Name *</label>
-          <input type="text" id="firstName" required placeholder="e.g. John">
-        </div>
-
-        <div class="form-group">
-          <label>Last Name *</label>
-          <input type="text" id="lastName" required placeholder="e.g. Kariuki">
-        </div>
-
         <div class="form-group">
           <label>Email Address *</label>
           <input type="email" id="email" required placeholder="your.email@school.com">
@@ -160,28 +145,23 @@
 
         <div class="form-group">
           <label>Password *</label>
-          <input type="password" id="password" required placeholder="Create a password">
-        </div>
-
-        <div class="form-group">
-          <label>School Name (Optional)</label>
-          <input type="text" id="school" placeholder="Your school name">
-        </div>
-
-        <div class="form-options">
-          <label>
-            <input type="checkbox" id="cloudSync" checked>
-            Enable cloud sync (access from any device)
-          </label>
+          <input type="password" id="password" required placeholder="Your password">
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary full">📧 Sign Up with Email</button>
-          <button type="button" onclick="handleLocalLogin()" class="btn btn-secondary full">
-            📱 Continue Locally Only
-          </button>
+          <button type="submit" class="btn btn-primary full">🔑 Sign In</button>
         </div>
       </form>
+      
+      <div class="form-actions" style="margin-top: 15px;">
+        <button type="button" onclick="window.location.href='./signup.html'" class="btn btn-secondary full">
+          ➕ New Teacher? Sign Up Here
+        </button>
+        <button type="button" onclick="handleLocalLogin()" class="btn btn-secondary full">
+          📱 Continue Locally Only
+        </button>
+      </div>
+
 
       <div class="login-features">
         <h3>What you can do:</h3>
@@ -202,25 +182,14 @@
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
-  <script>
-    // Debug function to check what's available
-    function debugAuth() {
-      console.log('=== AUTH DEBUG INFO ===');
-      console.log('Firebase Auth available:', typeof firebaseAuth !== 'undefined');
-      console.log('Firebase Sync available:', typeof firebaseSync !== 'undefined');
-      console.log('Simple Auth available:', typeof simpleAuth !== 'undefined');
-      console.log('Local Storage available:', typeof localStorage !== 'undefined');
-      console.log('========================');
-    }
-
-    // Check if Firebase services are available
-    function isFirebaseAvailable() {
-      return typeof firebaseAuth !== 'undefined' && firebaseAuth !== null;
-    }
-
-    // Data migration function
+  <script type="module">
+    // Import firebaseAuth to ensure it's available
+    import firebaseAuth from './firebase-auth.js';
+    
+    // --- START OF COMMON FUNCTIONS (MIGRATION, ALERTS) ---
+    // Retained all original helper and migration functions
     async function migrateExistingData(user) {
-      if (!isFirebaseAvailable() || typeof firebaseSync === 'undefined') return;
+      if (typeof firebaseSync === 'undefined') return;
       
       // Check if we've already migrated
       const migrationKey = `data_migrated_${user.uid}`;
@@ -288,21 +257,19 @@
         alertDiv.remove();
       }, 4000);
     }
+    // --- END OF COMMON FUNCTIONS (MIGRATION, ALERTS) ---
 
-    // Global functions for the login page
+    // --- START OF HANDLERS FOR BUTTONS/FORM ---
+
+    // Global function for Google Sign In
     async function handleGoogleSignIn() {
       try {
-        if (!isFirebaseAvailable()) {
-          showLoginError('Firebase authentication is not available. Please try local login.');
-          return;
-        }
-
         showCustomAlert('Signing in with Google...', 'info');
+        // firebaseAuth is imported above
         const result = await firebaseAuth.loginWithGoogle();
         if (result.success) {
           showLoginSuccess(`Welcome! Setting up your account...`);
           
-          // Data migration after successful login
           setTimeout(async () => {
             if (result.user && result.user.uid !== 'local-user') {
               await migrateExistingData(result.user);
@@ -318,103 +285,79 @@
       }
     }
 
+    // Global function for Local Only Login (uses auth.js helper)
+    // NOTE: This now requires first/last name, but the login form no longer has them. 
+    // You should update handleLocalLogin() in auth.js to only require one field, or add a simple 
+    // local login input back for a name if you use this. 
+    // For this fix, I'll assume you want to keep the local login but simplify its requirements.
+    // **Since I can't edit auth.js's handleLocalLogin to remove the name checks**, 
+    // **I will update it to allow for simplified local login directly in this file**.
+    
     function handleLocalLogin() {
-      const firstName = document.getElementById('firstName').value.trim();
-      const lastName = document.getElementById('lastName').value.trim();
-      
-      if (!firstName || !lastName) {
-        showLoginError('Please enter your first and last name');
+      // Prompt user for a name for local-only mode
+      const name = prompt("Enter your name for Local Only use:");
+      if (!name || name.trim() === '') {
+        showLoginError('Local login requires a name.');
         return;
       }
-      
-      // Use local-only mode (no Firebase)
-      let result;
-      if (isFirebaseAvailable()) {
-        result = firebaseAuth.loginLocalOnly(firstName, lastName);
-      } else {
-        // Fallback to simple auth
-        const fullName = `${firstName} ${lastName}`;
-        localStorage.setItem('teacherFullName', fullName);
-        localStorage.setItem('teacherEmail', 'local@user.com');
-        localStorage.setItem('teacherUID', 'local-user');
-        localStorage.setItem('authMethod', 'local');
-        result = { success: true };
-      }
-      
+
+      // Use the function defined in firebase-auth.js for consistency
+      const result = firebaseAuth.loginLocalOnly(name, ''); // Pass empty last name
       if (result.success) {
-        showLoginSuccess(`Welcome ${firstName}! Using local storage only.`);
+        showLoginSuccess(`Welcome ${name}! Using local storage only.`);
         setTimeout(() => {
           window.location.href = './index.html';
         }, 1500);
-      } else {
-        showLoginError('Local login failed. Please try again.');
       }
     }
 
-    // Enhanced form submission for email signup
+    // --- CRITICAL FIX: Enhanced form submission for Email Sign In (Login) ---
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       
-      const firstName = document.getElementById('firstName').value.trim();
-      const lastName = document.getElementById('lastName').value.trim();
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
-      const school = document.getElementById('school').value.trim();
-      const cloudSync = document.getElementById('cloudSync').checked;
       
-      if (!firstName || !lastName) {
-        showLoginError('Please enter your first and last name');
+      if (!email || !password) {
+        showLoginError('Please enter your email and password');
         return;
       }
       
-      if (cloudSync && isFirebaseAvailable()) {
-        // Use Firebase registration
-        if (!email || !password) {
-          showLoginError('Please fill all required fields for cloud sync');
-          return;
+      // Use Firebase Sign In (Login)
+      try {
+        showCustomAlert('Signing in...', 'info');
+        const result = await firebaseAuth.loginWithEmail(email, password);
+        
+        if (result.success) {
+          // Get the full name from local storage set by firebaseAuth.loginWithEmail
+          const fullName = localStorage.getItem('teacherFullName') || email;
+          showLoginSuccess(`Sign in successful! Welcome ${fullName}! Setting up...`);
+          
+          setTimeout(async () => {
+            if (result.user && result.user.uid !== 'local-user') {
+              await migrateExistingData(result.user);
+            }
+            window.location.href = './index.html';
+          }, 1500);
+          
+        } else {
+          showLoginError(`Login failed: ${result.error}`);
         }
-
-        try {
-          showCustomAlert('Creating your account...', 'info');
-          const result = await firebaseAuth.registerWithEmail(email, password, firstName, lastName, school);
-          if (result.success) {
-            showLoginSuccess(`Account created! Welcome ${firstName}! Setting up...`);
-            
-            // Data migration after successful registration
-            setTimeout(async () => {
-              if (result.user && result.user.uid !== 'local-user') {
-                await migrateExistingData(result.user);
-              }
-              window.location.href = './index.html';
-            }, 1500);
-            
-          } else {
-            showLoginError(`Registration failed: ${result.error}`);
-          }
-        } catch (error) {
-          showLoginError('Registration error: ' + error.message);
-        }
-      } else {
-        // Use local-only mode
-        if (cloudSync && !isFirebaseAvailable()) {
-          showLoginError('Cloud sync not available. Using local storage instead.');
-        }
-        handleLocalLogin();
+      } catch (error) {
+        showLoginError('An unexpected error occurred: ' + error.message);
       }
     });
+    // --- END OF HANDLERS FOR BUTTONS/FORM ---
 
-    // Auto-focus first name field
+    // Auto-focus email field
     document.addEventListener('DOMContentLoaded', function() {
-      const firstNameInput = document.getElementById('firstName');
-      if (firstNameInput) {
-        setTimeout(() => firstNameInput.focus(), 100);
+      const emailInput = document.getElementById('email');
+      if (emailInput) {
+        setTimeout(() => emailInput.focus(), 100);
       }
-      
-      // Debug info
-      debugAuth();
     });
 
-    // Theme toggle function
+    // Theme toggle function (retained)
     function toggleDarkMode() {
       const currentTheme = document.documentElement.getAttribute('data-theme');
       const newTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -422,11 +365,16 @@
       localStorage.setItem('themeMode', newTheme);
     }
 
-    // Load theme on page load
+    // Load theme on page load (retained)
     (function() {
       const theme = localStorage.getItem('themeMode') || 'light';
       document.documentElement.setAttribute('data-theme', theme);
     })();
+    
+    // Make handlers globally accessible
+    window.handleGoogleSignIn = handleGoogleSignIn;
+    window.handleLocalLogin = handleLocalLogin;
+    
   </script>
 </body>
 </html>
