@@ -6,13 +6,13 @@
 // Storage key for teacher name
 const AUTH_KEYS = {
     TEACHER: 'teacherFullName',
-    LAST_ACTIVITY: 'lastActivityTime'
+    LAST_ACTIVITY: 'lastActivityTime' // Used for session timeout
 };
 
 // DOM Helper
 const el = id => document.getElementById(id);
 
-// Authentication state management (Retained all original methods)
+// Authentication state management
 const auth = {
     // Check if user is authenticated
     isAuthenticated: function() {
@@ -24,359 +24,78 @@ const auth = {
         return localStorage.getItem(AUTH_KEYS.TEACHER) || 'Guest Teacher';
     },
     
-    // Login function
+    // Login function (used by local login)
     login: function(teacherName) {
         if (!teacherName || teacherName.trim() === '') {
             return false;
         }
         
         localStorage.setItem(AUTH_KEYS.TEACHER, teacherName.trim());
-        localStorage.setItem(AUTH_KEYS.LAST_ACTIVITY, new Date().toISOString());
+        localStorage.setItem(AUTH_KEYS.LAST_ACTIVITY, new Date().toISOString()); // <-- Update activity time
         return true;
     },
     
     // Logout function
     logout: function() {
+        // We only clear local storage here, the firebaseAuth.logout handles cloud sign out
         localStorage.removeItem(AUTH_KEYS.TEACHER);
         localStorage.removeItem(AUTH_KEYS.LAST_ACTIVITY);
-        window.location.href = './login.html';
+        // Do not redirect here, the caller (firebase-auth.js) will handle it.
     },
     
     // Check authentication and redirect if needed
     checkAuth: function() {
         const currentPage = window.location.pathname.split('/').pop();
         
-        // Allow access to login page without authentication
-        if (currentPage === 'login.html') {
-            // If already logged in and trying to access login page, redirect to dashboard
-            if (this.isAuthenticated()) {
-                window.location.href = './index.html';
-            }
-            return true;
+        // Allow access to login/signup/privacy page without authentication
+        if (currentPage === 'login.html' || currentPage === 'signup.html' || currentPage === 'privacy.html') {
+            return;
         }
         
-        // For all other pages, require authentication
+        // Redirect to login if not authenticated
         if (!this.isAuthenticated()) {
             window.location.href = './login.html';
-            return false;
         }
-        
-        // Update last activity time
-        this.updateActivityTime();
-        return true;
     },
     
-    // Update last activity timestamp
-    updateActivityTime: function() {
-        localStorage.setItem(AUTH_KEYS.LAST_ACTIVITY, new Date().toISOString());
-    },
-    
-    // Check for session timeout (optional feature)
+    // NEW METHOD: Check for session timeout
     checkSessionTimeout: function() {
         const lastActivity = localStorage.getItem(AUTH_KEYS.LAST_ACTIVITY);
-        if (!lastActivity) return;
-        
-        const lastActivityTime = new Date(lastActivity);
-        const currentTime = new Date();
-        const timeDiff = (currentTime - lastActivityTime) / (1000 * 60); // Difference in minutes
-        
-        // Auto-logout after 8 hours of inactivity (optional)
-        if (timeDiff > 480) { // 8 hours
-            this.logout();
-            alert('Session expired due to inactivity. Please login again.');
+        if (!lastActivity || !this.isAuthenticated()) return;
+
+        const timeoutMinutes = 60; // Set timeout to 60 minutes
+        const currentTime = new Date().getTime();
+        const lastActivityTime = new Date(lastActivity).getTime();
+        const elapsedTime = (currentTime - lastActivityTime) / 1000 / 60; // Time in minutes
+
+        if (elapsedTime > timeoutMinutes) {
+            console.log('Session timed out. Logging out.');
+            // Use the full window.logout for proper redirection and full cleanup
+            window.logout(); 
+            // Use a standard browser alert since the custom alerts might not be available on every page load
+            alert('You have been logged out due to 60 minutes of inactivity.');
         }
-    },
-    
-    // Initialize auth on page load
-    init: function() {
-        this.checkAuth();
-        this.setupLogoutHandlers();
-        this.updateUIWithTeacherName();
-        
-        // Set up activity tracking
-        this.setupActivityTracking();
-    },
-    
-    // Set up logout button handlers
-    setupLogoutHandlers: function() {
-        const logoutButtons = document.querySelectorAll('.logout-btn');
-        logoutButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (confirm('Are you sure you want to logout?')) {
-                    this.logout();
-                }
-            });
-        });
-    },
-    
-    // Update UI with teacher name
-    updateUIWithTeacherName: function() {
-        const teacherNameElements = document.querySelectorAll('#teacherName, .teacher-name');
-        const teacherName = this.getCurrentTeacher();
-        
-        teacherNameElements.forEach(element => {
-            element.textContent = teacherName;
-        });
-        
-        // Update page titles with teacher name on dashboard pages
-        const currentPage = window.location.pathname.split('/').pop();
-        if (currentPage !== 'login.html' && document.title.includes('SmartScores')) {
-            document.title = `SmartScores - ${teacherName}`;
-        }
-    },
-    
-    // Track user activity for session management
-    setupActivityTracking: function() {
-        const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-        
-        activityEvents.forEach(eventName => {
-            document.addEventListener(eventName, () => {
-                this.updateActivityTime();
-            });
-        });
-    },
-    
-    // Get login status for other parts of the app
-    getAuthStatus: function() {
-        return {
-            isAuthenticated: this.isAuthenticated(),
-            teacherName: this.getCurrentTeacher(),
-            lastActivity: localStorage.getItem(AUTH_KEYS.LAST_ACTIVITY)
-        };
     }
 };
 
-// ==================== LOGIN PAGE SPECIFIC FUNCTIONS ====================
-
-// Removed the unused window.handleLogin function
-
-// Login error display (Retained)
-function showLoginError(message) {
-    // Remove any existing error messages
-    const existingError = document.querySelector('.login-error');
-    if (existingError) {
-        existingError.remove();
-    }
-    
-    // Remove any existing success messages
-    const existingSuccess = document.querySelector('.login-success');
-    if (existingSuccess) {
-        existingSuccess.remove();
-    }
-    
-    // Create and show error message
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'login-error';
-    errorDiv.style.cssText = `
-        background: #fee2e2;
-        border: 1px solid #fecaca;
-        color: #dc2626;
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin: 15px 0;
-        font-weight: 500;
-    `;
-    errorDiv.textContent = message;
-    
-    const form = el('loginForm');
-    if (form) {
-        // Find the correct insertion point (before the form-actions)
-        const formActions = form.querySelector('.form-actions');
-        if (formActions) {
-            form.insertBefore(errorDiv, formActions);
-        } else {
-            form.appendChild(errorDiv); // Fallback
-        }
-    }
-    
-    // Shake animation for error
-    const inputs = form.querySelectorAll('input');
-    inputs.forEach(input => {
-        input.style.borderColor = '#dc2626';
-        input.classList.add('shake');
-        setTimeout(() => input.classList.remove('shake'), 600);
-    });
-}
-
-// Login success display (Retained)
-function showLoginSuccess(message) {
-    // Remove any existing messages
-    const existingError = document.querySelector('.login-error');
-    if (existingError) {
-        existingError.remove();
-    }
-    
-    const existingSuccess = document.querySelector('.login-success');
-    if (existingSuccess) {
-        existingSuccess.remove();
-    }
-    
-    // Create and show success message
-    const successDiv = document.createElement('div');
-    successDiv.className = 'login-success';
-    successDiv.style.cssText = `
-        background: #d1fae5;
-        border: 1px solid #a7f3d0;
-        color: #065f46;
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin: 15px 0;
-        font-weight: 500;
-        text-align: center;
-    `;
-    successDiv.innerHTML = `✅ ${message}`;
-    
-    const form = el('loginForm');
-    if (form) {
-        const formActions = form.querySelector('.form-actions');
-        if (formActions) {
-            form.insertBefore(successDiv, formActions);
-        } else {
-            form.appendChild(successDiv); // Fallback
-        }
-    }
-    
-    // Disable form inputs after successful login
-    const inputs = form.querySelectorAll('input, button');
-    inputs.forEach(input => {
-        input.disabled = true;
-    });
-}
-
-// ==================== SIDEBAR MANAGEMENT (Retained all original methods) ====================
-
-// Enhanced sidebar toggle function
-window.toggleSidebar = function() {
-    const sidebar = document.getElementById('sidebarMenu');
-    if (!sidebar) return;
-    
-    // On desktop, don't allow closing the sidebar
-    if (window.innerWidth >= 1024) {
-        sidebar.classList.remove('closed');
-        return;
-    }
-    
-    // On mobile, toggle the closed class
-    sidebar.classList.toggle('closed');
-    
-    // Update toggle button text for mobile
-    const toggleBtn = document.getElementById('sidebarToggle');
-    if (toggleBtn && window.innerWidth < 1024) {
-        toggleBtn.textContent = sidebar.classList.contains('closed') ? '☰' : '✕';
+// NEW: Activity tracking event listeners
+const updateActivityTime = () => {
+    if (auth.isAuthenticated()) {
+        localStorage.setItem(AUTH_KEYS.LAST_ACTIVITY, new Date().toISOString());
     }
 };
 
-// Auto-close sidebar on mobile when navigating
-function setupSidebarAutoClose() {
-    if (window.innerWidth < 1024) {
-        const sidebarLinks = document.querySelectorAll('.sidebar a');
-        sidebarLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                const sidebar = document.getElementById('sidebarMenu');
-                if (sidebar) {
-                    sidebar.classList.add('closed');
-                }
-            });
-        });
-    }
-}
+document.addEventListener('mousemove', updateActivityTime);
+document.addEventListener('keypress', updateActivityTime);
+document.addEventListener('scroll', updateActivityTime);
+document.addEventListener('click', updateActivityTime);
 
-// Initialize sidebar on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Ensure sidebar is visible on desktop
-    if (window.innerWidth >= 1024) {
-        const sidebar = document.getElementById('sidebarMenu');
-        if (sidebar) {
-            sidebar.classList.remove('closed');
-        }
-    }
+
+// ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', async () => {
+    auth.checkAuth();
     
-    setupSidebarAutoClose();
-});
-
-// ==================== SESSION MANAGEMENT (Retained all original methods) ====================
-
-// Auto-save draft data (optional enhancement)
-function setupAutoSave() {
-    const dataEntryForm = el('dataEntryForm');
-    if (dataEntryForm) {
-        const inputs = dataEntryForm.querySelectorAll('input, select');
-        inputs.forEach(input => {
-            input.addEventListener('input', () => {
-                saveDraftData();
-            });
-        });
-    }
-}
-
-function saveDraftData() {
-    // Save form data to localStorage as draft
-    const formData = {
-        subject: el('subject')?.value,
-        grade: el('grade')?.value,
-        stream: el('stream')?.value,
-        term: el('term')?.value,
-        examType: el('examType')?.value,
-        year: el('year')?.value,
-        meanScore: el('meanScore')?.value,
-        timestamp: new Date().toISOString()
-    };
-    
-    localStorage.setItem('draftFormData', JSON.stringify(formData));
-}
-
-function loadDraftData() {
-    const draftData = localStorage.getItem('draftFormData');
-    if (draftData) {
-        const data = JSON.parse(draftData);
-        
-        // Only load draft if it's from today
-        const draftDate = new Date(data.timestamp);
-        const today = new Date();
-        if (draftDate.toDateString() === today.toDateString()) {
-            if (el('subject')) el('subject').value = data.subject || '';
-            if (el('grade')) el('grade').value = data.grade || '';
-            if (el('stream')) el('stream').value = data.stream || '';
-            if (el('term')) el('term').value = data.term || '';
-            if (el('examType')) el('examType').value = data.examType || '';
-            if (el('year')) el('year').value = data.year || '';
-            if (el('meanScore')) el('meanScore').value = data.meanScore || '';
-        } else {
-            // Clear old draft data
-            localStorage.removeItem('draftFormData');
-        }
-    }
-}
-
-// ==================== INITIALIZATION (FIXED) ====================
-
-// Initialize authentication when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize auth system
-    auth.init();
-    
-    // Setup sidebar auto-close on mobile
-    setupSidebarAutoClose();
-    
-    // Setup auto-save for data entry (optional)
-    if (window.location.pathname.includes('data-entry.html')) {
-        loadDraftData();
-        setupAutoSave();
-    }
-    
-    // Setup login form if on login page
-    const loginForm = el('loginForm');
-    if (loginForm) {
-        // !!! FIX APPLIED: REMOVED CONFLICTING loginForm.addEventListener('submit', handleLogin); !!!
-        
-        // Auto-focus email field (was firstName)
-        const emailInput = el('email');
-        if (emailInput) {
-            setTimeout(() => emailInput.focus(), 100);
-        }
-        
-        
+    // REMOVED old login form setup logic, as it is now handled in login.html / signup.html
     
     // Check for session timeout every minute
     setInterval(() => {
@@ -384,14 +103,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 60000); // Check every minute
 });
 
-// ==================== GLOBAL EXPORTS (Retained) ====================
+// ==================== GLOBAL EXPORTS ====================
 
 // Make auth functions available globally
 window.auth = auth;
-window.logout = () => auth.logout();
+// Redirect to index.html after the cloud logout completes its work
+window.logout = async () => {
+    // If firebaseAuth is available (on pages with the module script) use it.
+    if (window.firebaseAuth && window.firebaseAuth.logout) {
+        await window.firebaseAuth.logout();
+    } else {
+        auth.logout();
+        window.location.href = './login.html';
+    }
+}; 
 window.getCurrentTeacher = () => auth.getCurrentTeacher();
-
-// Export for module systems (if needed)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { auth, AUTH_KEYS };
-}
