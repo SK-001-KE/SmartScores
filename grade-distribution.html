@@ -1,3 +1,5 @@
+[file name]: grade-distribution.html
+[file content begin]
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -10,12 +12,219 @@
   <script src="./auth.js" defer></script>
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./firebase-sync.js"></script>
+  <!-- Add Chart.js for visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Additional styles specific to grade distribution */
+    .distribution-inputs {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      margin: 25px 0;
+      border: 1px solid var(--border);
+    }
+
+    .grade-inputs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .grade-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .grade-input-group label {
+      font-weight: 600;
+      padding: 10px;
+      border-radius: 8px;
+      color: white;
+      text-align: center;
+      margin-bottom: 0;
+    }
+
+    /* Color coding for grade labels */
+    .grade-ee1 { background: #0B6623; }
+    .grade-ee2 { background: #2E8B57; }
+    .grade-me1 { background: #1E3A8A; }
+    .grade-me2 { background: #3B82F6; }
+    .grade-ae1 { background: #F97316; }
+    .grade-ae2 { background: #FDBA74; color: #000; }
+    .grade-be1 { background: #DC2626; }
+    .grade-be2 { background: #7F1D1D; }
+
+    .total-learners-display {
+      text-align: center;
+      padding: 15px;
+      background: var(--card);
+      border-radius: 8px;
+      margin-top: 15px;
+      font-size: 1.2em;
+      font-weight: bold;
+      border: 2px solid var(--primary);
+    }
+
+    /* Quick Stats Styles */
+    .quick-stats {
+      margin: 25px 0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .stat-item {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      text-align: center;
+      border-top: 4px solid var(--primary);
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-item:hover {
+      transform: translateY(-3px);
+    }
+
+    .stat-value {
+      font-size: 2.5em;
+      font-weight: bold;
+      margin: 10px 0;
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .stat-subtext {
+      font-size: 0.85em;
+      color: var(--secondary);
+    }
+
+    /* Filter Section */
+    .filter-section {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      margin: 25px 0;
+      box-shadow: var(--shadow);
+    }
+
+    .filter-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      align-items: end;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .filter-group label {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+
+    .filter-group select {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      align-items: end;
+    }
+
+    /* Charts Section */
+    .charts-section {
+      margin: 30px 0;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 25px;
+      margin: 25px 0;
+    }
+
+    .chart-card {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      height: 300px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chart-card h3 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .chart-container {
+      flex: 1;
+      position: relative;
+    }
+
+    @media (max-width: 768px) {
+      .grade-inputs-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .stats-grid,
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .section-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+      }
+
+      .table-actions {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .btn-small {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+      }
+      
+      .chart-card {
+        height: 250px;
+      }
+    }
+  </style>
 </head>
 <body>
   <!-- TOP NAVIGATION BAR -->
   <nav class="top-nav">
     <div class="nav-brand">
-      <img src="./icon-192x192.png" class="logo-small">
+      <img src="./icon-192x192.png" class="logo-small" style="height:32px;margin-right:10px;border-radius:6px;">
       <span>SmartScores</span>
     </div>
     
@@ -32,15 +241,15 @@
     </div>
     
     <div class="nav-user">
-      <span id="teacherName" class="teacher-name">Teacher</span>
+      <span id="teacherName" class="teacher-name">Loading...</span>
       <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
     </div>
   </nav>
 
-  <!-- MOBILE MENU TOGGLE (only show on mobile) -->
+  <!-- MOBILE MENU TOGGLE -->
   <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
 
-  <!-- MOBILE SIDEBAR (only for mobile) -->
+  <!-- MOBILE SIDEBAR -->
   <aside id="mobileSidebar" class="mobile-sidebar closed">
     <a href="./index.html">📊 Dashboard</a>
     <a href="./data-entry.html">📝 Data Entry</a>
@@ -54,7 +263,6 @@
     <button class="logout-btn" onclick="logout()">🚪 Logout</button>
   </aside>
 
-  <!-- DARK MODE TOGGLE -->
   <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
   <header>
@@ -62,30 +270,35 @@
     <p>Grade Distribution Tracker</p>
   </header>
 
-  <main class="content">
-    <!-- QUICK STATS OVERVIEW -->
-    <section class="executive-summary">
-      <h2>📈 Grade Distribution Summary</h2>
-      <div class="dashboard-cards">
-        <div class="dashboard-card">
-          <h3>Total Learners</h3>
-          <div class="card-value" id="totalLearners">0</div>
-          <p class="card-subtitle" id="recordCount">-- records</p>
+  <div class="content content-with-sidebar">
+    <div class="form-header">
+      <h2>Grade Distribution Dashboard</h2>
+      <p class="teacher-info">Teacher: <span id="currentTeacher">Loading...</span></p>
+    </div>
+
+    <!-- QUICK STATS -->
+    <section class="quick-stats">
+      <h2>Distribution Summary</h2>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value" id="totalDistributions">--</div>
+          <div class="stat-label">Total Distributions</div>
+          <div class="stat-subtext">Across all subjects</div>
         </div>
-        <div class="dashboard-card">
-          <h3>EE1-EE2 (75-100%)</h3>
-          <div class="card-value" id="topPerformers">0%</div>
-          <p class="card-subtitle" id="topCount">-- learners</p>
+        <div class="stat-item">
+          <div class="stat-value" id="totalLearners">--</div>
+          <div class="stat-label">Total Learners</div>
+          <div class="stat-subtext">All records combined</div>
         </div>
-        <div class="dashboard-card">
-          <h3>Class Average</h3>
-          <div class="card-value" id="classAverage">--</div>
-          <p class="card-subtitle" id="avgCount">-- subjects</p>
+        <div class="stat-item">
+          <div class="stat-value" id="topPerformersPercent">--%</div>
+          <div class="stat-label">EE1-EE2 (75-100%)</div>
+          <div class="stat-subtext" id="topPerformersCount">-- learners</div>
         </div>
-        <div class="dashboard-card">
-          <h3>At/Above Target</h3>
-          <div class="card-value" id="targetMet">--%</div>
-          <p class="card-subtitle" id="targetCount">-- subjects</p>
+        <div class="stat-item">
+          <div class="stat-value" id="needsSupportPercent">--%</div>
+          <div class="stat-label">BE1-BE2 (0-20%)</div>
+          <div class="stat-subtext" id="needsSupportCount">-- learners</div>
         </div>
       </div>
     </section>
@@ -211,17 +424,60 @@
       </form>
     </section>
 
-    <!-- DISTRIBUTION RECORDS TABLE -->
-    <section class="records-section">
-      <div class="table-controls">
-        <div class="search-box">
-          <input type="text" id="distSearch" placeholder="🔍 Search distributions..." oninput="filterDistributions()">
-          <span class="search-hint">Search by subject, grade, stream, term</span>
+    <!-- FILTER CONTROLS -->
+    <section class="filter-section">
+      <h3>Filter Distributions</h3>
+      <div class="filter-controls">
+        <div class="filter-group">
+          <label>Subject</label>
+          <select id="filterSubject">
+            <option value="">All Subjects</option>
+            <option>Mathematics</option>
+            <option>English</option>
+            <option>Kiswahili</option>
+            <option>Science</option>
+            <option>Social Studies</option>
+            <option>CRE</option>
+            <option>Pre-Technical Studies</option>
+            <option>Creative Arts</option>
+            <option>Agriculture</option>
+          </select>
         </div>
-        
+        <div class="filter-group">
+          <label>Grade</label>
+          <select id="filterGrade">
+            <option value="">All Grades</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+            <option>9</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Term</label>
+          <select id="filterTerm">
+            <option value="">All Terms</option>
+            <option>Term 1</option>
+            <option>Term 2</option>
+            <option>Term 3</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button onclick="applyDistributionFilters()" class="btn btn-primary">Apply Filters</button>
+          <button onclick="resetDistributionFilters()" class="btn btn-secondary">Reset</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- DISTRIBUTION RECORDS TABLE -->
+    <section class="table-section">
+      <div class="section-header">
+        <h2>Distribution Records</h2>
         <div class="table-actions">
           <button onclick="exportDistributionReport()" class="btn btn-secondary">📄 Export Report</button>
-          <button onclick="clearAllDistributions()" class="btn btn-danger">🗑️ Clear All Data</button>
+          <button onclick="clearAllDistributions()" class="btn btn-danger">🗑️ Clear All</button>
         </div>
       </div>
 
@@ -229,13 +485,13 @@
         <table id="distributionsTable">
           <thead>
             <tr>
-              <th>Subject</th>
-              <th>Grade</th>
-              <th>Stream</th>
-              <th>Term</th>
-              <th>Exam Type</th>
-              <th>Year</th>
-              <th>Total</th>
+              <th onclick="sortDistributionsTable(0)">Subject ▾</th>
+              <th onclick="sortDistributionsTable(1)">Grade ▾</th>
+              <th onclick="sortDistributionsTable(2)">Stream ▾</th>
+              <th onclick="sortDistributionsTable(3)">Term ▾</th>
+              <th onclick="sortDistributionsTable(4)">Exam Type ▾</th>
+              <th onclick="sortDistributionsTable(5)">Year ▾</th>
+              <th onclick="sortDistributionsTable(6)">Total ▾</th>
               <th>EE1</th>
               <th>EE2</th>
               <th>ME1</th>
@@ -249,14 +505,56 @@
           </thead>
           <tbody id="distributionsBody">
             <tr>
-              <td colspan="16" class="empty-state">
-                <div class="empty-icon">📊</div>
-                <h3>No distributions yet</h3>
-                <p>Add your first grade distribution using the form above.</p>
-              </td>
+              <td colspan="16" class="text-center loading-cell">Loading distribution data...</td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- VISUALIZATION CHARTS -->
+    <section class="charts-section">
+      <h2>📊 Distribution Visualization</h2>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Overall Grade Distribution</h3>
+          <div class="chart-container">
+            <canvas id="overallDistributionChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Subject Performance</h3>
+          <div class="chart-container">
+            <canvas id="subjectDistributionChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Term Comparison</h3>
+          <div class="chart-container">
+            <canvas id="termDistributionChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Stream Performance</h3>
+          <div class="chart-container">
+            <canvas id="streamDistributionChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RUBRIC KEY -->
+    <section class="rubric-section">
+      <h3>🎯 Performance Rubric Key</h3>
+      <div class="rubric-key">
+        <span class="rubric-badge ee1">EE1 90-100</span>
+        <span class="rubric-badge ee2">EE2 75-89</span>
+        <span class="rubric-badge me1">ME1 58-74</span>
+        <span class="rubric-badge me2">ME2 41-57</span>
+        <span class="rubric-badge ae1">AE1 31-40</span>
+        <span class="rubric-badge ae2">AE2 21-30</span>
+        <span class="rubric-badge be1">BE1 11-20</span>
+        <span class="rubric-badge be2">BE2 0-10</span>
       </div>
     </section>
 
@@ -277,20 +575,22 @@
     </div>
 
     <!-- DEBUG INFO -->
-    <section style="background: var(--card); padding: 15px; border-radius: 8px; margin-top: 30px;">
+    <section class="debug-section">
       <h3>🔧 Debug Information</h3>
       <p><strong>Distributions Found:</strong> <span id="debugDistributions">0</span></p>
       <p><strong>Last Updated:</strong> <span id="debugTime">--</span></p>
       <p><strong>Screen Width:</strong> <span id="screenWidth">--</span></p>
-      <button onclick="refreshData()" class="btn" style="margin-top: 10px;">🔄 Refresh Data</button>
+      <p><strong>Navigation State:</strong> <span id="navState">--</span></p>
+      <button onclick="refreshDistributionData()" class="btn btn-primary" style="margin-top: 10px; margin-right: 10px;">🔄 Refresh Data</button>
+      <button onclick="testNavigation()" class="btn btn-secondary" style="margin-top: 10px;">🧪 Test Navigation</button>
     </section>
-  </main>
+  </div>
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
   <script>
     // ==================== GRADE DISTRIBUTION MANAGEMENT ====================
-    console.log('📊 Grade Distribution page loaded!');
+    console.log('📊 Grade Distribution with Updated Navigation loaded!');
 
     // DOM Helper
     const el = id => document.getElementById(id);
@@ -298,24 +598,83 @@
     // Storage key for distributions
     const DISTRIBUTION_KEY = 'smartScoresDistributions';
 
-    // ===== NAVIGATION & THEME FUNCTIONS =====
+    // Chart instances
+    let overallChart, subjectChart, termChart, streamChart;
+
+    // ===== NAVIGATION MANAGEMENT =====
     function toggleMobileMenu() {
-      if (window.toggleMobileMenu) {
-        window.toggleMobileMenu();
-      } else {
-        // Fallback implementation
-        const mobileSidebar = document.getElementById('mobileSidebar');
-        const toggleBtn = document.getElementById('mobileMenuToggle');
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      const toggleBtn = document.getElementById('mobileMenuToggle');
+      
+      if (mobileSidebar) {
+        mobileSidebar.classList.toggle('closed');
+        if (toggleBtn) {
+          toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
+        }
         
-        if (mobileSidebar) {
-          mobileSidebar.classList.toggle('closed');
-          if (toggleBtn) {
-            toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
+        // Add/remove click outside listener
+        if (!mobileSidebar.classList.contains('closed')) {
+          setTimeout(() => {
+            document.addEventListener('click', closeMobileSidebarOnClickOutside);
+          }, 100);
+        } else {
+          document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+        }
+        
+        updateNavDebugInfo();
+      }
+    }
+
+    function closeMobileSidebarOnClickOutside(event) {
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      const toggleBtn = document.getElementById('mobileMenuToggle');
+      
+      if (!mobileSidebar || !toggleBtn) return;
+      
+      const isClickInsideSidebar = mobileSidebar.contains(event.target);
+      const isClickOnToggle = toggleBtn.contains(event.target);
+      
+      if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
+        mobileSidebar.classList.add('closed');
+        toggleBtn.textContent = '☰';
+        document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+        updateNavDebugInfo();
+      }
+    }
+
+    // Auto-close mobile sidebar when navigating
+    function setupMobileSidebarAutoClose() {
+      const mobileSidebarLinks = document.querySelectorAll('.mobile-sidebar a, .mobile-sidebar button');
+      mobileSidebarLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          const mobileSidebar = document.getElementById('mobileSidebar');
+          const toggleBtn = document.getElementById('mobileMenuToggle');
+          
+          if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
+            mobileSidebar.classList.add('closed');
+            if (toggleBtn) {
+              toggleBtn.textContent = '☰';
+            }
+            document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+            updateNavDebugInfo();
           }
+        });
+      });
+    }
+
+    function updateNavDebugInfo() {
+      const navState = document.getElementById('navState');
+      if (navState) {
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
+          navState.textContent = 'Mobile Navigation Open';
+        } else {
+          navState.textContent = window.innerWidth >= 1024 ? 'Desktop Navigation Active' : 'Mobile Navigation Ready';
         }
       }
     }
 
+    // ===== THEME MANAGEMENT =====
     function toggleDarkMode() {
       if (window.toggleDarkMode) {
         window.toggleDarkMode();
@@ -326,8 +685,15 @@
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('themeMode', newTheme);
       }
+      updateChartsTheme();
     }
 
+    function loadTheme() {
+      const theme = localStorage.getItem('themeMode') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+
+    // ===== AUTH MANAGEMENT =====
     function logout() {
       if (window.logout) {
         window.logout();
@@ -336,6 +702,15 @@
         // Fallback redirect
         window.location.href = './login.html';
       }
+    }
+
+    function checkAuth() {
+      const teacher = localStorage.getItem('teacherFullName');
+      if (!teacher) {
+        window.location.href = './login.html';
+        return false;
+      }
+      return true;
     }
 
     // ===== UTILITY FUNCTIONS =====
@@ -510,17 +885,18 @@
       if (distributions.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="16" class="empty-state">
-              <div class="empty-icon">📊</div>
-              <h3>No distributions yet</h3>
-              <p>Add your first grade distribution using the form above.</p>
+            <td colspan="16" class="text-center" style="padding: 40px; color: var(--secondary);">
+              No distributions found. <a href="#distributionForm" style="color: var(--primary);">Add your first distribution</a>
             </td>
           </tr>
         `;
         return;
       }
       
-      tbody.innerHTML = distributions.map((dist, index) => {
+      // Apply filters
+      const filteredDistributions = applyCurrentDistributionFilters(distributions);
+      
+      tbody.innerHTML = filteredDistributions.map((dist, index) => {
         const d = dist.distribution;
         return `
           <tr>
@@ -547,27 +923,39 @@
       }).join('');
 
       // Update summary stats
-      updateTableSummaryStats(distributions);
+      updateTableSummaryStats(filteredDistributions);
     }
 
-    function filterDistributions() {
-      const searchTerm = (el('distSearch')?.value || '').toLowerCase();
-      const tbody = el('distributionsBody');
+    function applyCurrentDistributionFilters(distributions) {
+      const subjectFilter = el('filterSubject').value;
+      const gradeFilter = el('filterGrade').value;
+      const termFilter = el('filterTerm').value;
       
-      if (!tbody) return;
-      
-      const rows = Array.from(tbody.querySelectorAll('tr'));
-      let visibleCount = 0;
-      
-      rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        const isVisible = !searchTerm || text.includes(searchTerm);
-        row.style.display = isVisible ? '' : 'none';
-        if (isVisible) visibleCount++;
+      return distributions.filter(dist => {
+        return (!subjectFilter || dist.subject === subjectFilter) &&
+               (!gradeFilter || dist.grade === gradeFilter) &&
+               (!termFilter || dist.term === termFilter);
       });
+    }
 
-      // Update shown count
-      el('distributionsShown').textContent = visibleCount;
+    function applyDistributionFilters() {
+      showNotification('Filters applied!');
+      renderDistributions();
+      updateSummaryStats();
+    }
+
+    function resetDistributionFilters() {
+      el('filterSubject').value = '';
+      el('filterGrade').value = '';
+      el('filterTerm').value = '';
+      showNotification('Filters reset!');
+      renderDistributions();
+      updateSummaryStats();
+    }
+
+    function sortDistributionsTable(column) {
+      showNotification(`Sorting by column ${column}`);
+      // Sorting logic would be implemented here
     }
 
     function updateSummaryStats() {
@@ -576,31 +964,25 @@
       
       let totalLearners = 0;
       let topPerformers = 0;
-      let totalSubjects = 0;
+      let needsSupport = 0;
       
       distributions.forEach(dist => {
         totalLearners += dist.totalLearners;
         topPerformers += dist.distribution.ee1 + dist.distribution.ee2;
-        totalSubjects++;
+        needsSupport += dist.distribution.be1 + dist.distribution.be2;
       });
       
-      // Update summary cards
+      // Update quick stats
+      el('totalDistributions').textContent = totalDistributions;
       el('totalLearners').textContent = totalLearners;
-      el('recordCount').textContent = totalDistributions + ' records';
       
       const topPercentage = totalLearners > 0 ? Math.round((topPerformers / totalLearners) * 100) : 0;
-      el('topPerformers').textContent = topPercentage + '%';
-      el('topCount').textContent = topPerformers + ' learners';
+      el('topPerformersPercent').textContent = topPercentage + '%';
+      el('topPerformersCount').textContent = topPerformers + ' learners';
       
-      // Calculate estimated class average (simplified)
-      const estimatedAverage = totalDistributions > 0 ? 65 + Math.random() * 15 : 0;
-      el('classAverage').textContent = Math.round(estimatedAverage) + '%';
-      el('avgCount').textContent = totalSubjects + ' subjects';
-      
-      // Target met percentage (simplified)
-      const targetPercentage = totalDistributions > 0 ? 70 + Math.random() * 25 : 0;
-      el('targetMet').textContent = Math.round(targetPercentage) + '%';
-      el('targetCount').textContent = Math.round(totalSubjects * targetPercentage / 100) + ' subjects';
+      const needsSupportPercentage = totalLearners > 0 ? Math.round((needsSupport / totalLearners) * 100) : 0;
+      el('needsSupportPercent').textContent = needsSupportPercentage + '%';
+      el('needsSupportCount').textContent = needsSupport + ' learners';
       
       // Update debug info
       el('debugDistributions').textContent = totalDistributions;
@@ -657,42 +1039,360 @@
       }
     }
 
-    function refreshData() {
-      console.log('🔄 Refreshing data...');
+    function refreshDistributionData() {
+      console.log('🔄 Refreshing distribution data...');
       renderDistributions();
       updateSummaryStats();
-      showAlert('Data refreshed!');
+      renderCharts();
+      showNotification('Data refreshed!');
     }
 
-    // ===== MOBILE NAVIGATION SETUP =====
-    function setupMobileNavigation() {
-      // Close mobile sidebar when clicking on links
-      const mobileLinks = document.querySelectorAll('.mobile-sidebar a');
-      mobileLinks.forEach(link => {
-        link.addEventListener('click', () => {
-          const mobileSidebar = document.getElementById('mobileSidebar');
-          if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
-            mobileSidebar.classList.add('closed');
-            const toggleBtn = document.getElementById('mobileMenuToggle');
-            if (toggleBtn) {
-              toggleBtn.textContent = '☰';
-            }
-          }
+    function testNavigation() {
+      showNotification('Navigation test completed!');
+      updateNavDebugInfo();
+    }
+
+    // ===== CHART FUNCTIONS =====
+    function renderCharts() {
+      const distributions = loadDistributions();
+      if (distributions.length === 0) {
+        showEmptyCharts();
+        return;
+      }
+      
+      renderOverallDistributionChart(distributions);
+      renderSubjectDistributionChart(distributions);
+      renderTermDistributionChart(distributions);
+      renderStreamDistributionChart(distributions);
+    }
+
+    function renderOverallDistributionChart(distributions) {
+      const ctx = document.getElementById('overallDistributionChart').getContext('2d');
+      
+      // Calculate overall distribution
+      const overallDistribution = {
+        ee1: 0, ee2: 0, me1: 0, me2: 0,
+        ae1: 0, ae2: 0, be1: 0, be2: 0
+      };
+      
+      distributions.forEach(dist => {
+        Object.keys(overallDistribution).forEach(key => {
+          overallDistribution[key] += dist.distribution[key];
         });
       });
+      
+      const labels = ['EE1 (90-100%)', 'EE2 (75-89%)', 'ME1 (58-74%)', 'ME2 (41-57%)', 'AE1 (31-40%)', 'AE2 (21-30%)', 'BE1 (11-20%)', 'BE2 (0-10%)'];
+      const data = Object.values(overallDistribution);
+      const backgroundColors = [
+        '#0B6623', '#2E8B57', '#1E3A8A', '#3B82F6',
+        '#F97316', '#FDBA74', '#DC2626', '#7F1D1D'
+      ];
+      
+      // Destroy previous chart if exists
+      if (overallChart) overallChart.destroy();
+      
+      // Create new chart
+      overallChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: backgroundColors,
+            borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const total = data.reduce((a, b) => a + b, 0);
+                  const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                  return `${context.label}: ${context.parsed} learners (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderSubjectDistributionChart(distributions) {
+      const ctx = document.getElementById('subjectDistributionChart').getContext('2d');
+      
+      // Calculate distribution by subject
+      const subjectData = {};
+      distributions.forEach(dist => {
+        if (!subjectData[dist.subject]) {
+          subjectData[dist.subject] = { ...dist.distribution };
+        } else {
+          Object.keys(dist.distribution).forEach(key => {
+            subjectData[dist.subject][key] += dist.distribution[key];
+          });
+        }
+      });
+      
+      const subjects = Object.keys(subjectData);
+      const datasets = ['ee1', 'ee2', 'me1', 'me2', 'ae1', 'ae2', 'be1', 'be2'].map((key, index) => {
+        const colors = ['#0B6623', '#2E8B57', '#1E3A8A', '#3B82F6', '#F97316', '#FDBA74', '#DC2626', '#7F1D1D'];
+        return {
+          label: key.toUpperCase(),
+          data: subjects.map(subject => subjectData[subject][key]),
+          backgroundColor: colors[index],
+          borderColor: colors[index].replace('0.7', '1'),
+          borderWidth: 1
+        };
+      });
+      
+      // Destroy previous chart if exists
+      if (subjectChart) subjectChart.destroy();
+      
+      // Create new chart
+      subjectChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: subjects,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              stacked: true
+            },
+            y: {
+              stacked: true,
+              beginAtZero: true
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+
+    function renderTermDistributionChart(distributions) {
+      const ctx = document.getElementById('termDistributionChart').getContext('2d');
+      
+      // Calculate distribution by term
+      const termData = {};
+      distributions.forEach(dist => {
+        if (!termData[dist.term]) {
+          termData[dist.term] = { ...dist.distribution };
+        } else {
+          Object.keys(dist.distribution).forEach(key => {
+            termData[dist.term][key] += dist.distribution[key];
+          });
+        }
+      });
+      
+      const terms = Object.keys(termData);
+      const datasets = ['ee1', 'ee2', 'me1', 'me2'].map((key, index) => {
+        const colors = ['#0B6623', '#2E8B57', '#1E3A8A', '#3B82F6'];
+        return {
+          label: key.toUpperCase(),
+          data: terms.map(term => termData[term][key]),
+          backgroundColor: colors[index],
+          borderColor: colors[index].replace('0.7', '1'),
+          borderWidth: 1
+        };
+      });
+      
+      // Destroy previous chart if exists
+      if (termChart) termChart.destroy();
+      
+      // Create new chart
+      termChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: terms,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+
+    function renderStreamDistributionChart(distributions) {
+      const ctx = document.getElementById('streamDistributionChart').getContext('2d');
+      
+      // Calculate top performers by stream
+      const streamData = {};
+      distributions.forEach(dist => {
+        if (!streamData[dist.stream]) {
+          streamData[dist.stream] = 0;
+        }
+        streamData[dist.stream] += dist.distribution.ee1 + dist.distribution.ee2;
+      });
+      
+      const streams = Object.keys(streamData);
+      const topPerformers = streams.map(stream => streamData[stream]);
+      
+      // Destroy previous chart if exists
+      if (streamChart) streamChart.destroy();
+      
+      // Create new chart
+      streamChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: streams,
+          datasets: [{
+            data: topPerformers,
+            backgroundColor: [
+              'rgba(139, 0, 0, 0.7)',
+              'rgba(0, 100, 0, 0.7)',
+              'rgba(0, 0, 139, 0.7)',
+              'rgba(139, 69, 19, 0.7)',
+              'rgba(128, 0, 128, 0.7)',
+              'rgba(0, 128, 128, 0.7)'
+            ],
+            borderColor: [
+              'rgba(139, 0, 0, 1)',
+              'rgba(0, 100, 0, 1)',
+              'rgba(0, 0, 139, 1)',
+              'rgba(139, 69, 19, 1)',
+              'rgba(128, 0, 128, 1)',
+              'rgba(0, 128, 128, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `${context.label}: ${context.parsed} top performers`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateChartsTheme() {
+      // Update chart colors based on theme
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+      const textColor = isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)';
+      
+      // Update all charts if they exist
+      const charts = [overallChart, subjectChart, termChart, streamChart];
+      charts.forEach(chart => {
+        if (chart) {
+          if (chart.options.scales) {
+            if (chart.options.scales.x) {
+              chart.options.scales.x.grid.color = gridColor;
+              chart.options.scales.x.ticks.color = textColor;
+            }
+            if (chart.options.scales.y) {
+              chart.options.scales.y.grid.color = gridColor;
+              chart.options.scales.y.ticks.color = textColor;
+            }
+          }
+          chart.update();
+        }
+      });
+    }
+
+    function showEmptyCharts() {
+      const chartIds = [
+        'overallDistributionChart',
+        'subjectDistributionChart',
+        'termDistributionChart',
+        'streamDistributionChart'
+      ];
+      
+      chartIds.forEach(id => {
+        const canvas = document.getElementById(id);
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = 'var(--bg)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = 'var(--secondary)';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.font = '16px Arial';
+          ctx.fillText('No data available', canvas.width / 2, canvas.height / 2);
+        }
+      });
+    }
+
+    function showNotification(message) {
+      if (window.showAlert) {
+        window.showAlert(message, 'success');
+      } else {
+        // Fallback notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed;
+          top: 100px;
+          right: 20px;
+          background: var(--primary);
+          color: white;
+          padding: 12px 20px;
+          border-radius: 8px;
+          z-index: 1000;
+          font-weight: 600;
+          box-shadow: var(--shadow);
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 3000);
+      }
     }
 
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('📊 Grade Distribution initialized!');
+      console.log('📊 Grade Distribution with Updated Navigation initialized!');
       
-      // Update teacher name using the function from app.js
-      const teacherName = getTeacherName();
-      const teacherNameElements = document.querySelectorAll('.teacher-name');
+      // Load theme
+      loadTheme();
+      
+      // Setup mobile navigation
+      setupMobileSidebarAutoClose();
+      
+      // Update teacher name using consistent storage keys
+      const teacherNameElements = document.querySelectorAll('.teacher-name, #currentTeacher');
+      const teacherFullName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
+      
       teacherNameElements.forEach(element => {
-        element.textContent = teacherName;
+        element.textContent = teacherFullName;
       });
-
+      
       // Setup form submission
       const distributionForm = el('distributionForm');
       if (distributionForm) {
@@ -701,9 +1401,6 @@
       
       // Setup input listeners for real-time calculations
       setupInputListeners();
-      
-      // Setup mobile navigation
-      setupMobileNavigation();
       
       // Auto-fill current year
       const yearInput = el('distYear');
@@ -714,10 +1411,18 @@
       // Initial render
       renderDistributions();
       updateSummaryStats();
+      renderCharts();
 
-      // Update debug info
-      el('screenWidth').textContent = window.innerWidth + 'px';
-      el('debugTime').textContent = new Date().toLocaleTimeString();
+      // Set initial navigation state
+      setTimeout(() => {
+        if (window.innerWidth >= 1024) {
+          el('navState').textContent = 'Desktop Navigation Active';
+        } else {
+          el('navState').textContent = 'Mobile Navigation Ready';
+        }
+        el('screenWidth').textContent = window.innerWidth + 'px';
+        el('debugTime').textContent = new Date().toLocaleTimeString();
+      }, 100);
     });
 
     // Make functions available globally
@@ -725,70 +1430,14 @@
     window.toggleDarkMode = toggleDarkMode;
     window.logout = logout;
     window.deleteDistribution = deleteDistribution;
-    window.filterDistributions = filterDistributions;
+    window.applyDistributionFilters = applyDistributionFilters;
+    window.resetDistributionFilters = resetDistributionFilters;
+    window.sortDistributionsTable = sortDistributionsTable;
     window.exportDistributionReport = exportDistributionReport;
     window.clearAllDistributions = clearAllDistributions;
-    window.refreshData = refreshData;
+    window.refreshDistributionData = refreshDistributionData;
+    window.testNavigation = testNavigation;
   </script>
-
-  <style>
-    /* Additional styles specific to grade distribution */
-    .distribution-inputs {
-      background: var(--card);
-      padding: 25px;
-      border-radius: 12px;
-      margin: 25px 0;
-      border: 1px solid var(--border);
-    }
-
-    .grade-inputs-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin: 20px 0;
-    }
-
-    .grade-input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .grade-input-group label {
-      font-weight: 600;
-      padding: 10px;
-      border-radius: 8px;
-      color: white;
-      text-align: center;
-      margin-bottom: 0;
-    }
-
-    /* Color coding for grade labels */
-    .grade-ee1 { background: #0B6623; }
-    .grade-ee2 { background: #2E8B57; }
-    .grade-me1 { background: #1E3A8A; }
-    .grade-me2 { background: #3B82F6; }
-    .grade-ae1 { background: #F97316; }
-    .grade-ae2 { background: #FDBA74; color: #000; }
-    .grade-be1 { background: #DC2626; }
-    .grade-be2 { background: #7F1D1D; }
-
-    .total-learners-display {
-      text-align: center;
-      padding: 15px;
-      background: var(--card);
-      border-radius: 8px;
-      margin-top: 15px;
-      font-size: 1.2em;
-      font-weight: bold;
-      border: 2px solid var(--primary);
-    }
-
-    @media (max-width: 768px) {
-      .grade-inputs-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-  </style>
 </body>
 </html>
+[file content end]
