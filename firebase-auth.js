@@ -42,8 +42,8 @@ class FirebaseAuthService {
     });
   }
 
-  // Helper to update local storage and UI after a successful login (or registration)
-  async handleSignInSuccess(user, fullName) {
+// Helper to update local storage and UI after a successful login (or registration)
+async handleSignInSuccess(user, fullName) {
     // Store user data locally
     localStorage.setItem('teacherFullName', fullName);
     localStorage.setItem('teacherEmail', user.email);
@@ -52,13 +52,19 @@ class FirebaseAuthService {
     this.updateUI(true, fullName);
 
     // Ensure Firestore profile is up to date
-    await setDoc(doc(db, 'teachers', user.uid), {
-      name: fullName,
-      email: user.email,
-      emailVerified: user.emailVerified,
-      lastLogin: new Date().toISOString()
-    }, { merge: true });
-  }
+    try {
+        await setDoc(doc(db, 'teachers', user.uid), {
+          name: fullName,
+          email: user.email,
+          emailVerified: user.emailVerified,
+          lastLogin: new Date().toISOString()
+        }, { merge: true });
+    } catch (firestoreError) {
+        // Log the error but DO NOT throw it, as the user is already authenticated
+        // by Firebase Auth and should be allowed to proceed.
+        console.error("Warning: Firestore profile update failed, but user is authenticated:", firestoreError);
+    }
+}
 
   // REMOVED: METHOD 1: loginWithGoogle
 
