@@ -4,6 +4,7 @@
    Focus: Data management, rendering, calculations
 ========================================================= */
 
+// --- In app.js ---
 const STORAGE_KEYS = {
     RECORDS: 'smartScoresRecords',
     TARGETS: 'smartScoresTargets', 
@@ -12,7 +13,7 @@ const STORAGE_KEYS = {
     TEACHER_LAST_NAME: 'teacherLastName',
     THEME: 'themeMode',
     
-    // ADDED: This key is needed to retrieve the full name for the 'teacherName' display element
+    // <--- FIX 1: ADD THIS MISSING KEY --->
     TEACHER: 'teacherFullName' 
 };
 
