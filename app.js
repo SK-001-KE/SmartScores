@@ -2398,10 +2398,11 @@ window.renderAll = async () => {
     }
 };
 // ==================== TEACHER UTILITY ====================
-// Uses the stored key to retrieve the teacher's name
 const getTeacherName = () => {
-    // STORAGE_KEYS.TEACHER_FULL_NAME is assumed to be defined as 'teacherFullName'
-    return localStorage.getItem(STORAGE_KEYS.TEACHER_FULL_NAME) || 'Guest Teacher';
+    return localStorage.getItem(STORAGE_KEYS.TEACHER_FULL_NAME) || 
+           localStorage.getItem('teacherFullName') || 
+           localStorage.getItem(STORAGE_KEYS.TEACHER) || 
+           'Guest Teacher';
 };
 
 // ==================== INITIALIZATION ====================
