@@ -1,169 +1,43 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartScores - Dashboard</title>
-  <link rel="manifest" href="./manifest.json" />
-  <link rel="stylesheet" href="./style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="./app.js" defer></script>
-  <script src="./auth.js" defer></script>
-  <script type="module" src="./firebase-config.js"></script>
-  <script type="module" src="./firebase-sync.js"></script>
-</head>
-<body>
-  <!-- TOP NAVIGATION BAR -->
-  <nav class="top-nav">
-    <div class="nav-brand">
-      <img src="./icon-192x192.png" class="logo-small" style="height:32px;margin-right:10px;border-radius:6px;">
-      <span>SmartScores</span>
-    </div>
-    
-    <div class="nav-links">
-      <a href="./index.html" class="nav-link active">📊 Dashboard</a>
-      <a href="./data-entry.html" class="nav-link">📝 Data Entry</a>
-      <a href="./recorded-scores.html" class="nav-link">📋 Scores</a>
-      <a href="./ai-insights.html" class="nav-link">🤖 AI Insights</a>
-      <a href="./averages.html" class="nav-link">📈 Averages</a>
-      <a href="./trends.html" class="nav-link">📊 Trends</a>
-      <a href="./grade-distribution.html" class="nav-link">📈 Distribution</a>
-      <a href="./set-targets.html" class="nav-link">🎯 Targets</a>
-      <a href="./learner-scores.html" class="nav-link">👨‍🎓 Learner Scores</a>
-    </div>
-    
-    <div class="nav-user">
-      <span id="teacherName" class="teacher-name">Teacher</span>
-      <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
-    </div>
-  </nav>
-
-  <!-- MOBILE MENU TOGGLE (only show on mobile) -->
-  <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
-
-  <!-- MOBILE SIDEBAR (only for mobile) -->
-  <aside id="mobileSidebar" class="mobile-sidebar closed">
-    <a href="./index.html" class="active">📊 Dashboard</a>
-    <a href="./data-entry.html">📝 Data Entry</a>
-    <a href="./recorded-scores.html">📋 Recorded Scores</a>
-    <a href="./ai-insights.html">🤖 AI Insights</a>
-    <a href="./averages.html">📈 Averages</a>
-    <a href="./trends.html">📊 Trends</a>
-    <a href="./grade-distribution.html">📈 Grade Distribution</a>
-    <a href="./set-targets.html">🎯 Set Targets</a>
-    <a href="./learner-scores.html" class="nav-link">👨‍🎓 Learner Scores</a>
-    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
-  </aside>
-
-  <!-- DARK MODE TOGGLE -->
-  <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
-
-  <header>
-    <h1>SmartScores</h1>
-    <p>Teacher Performance Dashboard</p>
-  </header>
-
-  <main class="content">
-    <!-- Dashboard Stats Cards -->
-    <div class="dashboard-cards">
-      <div class="dashboard-card total-avg-card" id="totalAvgCard">
-        <h3>Overall Average</h3>
-        <div class="card-loading">Loading...</div>
-      </div>
-      <div class="dashboard-card best-card" id="bestSubjectCard">
-        <h3>Best Performance</h3>
-        <div class="card-loading">Loading...</div>
-      </div>
-      <div class="dashboard-card worst-card" id="worstSubjectCard">
-        <h3>Needs Support</h3>
-        <div class="card-loading">Loading...</div>
-      </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-      <button onclick="location.href='./data-entry.html'" class="btn-action">➕ Add New Scores</button>
-      <button onclick="location.href='./set-targets.html'" class="btn-action">🎯 Set Targets</button>
-      <button onclick="downloadPDF()" class="btn-action">📄 Export PDF</button>
-      <button onclick="exportToExcel()" class="btn-action">📊 Export Excel</button>
-    </div>
-
-    <!-- Performance Trend Chart -->
-    <div class="chart-container">
-      <h3>Performance Trend</h3>
-      <canvas id="progressChart"></canvas>
-    </div>
-
-    <!-- Recent Records -->
-    <!-- Recent Records -->
-<div class="recent-records">
-    <h3>Recent Scores</h3>
-    <div id="recentRecordsTable">
-        <div class="loading">Loading recent records...</div>
-    </div>
-</div>
-  </main>
-
-  <footer>SmartScores v3.0 © Kariuki 2025</footer>
-
-  <script>
-    // Ensure mobile navigation works properly
-    document.addEventListener('DOMContentLoaded', function() {
-      // Mobile menu functionality
-      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-      const mobileSidebar = document.getElementById('mobileSidebar');
-      
-      if (mobileMenuToggle && mobileSidebar) {
-        mobileMenuToggle.addEventListener('click', function(e) {
-          e.stopPropagation();
-          mobileSidebar.classList.toggle('closed');
-          mobileMenuToggle.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
-          
-          // Add click outside to close functionality
-          if (!mobileSidebar.classList.contains('closed')) {
-            setTimeout(() => {
-              document.addEventListener('click', closeMobileSidebarOnClickOutside);
-            }, 100);
-          }
-        });
-        
-        // Close sidebar when clicking on links
-        const mobileLinks = mobileSidebar.querySelectorAll('a, button');
-        mobileLinks.forEach(link => {
-          link.addEventListener('click', function() {
-            if (!mobileSidebar.classList.contains('closed')) {
-              mobileSidebar.classList.add('closed');
-              mobileMenuToggle.textContent = '☰';
-            }
-          });
-        });
-      }
-      
-      // Close mobile sidebar when clicking outside
-      function closeMobileSidebarOnClickOutside(event) {
-        const mobileSidebar = document.getElementById('mobileSidebar');
-        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-        
-        if (!mobileSidebar || !mobileMenuToggle) return;
-        
-        const isClickInsideSidebar = mobileSidebar.contains(event.target);
-        const isClickOnToggle = mobileMenuToggle.contains(event.target);
-        
-        if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
-          mobileSidebar.classList.add('closed');
-          mobileMenuToggle.textContent = '☰';
-          document.removeEventListener('click', closeMobileSidebarOnClickOutside);
-        }
-      }
-    });
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./service-worker.js')
-          .then(registration => console.log('SW registered: ', registration))
-          .catch(error => console.log('SW registration failed: ', error));
-      });
+<script>
+// Global function handlers
+function logout() {
+    if (window.logout) {
+        window.logout();
+    } else {
+        window.location.href = './login.html';
     }
-  </script>
-</body>
-</html>
+}
+
+function toggleDarkMode() {
+    if (window.toggleDarkMode) {
+        window.toggleDarkMode();
+    } else {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('themeMode', newTheme);
+    }
+}
+
+function toggleMobileMenu() {
+    if (window.toggleMobileMenu) {
+        window.toggleMobileMenu();
+    }
+}
+
+function downloadPDF() {
+    if (window.downloadPDF) {
+        window.downloadPDF();
+    } else {
+        alert('PDF export not available. Please check app.js');
+    }
+}
+
+function exportToExcel() {
+    if (window.exportToExcel) {
+        window.exportToExcel();
+    } else {
+        alert('Excel export not available. Please check app.js');
+    }
+}
+</script>
