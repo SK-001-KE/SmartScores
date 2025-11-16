@@ -923,7 +923,10 @@ const getTeacherFirstName = () => {
 const handleSaveRecord = async (event) => {
     if (event) event.preventDefault();
 
+    console.log('🔄 Starting save process...'); // Debug log
+
     const teacherName = getTeacherName();
+    console.log('👨‍🏫 Teacher name:', teacherName); // Debug log
     
     // --- 1. Basic Validation (Fields must exist) ---
     const subject = el('subject')?.value?.trim();
@@ -931,7 +934,7 @@ const handleSaveRecord = async (event) => {
     const meanScoreValue = el('meanScore')?.value;
 
     if (!teacherName || teacherName === 'Guest Teacher') {
-        showAlert('Please sign in or set your teacher name.', 'error');
+        showAlert('Please sign in or set your teacher name in the profile section.', 'error');
         return;
     }
     
@@ -960,42 +963,58 @@ const handleSaveRecord = async (event) => {
         mean: mean
     };
 
-    // --- 3. Load, Check Duplicate, and Push ---
-    // The ASYNC keyword is critical here to allow await
-    const existingRecords = await loadRecords(); 
+    console.log('📝 Record to save:', record); // Debug log
 
-    // Simple check for duplicate entry 
-    const duplicate = existingRecords.find(r => 
-        r.teacher === record.teacher &&
-        r.subject === record.subject &&
-        r.grade === record.grade &&
-        r.stream === record.stream &&
-        r.term === record.term &&
-        r.examType === record.examType &&
-        r.year === record.year
-    );
+    try {
+        // --- 3. Load, Check Duplicate, and Push ---
+        const existingRecords = await loadRecords(); 
+        console.log('📊 Existing records count:', existingRecords.length); // Debug log
 
-    if (duplicate) {
-        showAlert('A record with these exact details already exists!', 'error');
-        return;
-    }
+        // Simple check for duplicate entry 
+        const duplicate = existingRecords.find(r => 
+            r.teacher === record.teacher &&
+            r.subject === record.subject &&
+            r.grade === record.grade &&
+            r.stream === record.stream &&
+            r.term === record.term &&
+            r.examType === record.examType &&
+            r.year === record.year
+        );
 
-    existingRecords.push(record);
-
-    // --- 4. Save and Refresh ---
-    // Awaiting the saveRecords ensures data is written before rendering
-    if (await saveRecords(existingRecords)) {
-        showAlert('Record saved successfully!', 'success');
-        
-        // Reset form and refill the year field
-        const dataForm = el('dataEntryForm');
-        if (dataForm) {
-             dataForm.reset(); 
-             if(window.autoFillYear) window.autoFillYear();
+        if (duplicate) {
+            showAlert('A record with these exact details already exists!', 'error');
+            return;
         }
 
-        // CRITICAL STEP: Refresh all views (including recorded-scores and dashboard)
-        await renderAll(); 
+        existingRecords.push(record);
+
+        // --- 4. Save and Refresh ---
+        const saveSuccess = await saveRecords(existingRecords);
+        
+        if (saveSuccess) {
+            console.log('✅ Record saved successfully'); // Debug log
+            showAlert('Record saved successfully!', 'success');
+            
+            // Reset form and refill the year field
+            const dataForm = el('dataEntryForm');
+            if (dataForm) {
+                dataForm.reset(); 
+                if (window.autoFillYear) window.autoFillYear();
+            }
+
+            // CRITICAL STEP: Refresh all views
+            await renderAll();
+            
+            // Force refresh of recorded-scores page if we're there
+            if (window.location.pathname.includes('recorded-scores.html')) {
+                await renderRecords();
+            }
+        } else {
+            throw new Error('Failed to save records');
+        }
+    } catch (error) {
+        console.error('❌ Error saving record:', error);
+        showAlert('Error saving record: ' + error.message, 'error');
     }
 };
 const autoFillYear = () => {
