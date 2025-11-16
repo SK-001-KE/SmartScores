@@ -26,7 +26,7 @@
 
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
     }
 
@@ -59,6 +59,14 @@
     .stat-subtext {
       font-size: 0.85em;
       color: var(--secondary);
+    }
+
+    .highest-target-info {
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(139, 0, 0, 0.1);
+      border-radius: 8px;
+      font-size: 0.9em;
     }
 
     /* Filter Section */
@@ -153,6 +161,10 @@
         text-align: center;
         justify-content: center;
       }
+      
+      .stat-value {
+        font-size: 2em;
+      }
     }
   </style>
 </head>
@@ -214,27 +226,24 @@
 
     <!-- QUICK STATS -->
     <section class="quick-stats">
-      <h2>Targets Summary</h2>
+      <h2>Targets Summary - <span id="currentTermDisplay">Current Term</span></h2>
       <div class="stats-grid">
         <div class="stat-item">
-          <div class="stat-value" id="totalTargets">--</div>
-          <div class="stat-label">Total Targets</div>
+          <div class="stat-value" id="totalTargets">0</div>
+          <div class="stat-label">Total Targets This Term</div>
+          <div class="stat-subtext" id="termPeriod">Term Period</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="averageTarget">0%</div>
+          <div class="stat-label">Average Target This Term</div>
           <div class="stat-subtext">Across all subjects</div>
         </div>
         <div class="stat-item">
-          <div class="stat-value" id="averageTarget">--</div>
-          <div class="stat-label">Average Target</div>
-          <div class="stat-subtext">All targets</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="activeTargets">--</div>
-          <div class="stat-label">Active Targets</div>
-          <div class="stat-subtext">Currently set</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="targetsShown">--</div>
-          <div class="stat-label">Targets Shown</div>
-          <div class="stat-subtext">After filtering</div>
+          <div class="stat-value" id="highestTarget">0%</div>
+          <div class="stat-label">Highest Target This Term</div>
+          <div class="highest-target-info" id="highestTargetInfo">
+            No targets set
+          </div>
         </div>
       </div>
     </section>
@@ -311,6 +320,13 @@
           </div>
 
           <div class="form-group">
+            <label>Year *</label>
+            <input type="number" id="targetYear" min="2025" max="2030" value="2025" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full">
             <label>Target Score *</label>
             <input type="number" id="targetScore" min="0" max="100" step="0.1" placeholder="Target % (0-100)" required>
           </div>
@@ -354,6 +370,7 @@
               <th>Grade</th>
               <th>Stream</th>
               <th>Term</th>
+              <th>Year</th>
               <th>Exam Type</th>
               <th>Target Score</th>
               <th>Actions</th>
@@ -361,7 +378,7 @@
           </thead>
           <tbody>
             <tr>
-              <td colspan="7" class="text-center loading-cell">Loading targets data...</td>
+              <td colspan="8" class="text-center loading-cell">Loading targets data...</td>
             </tr>
           </tbody>
         </table>
@@ -374,17 +391,6 @@
         <button onclick="document.getElementById('targetsForm').scrollIntoView()" class="btn btn-primary">➕ Set First Target</button>
       </div>
     </section>
-
-    <!-- DEBUG INFO -->
-    <section class="debug-section">
-      <h3>🔧 Debug Information</h3>
-      <p><strong>Targets Found:</strong> <span id="debugTargets">0</span></p>
-      <p><strong>Last Updated:</strong> <span id="debugTime">--</span></p>
-      <p><strong>Screen Width:</strong> <span id="screenWidth">--</span></p>
-      <p><strong>Navigation State:</strong> <span id="navState">--</span></p>
-      <button onclick="refreshTargets()" class="btn btn-primary" style="margin-top: 10px; margin-right: 10px;">🔄 Refresh Targets</button>
-      <button onclick="testNavigation()" class="btn btn-secondary" style="margin-top: 10px;">🧪 Test Navigation</button>
-    </section>
   </div>
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
@@ -395,6 +401,34 @@
 
     // Simple DOM helper
     const el = id => document.getElementById(id);
+
+    // ===== TERM MANAGEMENT =====
+    function getCurrentTerm() {
+      const now = new Date();
+      const month = now.getMonth() + 1; // January is 0
+      
+      if (month >= 1 && month <= 4) return 'Term 1';
+      if (month >= 5 && month <= 8) return 'Term 2';
+      return 'Term 3';
+    }
+
+    function getTermPeriod(term) {
+      switch(term) {
+        case 'Term 1': return 'January - April';
+        case 'Term 2': return 'May - August';
+        case 'Term 3': return 'September - December';
+        default: return '';
+      }
+    }
+
+    function isTermActive(term) {
+      const currentTerm = getCurrentTerm();
+      return term === currentTerm;
+    }
+
+    function getCurrentYear() {
+      return new Date().getFullYear();
+    }
 
     // ===== NAVIGATION MANAGEMENT =====
     function toggleMobileMenu() {
@@ -415,8 +449,6 @@
         } else {
           document.removeEventListener('click', closeMobileSidebarOnClickOutside);
         }
-        
-        updateNavDebugInfo();
       }
     }
 
@@ -433,7 +465,6 @@
         mobileSidebar.classList.add('closed');
         toggleBtn.textContent = '☰';
         document.removeEventListener('click', closeMobileSidebarOnClickOutside);
-        updateNavDebugInfo();
       }
     }
 
@@ -451,7 +482,6 @@
               toggleBtn.textContent = '☰';
             }
             document.removeEventListener('click', closeMobileSidebarOnClickOutside);
-            updateNavDebugInfo();
           }
         });
       });
@@ -513,12 +543,13 @@
         grade: el('targetGrade').value,
         stream: el('targetStream').value,
         term: el('targetTerm').value,
+        year: parseInt(el('targetYear').value),
         examType: el('targetExamType').value,
         score: parseFloat(el('targetScore').value)
       };
       
       // Validate required fields
-      const requiredFields = ['subject', 'grade', 'stream', 'term', 'examType'];
+      const requiredFields = ['subject', 'grade', 'stream', 'term', 'examType', 'year'];
       const missingFields = requiredFields.filter(field => !target[field]);
       
       if (missingFields.length > 0) {
@@ -528,6 +559,11 @@
       
       if (isNaN(target.score) || target.score < 0 || target.score > 100) {
         showAlert('Please enter a valid target score between 0 and 100', 'error');
+        return;
+      }
+      
+      if (target.year < 2025) {
+        showAlert('Year must be 2025 or later', 'error');
         return;
       }
       
@@ -541,11 +577,12 @@
         t.grade === target.grade &&
         t.stream === target.stream &&
         t.term === target.term &&
+        t.year === target.year &&
         t.examType === target.examType
       );
       
       if (duplicate) {
-        showAlert('A target for this subject/grade/stream/term/exam combination already exists!', 'error');
+        showAlert('A target for this subject/grade/stream/term/year/exam combination already exists!', 'error');
         return;
       }
       
@@ -558,6 +595,8 @@
       if (saveTargets(existingTargets)) {
         showAlert('Target saved successfully!', 'success');
         el('targetsForm').reset();
+        // Reset year to current year
+        el('targetYear').value = getCurrentYear();
         renderTargets();
       }
     }
@@ -572,10 +611,6 @@
       const tbody = document.querySelector('#targetsTable tbody');
       const emptyTargets = el('emptyTargets');
       
-      // Update debug info
-      el('debugTargets').textContent = targets.length;
-      el('debugTime').textContent = new Date().toLocaleTimeString();
-
       if (targets.length === 0) {
         if (tbody) tbody.innerHTML = '';
         if (emptyTargets) emptyTargets.style.display = 'block';
@@ -592,6 +627,7 @@
             <td>${target.grade}</td>
             <td>${target.stream}</td>
             <td>${target.term}</td>
+            <td>${target.year}</td>
             <td>${target.examType}</td>
             <td style="font-weight: bold; color: var(--primary);">${target.score}%</td>
             <td>
@@ -605,15 +641,42 @@
     }
 
     function updateTargetsSummary(targets) {
-      el('totalTargets').textContent = targets.length;
-      el('activeTargets').textContent = targets.length;
-      el('targetsShown').textContent = targets.length;
+      const currentTerm = getCurrentTerm();
+      const currentYear = getCurrentYear();
       
-      if (targets.length > 0) {
-        const avg = targets.reduce((sum, t) => sum + t.score, 0) / targets.length;
+      // Update term display
+      el('currentTermDisplay').textContent = currentTerm;
+      el('termPeriod').textContent = getTermPeriod(currentTerm);
+      
+      // Filter targets for current term and year
+      const currentTermTargets = targets.filter(target => 
+        target.term === currentTerm && target.year === currentYear
+      );
+      
+      // Update total targets for current term
+      el('totalTargets').textContent = currentTermTargets.length;
+      
+      // Update average target for current term
+      if (currentTermTargets.length > 0) {
+        const avg = currentTermTargets.reduce((sum, t) => sum + t.score, 0) / currentTermTargets.length;
         el('averageTarget').textContent = avg.toFixed(1) + '%';
       } else {
         el('averageTarget').textContent = '0%';
+      }
+      
+      // Update highest target for current term
+      if (currentTermTargets.length > 0) {
+        const highestTarget = currentTermTargets.reduce((highest, current) => 
+          current.score > highest.score ? current : highest
+        );
+        el('highestTarget').textContent = highestTarget.score + '%';
+        el('highestTargetInfo').innerHTML = `
+          <strong>${highestTarget.subject}</strong><br>
+          Grade ${highestTarget.grade}, ${highestTarget.stream}
+        `;
+      } else {
+        el('highestTarget').textContent = '0%';
+        el('highestTargetInfo').textContent = 'No targets set';
       }
     }
 
@@ -632,8 +695,6 @@
         row.style.display = isVisible ? '' : 'none';
         if (isVisible) visibleCount++;
       });
-      
-      el('targetsShown').textContent = visibleCount;
     }
 
     function exportTargets() {
@@ -647,10 +708,10 @@
         }
         
         // Simple CSV export as fallback
-        let csv = 'Subject,Grade,Stream,Term,Exam Type,Target Score\n';
+        let csv = 'Subject,Grade,Stream,Term,Year,Exam Type,Target Score\n';
         
         targets.forEach(target => {
-          csv += `"${target.subject}",${target.grade},"${target.stream}","${target.term}","${target.examType}",${target.score}\n`;
+          csv += `"${target.subject}",${target.grade},"${target.stream}","${target.term}",${target.year},"${target.examType}",${target.score}\n`;
         });
         
         const blob = new Blob([csv], { type: 'text/csv' });
@@ -676,17 +737,6 @@
         showAlert('All targets have been cleared successfully.', 'success');
         renderTargets();
       }
-    }
-
-    function refreshTargets() {
-      console.log('🔄 Refreshing targets...');
-      renderTargets();
-      showNotification('Targets refreshed!');
-    }
-
-    function testNavigation() {
-      showNotification('Navigation test completed!');
-      updateNavDebugInfo();
     }
 
     // ===== UTILITY FUNCTIONS =====
@@ -717,14 +767,6 @@
       }
     }
 
-    function updateNavDebugInfo() {
-      const mobileSidebar = document.getElementById('mobileSidebar');
-      if (mobileSidebar) {
-        const isClosed = mobileSidebar.classList.contains('closed');
-        el('navState').textContent = isClosed ? 'Mobile Menu Closed' : 'Mobile Menu Open';
-      }
-    }
-
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
       console.log('🎯 Targets with Updated Navigation initialized!');
@@ -743,6 +785,10 @@
         element.textContent = teacherFullName;
       });
       
+      // Auto-fill current year
+      const currentYear = getCurrentYear();
+      el('targetYear').value = currentYear;
+      
       // Setup form submission
       const targetsForm = el('targetsForm');
       if (targetsForm) {
@@ -751,16 +797,6 @@
       
       // Initial render
       renderTargets();
-      updateNavDebugInfo();
-
-      // Set initial navigation state
-      setTimeout(() => {
-        if (window.innerWidth >= 1024) {
-          el('navState').textContent = 'Desktop Navigation Active';
-        } else {
-          el('navState').textContent = 'Mobile Navigation Ready';
-        }
-      }, 100);
     });
 
     // Make functions available globally
@@ -772,8 +808,6 @@
     window.filterTargets = filterTargets;
     window.exportTargets = exportTargets;
     window.clearAllTargets = clearAllTargets;
-    window.refreshTargets = refreshTargets;
-    window.testNavigation = testNavigation;
   </script>
 </body>
 </html>
