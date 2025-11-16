@@ -235,22 +235,7 @@
         }
       }
 
-      // UPDATED: Get teacher name using the new consistent storage keys
-      const teacherNameElement = document.getElementById('teacherName');
-      const currentTeacherElement = document.getElementById('currentTeacher');
-      
-      // Get teacher name from localStorage using consistent keys
-      const teacherFullName = localStorage.getItem('teacherFullName') || 
-                             'Guest Teacher';
-      
-      if (teacherNameElement) {
-        teacherNameElement.textContent = teacherFullName;
-      }
-      if (currentTeacherElement) {
-        currentTeacherElement.textContent = teacherFullName;
-      }
-
-      // UPDATED: Auto-fill year if empty
+           // UPDATED: Auto-fill year if empty
       const yearInput = document.getElementById('year');
       if (yearInput && !yearInput.value.trim()) {
         yearInput.value = new Date().getFullYear();
