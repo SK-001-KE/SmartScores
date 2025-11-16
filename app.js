@@ -1,24 +1,55 @@
-/* =========================================================
-   SMARTSCORES APP v3.0 - CLEAN EDITION
-   by Kariuki (2025)
-   Focus: Data management, rendering, calculations
-========================================================= */
-
 // --- In app.js ---
 const STORAGE_KEYS = {
     RECORDS: 'smartScoresRecords',
-    TARGETS: 'smartScoresTargets', 
+    TARGETS: 'smartScoresTargets',
     TEACHER: 'teacherFullName', // Use only this one
     THEME: 'themeMode'
 };
 // DOM Helper
 const el = id => document.getElementById(id);
-
 // Alert Helper
 const showAlert = (message, type = 'info') => {
-    alert(message);
+    // Create a more sophisticated alert that shows sync status
+    const alertDiv = document.createElement('div');
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 600;
+        z-index: 10000;
+        max-width: 300px;
+        box-shadow: var(--shadow);
+        animation: slideIn 0.3s ease;
+    `;
+   
+    const colors = {
+        success: '#10B981',
+        error: '#EF4444',
+        warning: '#F59E0B',
+        info: '#3B82F6'
+    };
+   
+    alertDiv.style.background = colors[type] || colors.info;
+    alertDiv.textContent = message;
+   
+    document.body.appendChild(alertDiv);
+   
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 4000);
 };
-
+// Add this CSS for the animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+`;
+document.head.appendChild(style);
 // ==================== STORAGE MANAGEMENT ====================
 const loadData = (key, defaultValue = []) => {
     try {
@@ -29,7 +60,6 @@ const loadData = (key, defaultValue = []) => {
         return defaultValue;
     }
 };
-
 const saveData = (key, data) => {
     try {
         localStorage.setItem(key, JSON.stringify(data));
@@ -40,12 +70,10 @@ const saveData = (key, data) => {
         return false;
     }
 };
-
 const loadRecords = () => loadData(STORAGE_KEYS.RECORDS);
 const saveRecords = (records) => saveData(STORAGE_KEYS.RECORDS, records);
 const loadTargets = () => loadData(STORAGE_KEYS.TARGETS);
 const saveTargets = (targets) => saveData(STORAGE_KEYS.TARGETS, targets);
-
 // ==================== RUBRIC SYSTEM (EE1-BE2) ====================
 const RUBRIC_MAP = [
     { code: 'EE1', min: 90, max: 100, color: '#0B6623', text: 'EE1 90-100' },
@@ -57,25 +85,23 @@ const RUBRIC_MAP = [
     { code: 'BE1', min: 11, max: 20, color: '#DC2626', text: 'BE1 11-20' },
     { code: 'BE2', min: 0, max: 10, color: '#7F1D1D', text: 'BE2 0-10' }
 ];
-
 const getRubric = (score) => {
     const numericScore = Number(score);
     if (isNaN(numericScore)) {
         return { code: 'N/A', color: '#6B7280', text: 'N/A', min: 0, max: 0 };
     }
-    
+   
     for (const rubric of RUBRIC_MAP) {
         if (numericScore >= rubric.min && numericScore <= rubric.max) {
             return { ...rubric };
         }
     }
-    
+   
     if (numericScore > 100) return { ...RUBRIC_MAP[0] };
     if (numericScore < 0) return { ...RUBRIC_MAP[RUBRIC_MAP.length - 1] };
-    
+   
     return { ...RUBRIC_MAP[RUBRIC_MAP.length - 1] };
 };
-
 const getContrastColor = (hexColor) => {
     const r = parseInt(hexColor.slice(1, 3), 16);
     const g = parseInt(hexColor.slice(3, 5), 16);
@@ -83,18 +109,16 @@ const getContrastColor = (hexColor) => {
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
     return luminance > 0.5 ? '#000000' : '#FFFFFF';
 };
-
 const formatRubricBadge = (score) => {
     const rubric = getRubric(score);
     const textColor = getContrastColor(rubric.color);
     return `
-        <span class="rubric-badge ${rubric.code.toLowerCase()}" 
+        <span class="rubric-badge ${rubric.code.toLowerCase()}"
               style="background:${rubric.color};color:${textColor}">
             ${rubric.code}
         </span>
     `;
 };
-
 // ==================== SYNC STATUS INDICATOR ====================
 const createSyncStatusIndicator = () => {
     const statusDiv = document.createElement('div');
@@ -113,21 +137,20 @@ const createSyncStatusIndicator = () => {
         border: 1px solid var(--border);
         box-shadow: var(--shadow);
     `;
-    
+   
     document.body.appendChild(statusDiv);
     return statusDiv;
 };
-
 const updateSyncStatus = () => {
     if (typeof firebaseSync === 'undefined') return;
-    
+   
     const statusDiv = document.getElementById('syncStatus') || createSyncStatusIndicator();
     const status = firebaseSync.getSyncStatus();
     const user = firebaseAuth.getCurrentUser();
-    
+   
     let statusText = '';
     let statusColor = '#666';
-    
+   
     if (!user) {
         statusText = '🔓 Not signed in';
         statusColor = '#6B7280';
@@ -144,67 +167,62 @@ const updateSyncStatus = () => {
         statusText = '☁️ Synced';
         statusColor = '#10B981';
     }
-    
+   
     statusDiv.textContent = statusText;
     statusDiv.style.background = statusColor;
     statusDiv.style.color = 'white';
 };
-
 // Update sync status every 5 seconds and on network events
 setInterval(updateSyncStatus, 5000);
 window.addEventListener('online', updateSyncStatus);
 window.addEventListener('offline', updateSyncStatus);
-
 // ==================== ENHANCED LEARNER SCORES WITH DEVIATION ====================
-
 const calculateDeviation = (term) => {
     const scores = [term.opener, term.mid, term.end].filter(score => score !== null);
-    
+   
     if (scores.length < 2) return null;
-    
+   
     // Calculate deviation between last two available exams
     const availableScores = [];
     if (term.end !== null) availableScores.push(term.end);
     if (term.mid !== null) availableScores.push(term.mid);
     if (term.opener !== null) availableScores.push(term.opener);
-    
+   
     // Take the last two scores
     const recentScores = availableScores.slice(0, 2);
     if (recentScores.length === 2) {
         return recentScores[0] - recentScores[1];
     }
-    
+   
     return null;
 };
-
 const formatDeviation = (deviation) => {
     if (deviation === null) return '–';
-    
+   
     const sign = deviation >= 0 ? '+' : '';
-    const className = deviation > 0 ? 'deviation-positive' : 
+    const className = deviation > 0 ? 'deviation-positive' :
                      deviation < 0 ? 'deviation-negative' : 'deviation-neutral';
-    
+   
     return `<span class="${className}">${sign}${deviation.toFixed(1)}</span>`;
 };
-
 const calculateProgress = (term1Avg, term3Avg) => {
     if (term1Avg === null || term3Avg === null) return '–';
-    
+   
     const progress = term3Avg - term1Avg;
-    const className = progress > 2 ? 'progress-improving' : 
+    const className = progress > 2 ? 'progress-improving' :
                      progress < -2 ? 'progress-declining' : 'progress-stable';
     const sign = progress >= 0 ? '+' : '';
     const icon = progress > 2 ? '📈' : progress < -2 ? '📉' : '➡️';
-    
+   
     return `<span class="${className}">${icon} ${sign}${progress.toFixed(1)}</span>`;
 };
 // Add this function to app.js
 const renderRecentRecords = () => {
     const container = document.getElementById('recentRecords');
     if (!container) return;
-    
+   
     const records = loadRecords();
-    
+   
     if (records.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
@@ -214,11 +232,11 @@ const renderRecentRecords = () => {
         `;
         return;
     }
-    
+   
     const recentRecords = records
         .sort((a, b) => new Date(b.timestamp || b.id) - new Date(a.timestamp || a.id))
         .slice(0, 5);
-    
+   
     container.innerHTML = `
         <table class="data-table">
             <thead>
@@ -248,11 +266,10 @@ const renderRecentRecords = () => {
         </table>
     `;
 };
-
 // Enhanced grouping function with deviation calculation
 const groupLearnerScores = (scores) => {
     const learnerMap = {};
-    
+   
     scores.forEach(score => {
         const key = `${score.admissionNo}-${score.year}`;
         if (!learnerMap[key]) {
@@ -269,7 +286,7 @@ const groupLearnerScores = (scores) => {
                 }
             };
         }
-        
+       
         // Assign scores to appropriate term and exam type
         if (score.term in learnerMap[key].terms) {
             if (score.examType.includes('Opener')) {
@@ -281,57 +298,56 @@ const groupLearnerScores = (scores) => {
             }
         }
     });
-    
+   
     return learnerMap;
 };
-
 // Enhanced table generation with deviation columns
 const generateLearnerTableHTML = (learnerData) => {
     return Object.values(learnerData).map(learner => {
         const term1 = learner.terms['Term 1'];
         const term2 = learner.terms['Term 2'];
         const term3 = learner.terms['Term 3'];
-        
+       
         const term1Avg = calculateTermAverage(term1);
         const term2Avg = calculateTermAverage(term2);
         const term3Avg = calculateTermAverage(term3);
-        
+       
         const term1Deviation = calculateDeviation(term1);
         const term2Deviation = calculateDeviation(term2);
         const term3Deviation = calculateDeviation(term3);
-        
+       
         const annualAvg = calculateAnnualAverage([term1Avg, term2Avg, term3Avg]);
         const rubricBadge = formatRubricBadge(annualAvg);
         const progress = calculateProgress(term1Avg, term3Avg);
-        
+       
         return `
             <tr>
                 <td>${learner.admissionNo}</td>
                 <td><strong>${learner.learnerName}</strong></td>
                 <td>${learner.grade}</td>
                 <td>${learner.stream}</td>
-                
+               
                 <!-- Term 1 -->
                 <td>${formatScore(term1.opener)}</td>
                 <td>${formatScore(term1.mid)}</td>
                 <td>${formatScore(term1.end)}</td>
                 <td style="font-weight: bold; color: ${getColorForScore(term1Avg)}">${formatScore(term1Avg)}</td>
                 <td>${formatDeviation(term1Deviation)}</td>
-                
+               
                 <!-- Term 2 -->
                 <td>${formatScore(term2.opener)}</td>
                 <td>${formatScore(term2.mid)}</td>
                 <td>${formatScore(term2.end)}</td>
                 <td style="font-weight: bold; color: ${getColorForScore(term2Avg)}">${formatScore(term2Avg)}</td>
                 <td>${formatDeviation(term2Deviation)}</td>
-                
+               
                 <!-- Term 3 -->
                 <td>${formatScore(term3.opener)}</td>
                 <td>${formatScore(term3.mid)}</td>
                 <td>${formatScore(term3.end)}</td>
                 <td style="font-weight: bold; color: ${getColorForScore(term3Avg)}">${formatScore(term3Avg)}</td>
                 <td>${formatDeviation(term3Deviation)}</td>
-                
+               
                 <!-- Annual Summary -->
                 <td style="font-weight: bold; color: ${getColorForScore(annualAvg)}">${formatScore(annualAvg)}</td>
                 <td>${progress}</td>
@@ -346,20 +362,17 @@ const calculateTermAverage = (term) => {
     if (scores.length === 0) return null;
     return scores.reduce((sum, score) => sum + score, 0) / scores.length;
 };
-
 // Add this function to calculate annual average
 const calculateAnnualAverage = (termAverages) => {
     const validAverages = termAverages.filter(avg => avg !== null);
     if (validAverages.length === 0) return null;
     return validAverages.reduce((sum, avg) => sum + avg, 0) / validAverages.length;
 };
-
 // Add this function to format scores
 const formatScore = (score) => {
     if (score === null || score === undefined) return '–';
     return score.toFixed(1);
 };
-
 // Add this function to get color for score
 const getColorForScore = (score) => {
     if (score === null) return '#666';
@@ -368,51 +381,17 @@ const getColorForScore = (score) => {
     if (score >= 50) return '#F59E0B';
     return '#EF4444';
 };
-const recentRecords = records
-        .sort((a, b) => new Date(b.timestamp || b.id) - new Date(a.timestamp || a.id))
-        .slice(0, 5);
-    
-    container.innerHTML = `
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Subject</th>
-                    <th>Grade</th>
-                    <th>Stream</th>
-                    <th>Term</th>
-                    <th>Exam</th>
-                    <th>Mean Score</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${recentRecords.map(record => `
-                    <tr>
-                        <td>${record.subject}</td>
-                        <td>${record.grade}</td>
-                        <td>${record.stream}</td>
-                        <td>${record.term}</td>
-                        <td>${record.examType}</td>
-                        <td style="font-weight: bold; color: ${getColorForScore(record.mean)}">
-                            ${record.mean.toFixed(1)}%
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
-};
-
 // Enhanced performance summary
 const updatePerformanceSummary = (learnerData) => {
     const learners = Object.values(learnerData);
-    
+   
     if (learners.length === 0) {
         document.getElementById('performanceSummary').style.display = 'none';
         return;
     }
-    
+   
     document.getElementById('performanceSummary').style.display = 'grid';
-    
+   
     // Calculate summary statistics
     let totalAnnual = 0;
     let passCount = 0;
@@ -420,17 +399,18 @@ const updatePerformanceSummary = (learnerData) => {
     let improvementCount = 0;
     const termAverages = { term1: 0, term2: 0, term3: 0 };
     let termCounts = { term1: 0, term2: 0, term3: 0 };
-    
+   
     learners.forEach(learner => {
         const term1Avg = calculateTermAverage(learner.terms['Term 1']);
         const term3Avg = calculateTermAverage(learner.terms['Term 3']);
+        const term2Avg = calculateTermAverage(learner.terms['Term 2']);
         const annualAvg = calculateAnnualAverage([term1Avg, term2Avg, term3Avg]);
-        
+       
         if (annualAvg !== null) {
             totalAnnual += annualAvg;
             if (annualAvg >= 50) passCount++;
         }
-        
+       
         // Track term averages
         [['Term 1', term1Avg], ['Term 2', term2Avg], ['Term 3', term3Avg]].forEach(([term, avg]) => {
             if (avg !== null) {
@@ -438,24 +418,24 @@ const updatePerformanceSummary = (learnerData) => {
                 termCounts[term.toLowerCase().replace(' ', '')]++;
             }
         });
-        
+       
         // Track improvement
         if (term1Avg !== null && term3Avg !== null) {
             totalImprovement += (term3Avg - term1Avg);
             improvementCount++;
         }
     });
-    
+   
     const classAverage = totalAnnual / learners.length;
     const passRate = (passCount / learners.length) * 100;
     const avgImprovement = improvementCount > 0 ? totalImprovement / improvementCount : 0;
-    
+   
     // Calculate consistency (variance between terms)
     const validTermAverages = Object.values(termAverages).filter((avg, index) => termCounts[Object.keys(termAverages)[index]] > 0);
     const mean = validTermAverages.reduce((a, b) => a + b, 0) / validTermAverages.length;
     const variance = validTermAverages.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / validTermAverages.length;
     const consistencyScore = Math.max(0, 10 - Math.sqrt(variance) / 3);
-    
+   
     // Update summary cards
     document.getElementById('summaryClassAverage').textContent = classAverage.toFixed(1) + '%';
     document.getElementById('summaryLearnerCount').textContent = `${learners.length} learners`;
@@ -463,13 +443,12 @@ const updatePerformanceSummary = (learnerData) => {
     document.getElementById('summaryPassRate').textContent = passRate.toFixed(1) + '%';
     document.getElementById('summaryConsistency').textContent = consistencyScore.toFixed(1);
 };
-
 // Enhanced analytics dashboard
 const updateAnalyticsDashboard = async () => {
-    const scores = await loadLearnerScores();
+    const scores = await loadRecords();
     const learnerData = groupLearnerScores(scores);
     const learners = Object.values(learnerData);
-    
+   
     if (learners.length === 0) {
         document.getElementById('classAverageCard').querySelector('.card-value').textContent = 'N/A';
         document.getElementById('improvementCard').querySelector('.card-value').textContent = 'N/A';
@@ -477,7 +456,7 @@ const updateAnalyticsDashboard = async () => {
         document.getElementById('topPerformerCard').querySelector('.card-value').textContent = 'N/A';
         return;
     }
-    
+   
     // Calculate analytics
     let totalAnnual = 0;
     let totalImprovement = 0;
@@ -485,25 +464,25 @@ const updateAnalyticsDashboard = async () => {
     let topPerformer = { name: 'N/A', average: 0 };
     const termAverages = { term1: 0, term2: 0, term3: 0 };
     let termCounts = { term1: 0, term2: 0, term3: 0 };
-    
+   
     learners.forEach(learner => {
         const term1Avg = calculateTermAverage(learner.terms['Term 1']);
         const term2Avg = calculateTermAverage(learner.terms['Term 2']);
         const term3Avg = calculateTermAverage(learner.terms['Term 3']);
         const annualAvg = calculateAnnualAverage([term1Avg, term2Avg, term3Avg]);
-        
+       
         if (annualAvg !== null) {
             totalAnnual += annualAvg;
-            
+           
             // Track top performer
             if (annualAvg > topPerformer.average) {
-                topPerformer = { 
-                    name: learner.learnerName, 
-                    average: annualAvg 
+                topPerformer = {
+                    name: learner.learnerName,
+                    average: annualAvg
                 };
             }
         }
-        
+       
         // Track term averages for consistency
         [['term1', term1Avg], ['term2', term2Avg], ['term3', term3Avg]].forEach(([term, avg]) => {
             if (avg !== null) {
@@ -511,26 +490,26 @@ const updateAnalyticsDashboard = async () => {
                 termCounts[term]++;
             }
         });
-        
+       
         // Track improvement
         if (term1Avg !== null && term3Avg !== null) {
             totalImprovement += (term3Avg - term1Avg);
             improvementCount++;
         }
     });
-    
+   
     const classAverage = totalAnnual / learners.length;
     const avgImprovement = improvementCount > 0 ? totalImprovement / improvementCount : 0;
-    
+   
     // Calculate consistency
     const validTermAverages = Object.entries(termAverages)
         .filter(([term,]) => termCounts[term] > 0)
         .map(([term, total]) => total / termCounts[term]);
-    
+   
     const mean = validTermAverages.reduce((a, b) => a + b, 0) / validTermAverages.length;
     const variance = validTermAverages.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / validTermAverages.length;
     const consistencyScore = Math.max(0, 10 - Math.sqrt(variance) / 3);
-    
+   
     // Update dashboard cards
     document.getElementById('classAverageCard').querySelector('.card-value').textContent = classAverage.toFixed(1) + '%';
     document.getElementById('improvementCard').querySelector('.card-value').textContent = (avgImprovement >= 0 ? '+' : '') + avgImprovement.toFixed(1) + '%';
@@ -538,23 +517,22 @@ const updateAnalyticsDashboard = async () => {
     document.getElementById('topPerformerCard').querySelector('.card-value').textContent = topPerformer.average.toFixed(1) + '%';
     document.getElementById('topPerformerCard').querySelector('.card-subtitle').textContent = topPerformer.name;
 };
-
 // Enhanced rendering with performance summary
 const renderLearnerScores = async () => {
     const tbody = el('learnerScoresBody');
     const emptyState = el('emptyLearnerState');
-    
+   
     if (!tbody) return;
-    
-    const scores = await loadLearnerScores();
-    
+   
+    const scores = await loadRecords();
+   
     // Apply filters
     let filteredScores = scores;
     const subjectFilter = el('filterSubject')?.value;
     const gradeFilter = el('filterGrade')?.value;
     const streamFilter = el('filterStream')?.value;
     const yearFilter = el('filterYear')?.value;
-    
+   
     if (subjectFilter) {
         filteredScores = filteredScores.filter(score => score.subject === subjectFilter);
     }
@@ -567,7 +545,7 @@ const renderLearnerScores = async () => {
     if (yearFilter) {
         filteredScores = filteredScores.filter(score => score.year.toString() === yearFilter);
     }
-    
+   
     if (filteredScores.length === 0) {
         tbody.innerHTML = '';
         if (emptyState) emptyState.style.display = 'block';
@@ -575,73 +553,72 @@ const renderLearnerScores = async () => {
         document.getElementById('performanceSummary').style.display = 'none';
         return;
     }
-    
+   
     if (emptyState) emptyState.style.display = 'none';
-    
+   
     // Group and display filtered scores
     const learnerData = groupLearnerScores(filteredScores);
     tbody.innerHTML = generateLearnerTableHTML(learnerData);
     updateLearnerRecordsCount(Object.keys(learnerData).length);
     updatePerformanceSummary(learnerData);
 };
-
 // Enhanced export with deviation data
 const exportSubjectReportExcel = async (scores, subject, grade, stream, year) => {
     if (scores.length === 0) {
         showAlert('No data to export', 'error');
         return;
     }
-    
+   
     // Group data by learner
     const learnerData = groupLearnerScores(scores);
     const learners = Object.values(learnerData);
-    
+   
     // Prepare data for Excel with deviation columns
     const excelData = learners.map(learner => {
         const term1 = learner.terms['Term 1'];
         const term2 = learner.terms['Term 2'];
         const term3 = learner.terms['Term 3'];
-        
+       
         const term1Avg = calculateTermAverage(term1);
         const term2Avg = calculateTermAverage(term2);
         const term3Avg = calculateTermAverage(term3);
-        
+       
         const term1Deviation = calculateDeviation(term1);
         const term2Deviation = calculateDeviation(term2);
         const term3Deviation = calculateDeviation(term3);
-        
+       
         const annualAvg = calculateAnnualAverage([term1Avg, term2Avg, term3Avg]);
         const rubric = annualAvg !== null ? getRubric(annualAvg) : { code: 'N/A', text: 'N/A' };
         const progress = term1Avg !== null && term3Avg !== null ? term3Avg - term1Avg : null;
-        
+       
         return {
             'Admission No': learner.admissionNo,
             'Learner Name': learner.learnerName,
             'Grade': learner.grade,
             'Stream': learner.stream,
             'Year': learner.year,
-            
+           
             // Term 1 Scores
             'Term 1 Opener': term1.opener,
             'Term 1 Mid Term': term1.mid,
             'Term 1 End Term': term1.end,
             'Term 1 Average': term1Avg,
             'Term 1 Deviation': term1Deviation,
-            
+           
             // Term 2 Scores
             'Term 2 Opener': term2.opener,
             'Term 2 Mid Term': term2.mid,
             'Term 2 End Term': term2.end,
             'Term 2 Average': term2Avg,
             'Term 2 Deviation': term2Deviation,
-            
+           
             // Term 3 Scores
             'Term 3 Opener': term3.opener,
             'Term 3 Mid Term': term3.mid,
             'Term 3 End Term': term3.end,
             'Term 3 Average': term3Avg,
             'Term 3 Deviation': term3Deviation,
-            
+           
             // Annual Summary
             'Annual Average': annualAvg,
             'Progress (T1 to T3)': progress,
@@ -650,17 +627,17 @@ const exportSubjectReportExcel = async (scores, subject, grade, stream, year) =>
             'Teacher': learner.teacher || getTeacherName()
         };
     });
-    
+   
     // Calculate class statistics with deviation analysis
     const classStats = calculateClassStatistics(learners);
-    
+   
     // Create workbook with multiple sheets
     const workbook = XLSX.utils.book_new();
-    
+   
     // Main data sheet
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Learner Scores');
-    
+   
     // Summary sheet with deviation analysis
     const summaryData = [
         ['SMARTSCORES PERFORMANCE REPORT WITH PROGRESS TRACKING'],
@@ -683,19 +660,18 @@ const exportSubjectReportExcel = async (scores, subject, grade, stream, year) =>
         ['Rubric', 'Count', 'Percentage'],
         ...classStats.rubricDistribution.map(r => [r.rubric, r.count, `${r.percentage}%`])
     ];
-    
+   
     const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
     XLSX.utils.book_append_sheet(workbook, summarySheet, 'Progress Summary');
-    
+   
     // Generate filename
     const safeSubject = subject.replace(/[^a-zA-Z0-9]/g, '_');
     const safeTeacher = getTeacherName().replace(/[^a-zA-Z0-9]/g, '_');
     const filename = `Progress_Report_${safeSubject}_Grade${grade}_${stream}_${year}_${safeTeacher}.xlsx`;
-    
+   
     XLSX.writeFile(workbook, filename);
     showAlert(`Progress report exported successfully! ${learners.length} learners included.`, 'success');
 };
-
 // Enhanced class statistics with deviation analysis
 const calculateClassStatistics = (learners) => {
     const stats = {
@@ -714,64 +690,64 @@ const calculateClassStatistics = (learners) => {
         },
         rubricDistribution: []
     };
-    
+   
     if (learners.length === 0) return stats;
-    
+   
     let totalAnnual = 0;
     let totalImprovement = 0;
     let improvementCount = 0;
     const rubricCount = {};
     let bestProgressValue = -100;
     let bestProgressName = 'N/A';
-    
+   
     // Track deviations per term
     const termDeviations = { term1: [], term2: [], term3: [] };
-    
+   
     learners.forEach(learner => {
         const term1 = learner.terms['Term 1'];
         const term2 = learner.terms['Term 2'];
         const term3 = learner.terms['Term 3'];
-        
+       
         const term1Avg = calculateTermAverage(term1);
         const term2Avg = calculateTermAverage(term2);
         const term3Avg = calculateTermAverage(term3);
         const annualAvg = calculateAnnualAverage([term1Avg, term2Avg, term3Avg]);
-        
+       
         if (annualAvg !== null) {
             totalAnnual += annualAvg;
-            
+           
             // Count rubrics
             const rubric = getRubric(annualAvg).code;
             rubricCount[rubric] = (rubricCount[rubric] || 0) + 1;
         }
-        
+       
         // Track progress
         if (term1Avg !== null && term3Avg !== null) {
             const progress = term3Avg - term1Avg;
             totalImprovement += progress;
             improvementCount++;
-            
+           
             // Track progress categories
             if (progress > 5) stats.consistentImprovers++;
             else if (progress < -5) stats.decliningLearners++;
             else stats.stablePerformers++;
-            
+           
             // Track best progress
             if (progress > bestProgressValue) {
                 bestProgressValue = progress;
                 bestProgressName = learner.learnerName;
             }
-            
+           
             // Track needs attention
             if (term3Avg < 40) stats.needsAttention++;
         }
-        
+       
         // Calculate and track deviations
         [['term1', term1], ['term2', term2], ['term3', term3]].forEach(([term, termData]) => {
             const deviation = calculateDeviation(termData);
             if (deviation !== null) {
                 termDeviations[term].push(deviation);
-                
+               
                 // Count deviation categories
                 if (deviation > 0) stats.deviationAnalysis[term].positive++;
                 else if (deviation < 0) stats.deviationAnalysis[term].negative++;
@@ -779,12 +755,12 @@ const calculateClassStatistics = (learners) => {
             }
         });
     });
-    
+   
     // Calculate averages
     stats.classAverage = totalAnnual / learners.length;
     stats.avgImprovement = improvementCount > 0 ? totalImprovement / improvementCount : 0;
     stats.bestProgress = bestProgressName !== 'N/A' ? `${bestProgressName} (+${bestProgressValue.toFixed(1)}%)` : 'N/A';
-    
+   
     // Calculate average deviations
     Object.keys(termDeviations).forEach(term => {
         const deviations = termDeviations[term];
@@ -792,30 +768,29 @@ const calculateClassStatistics = (learners) => {
             stats.deviationAnalysis[term].average = deviations.reduce((a, b) => a + b, 0) / deviations.length;
         }
     });
-    
+   
     // Rubric distribution
     stats.rubricDistribution = Object.entries(rubricCount).map(([rubric, count]) => ({
         rubric,
         count,
         percentage: ((count / learners.length) * 100).toFixed(1)
     }));
-    
+   
     return stats;
 };
-
 // ==================== DATA MIGRATION ====================
 const migrateExistingData = async () => {
     if (typeof firebaseSync === 'undefined' || typeof firebaseAuth === 'undefined') return;
-    
+   
     const user = firebaseAuth.getCurrentUser();
     if (!user || user.uid === 'local-user') return;
-    
+   
     // Check if we've already migrated
     const migrationKey = `data_migrated_${user.uid}`;
     if (localStorage.getItem(migrationKey)) return;
-    
+   
     console.log('🔄 Checking for existing data to migrate...');
-    
+   
     // Migrate records
     const localRecords = localStorage.getItem('smartScoresRecords');
     if (localRecords) {
@@ -825,7 +800,7 @@ const migrateExistingData = async () => {
             await firebaseSync.saveRecords(records);
         }
     }
-    
+   
     // Migrate targets
     const localTargets = localStorage.getItem('smartScoresTargets');
     if (localTargets) {
@@ -835,41 +810,37 @@ const migrateExistingData = async () => {
             await firebaseSync.saveTargets(targets);
         }
     }
-    
+   
     // Mark as migrated
     localStorage.setItem(migrationKey, 'true');
     console.log('✅ Data migration completed');
 };
-
 // Call this after successful login
 // Add this to your auth success handlers
-
 // ==================== THEME MANAGEMENT ====================
 const loadTheme = () => {
     const theme = localStorage.getItem(STORAGE_KEYS.THEME) || 'light';
     document.documentElement.setAttribute('data-theme', theme);
 };
-
 window.toggleDarkMode = () => {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem(STORAGE_KEYS.THEME, newTheme);
 };
-
 // ==================== MOBILE NAVIGATION MANAGEMENT ====================
 window.toggleMobileMenu = function() {
     const mobileSidebar = document.getElementById('mobileSidebar');
     const toggleBtn = document.getElementById('mobileMenuToggle');
-    
+   
     if (mobileSidebar) {
         mobileSidebar.classList.toggle('closed');
-        
+       
         // Update toggle button text
         if (toggleBtn) {
             toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
         }
-        
+       
         // Close sidebar when clicking outside on mobile
         if (!mobileSidebar.classList.contains('closed')) {
             setTimeout(() => {
@@ -878,23 +849,21 @@ window.toggleMobileMenu = function() {
         }
     }
 };
-
 // Close mobile sidebar when clicking outside
 function closeMobileSidebarOnClickOutside(event) {
     const mobileSidebar = document.getElementById('mobileSidebar');
     const toggleBtn = document.getElementById('mobileMenuToggle');
-    
+   
     if (!mobileSidebar || !toggleBtn) return;
-    
+   
     const isClickInsideSidebar = mobileSidebar.contains(event.target);
     const isClickOnToggle = toggleBtn.contains(event.target);
-    
+   
     if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
         mobileSidebar.classList.add('closed');
         document.removeEventListener('click', closeMobileSidebarOnClickOutside);
     }
 }
-
 // Auto-close mobile sidebar when navigating
 function setupMobileSidebarAutoClose() {
     if (window.innerWidth < 1024) {
@@ -909,119 +878,64 @@ function setupMobileSidebarAutoClose() {
         });
     }
 }
-
-// ==================== ENHANCED ERROR HANDLING ====================
-const showAlert = (message, type = 'info') => {
-    // Create a more sophisticated alert that shows sync status
-    const alertDiv = document.createElement('div');
-    alertDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        border-radius: 10px;
-        color: white;
-        font-weight: 600;
-        z-index: 10000;
-        max-width: 300px;
-        box-shadow: var(--shadow);
-        animation: slideIn 0.3s ease;
-    `;
-    
-    const colors = {
-        success: '#10B981',
-        error: '#EF4444', 
-        warning: '#F59E0B',
-        info: '#3B82F6'
-    };
-    
-    alertDiv.style.background = colors[type] || colors.info;
-    alertDiv.textContent = message;
-    
-    document.body.appendChild(alertDiv);
-    
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 4000);
-};
-
-// Add this CSS for the animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-`;
-document.head.appendChild(style);
 // ==================== DATA ENTRY ====================
 // Update the teacher name retrieval throughout app.js
 const getTeacherName = () => {
-    return localStorage.getItem(STORAGE_KEYS.TEACHER_FULL_NAME) || 
-           localStorage.getItem('teacherFullName') || 
+    return localStorage.getItem(STORAGE_KEYS.TEACHER) ||
+           localStorage.getItem('teacherFullName') ||
            'Guest Teacher';
 };
-
 const getTeacherFirstName = () => {
-    return localStorage.getItem(STORAGE_KEYS.TEACHER_FIRST_NAME) || 
-           localStorage.getItem('teacherFirstName') || 
+    return localStorage.getItem(STORAGE_KEYS.TEACHER_FIRST_NAME) ||
+           localStorage.getItem('teacherFirstName') ||
            'Teacher';
 };
-
 // Update the handleSaveRecord function to use the full name
 // ==================== DATA ENTRY HANDLER ====================
 const handleSaveRecord = async (event) => {
     if (event) event.preventDefault();
-
     console.log('🔄 Starting save process...');
-
     const teacherName = getTeacherName();
     console.log('👨‍🏫 Teacher name:', teacherName);
-    
+   
     // Basic Validation
     const subject = document.getElementById('subject')?.value?.trim();
     const grade = document.getElementById('grade')?.value?.trim();
     const meanScoreValue = document.getElementById('meanScore')?.value;
-
     if (!teacherName || teacherName === 'Guest Teacher') {
         showAlert('Please sign in or set your teacher name in the profile section.', 'error');
         return;
     }
-    
+   
     if (!subject || !grade || !meanScoreValue) {
         showAlert('Please fill in Subject, Grade, and Mean Score.', 'error');
         return;
     }
-
     const mean = parseFloat(meanScoreValue);
     if (isNaN(mean) || mean < 0 || mean > 100) {
         showAlert('Mean Score must be a number between 0 and 100.', 'error');
         return;
     }
-
     // Create Record Object
     const record = {
         id: Date.now(),
         timestamp: new Date().toISOString(),
-        teacher: teacherName, 
+        teacher: teacherName,
         subject: subject,
         grade: grade,
-        stream: document.getElementById('stream')?.value?.trim() || 'N/A', 
+        stream: document.getElementById('stream')?.value?.trim() || 'N/A',
         term: document.getElementById('term')?.value?.trim(),
         examType: document.getElementById('examType')?.value?.trim(),
         year: document.getElementById('year')?.value?.trim(),
         mean: mean
     };
-
     console.log('📝 Record to save:', record);
-
     try {
         // Load, Check Duplicate, and Push
-        const existingRecords = loadRecords(); 
+        const existingRecords = loadRecords();
         console.log('📊 Existing records count:', existingRecords.length);
-
-        // Simple check for duplicate entry 
-        const duplicate = existingRecords.find(r => 
+        // Simple check for duplicate entry
+        const duplicate = existingRecords.find(r =>
             r.teacher === record.teacher &&
             r.subject === record.subject &&
             r.grade === record.grade &&
@@ -1030,39 +944,35 @@ const handleSaveRecord = async (event) => {
             r.examType === record.examType &&
             r.year === record.year
         );
-
         if (duplicate) {
             showAlert('A record with these exact details already exists!', 'error');
             return;
         }
-
         existingRecords.push(record);
-
         // Save and Refresh
         const saveSuccess = saveRecords(existingRecords);
-        
+       
         if (saveSuccess) {
             console.log('✅ Record saved successfully');
             showAlert('Record saved successfully!', 'success');
-            
+           
             // Reset form and refill the year field
             const dataForm = document.getElementById('dataEntryForm');
             if (dataForm) {
-                dataForm.reset(); 
+                dataForm.reset();
                 // Auto-fill year again after reset
                 const yearInput = document.getElementById('year');
                 if (yearInput) {
                     yearInput.value = new Date().getFullYear();
                 }
             }
-
             // CRITICAL: Refresh all views
             await renderAll();
            // Force refresh of recorded-scores page if we're there
     if (window.location.pathname.includes('recorded-scores.html')) {
         await renderRecords();
     }
-            
+           
         } else {
             throw new Error('Failed to save records');
         }
@@ -1071,57 +981,52 @@ const handleSaveRecord = async (event) => {
         showAlert('Error saving record: ' + error.message, 'error');
     }
 };
-          // ✅ CORRECT - Properly closed
 if (dataForm) {
-    dataForm.reset(); 
+    dataForm.reset();
     if (window.autoFillYear) window.autoFillYear();
 }
-
 // Add these missing functions to app.js
-
 // AI Insights specific functions
 const updateAIInsights = () => {
     const records = loadRecords();
     const targets = loadTargets();
-    
+   
     // Update summary cards
     updateSummaryCards(records, targets);
     updateAlerts(records, targets);
     updateRecommendations(records, targets);
 };
-
 const updateSummaryCards = (records, targets) => {
     if (records.length === 0) return;
-    
+   
     // Overall Average
     const overallAvg = records.reduce((sum, r) => sum + r.mean, 0) / records.length;
     el('overallAverage').textContent = overallAvg.toFixed(1) + '%';
-    
+   
     // Targets Met
     const targetsMet = calculateTargetsMet(records, targets);
     el('targetsMet').textContent = targetsMet.metCount;
     el('targetsCount').textContent = targetsMet.total + ' subjects';
-    
+   
     // Needs Attention
     const attention = calculateAttentionNeeded(records, targets);
     el('needsAttention').textContent = attention.count;
     el('attentionCount').textContent = attention.count + ' alerts';
-    
+   
     // Outstanding
     const outstanding = calculateOutstanding(records);
     el('outstandingCount').textContent = outstanding.count;
     el('outstandingText').textContent = outstanding.count + ' subjects';
 };
-
 const calculateTargetsMet = (records, targets) => {
     let metCount = 0;
     const targetMap = {};
-    
+   
     targets.forEach(target => {
         const key = `${target.subject}|${target.grade}|${target.stream}|${target.term}|${target.examType}`;
         targetMap[key] = target.score;
     });
-    
+   
     records.forEach(record => {
         const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
         const target = targetMap[key];
@@ -1129,56 +1034,52 @@ const calculateTargetsMet = (records, targets) => {
             metCount++;
         }
     });
-    
+   
     return { metCount, total: targets.length };
 };
-
 const calculateAttentionNeeded = (records, targets) => {
     const critical = [];
     const targetMap = {};
-    
+   
     targets.forEach(target => {
         const key = `${target.subject}|${target.grade}|${target.stream}|${target.term}|${target.examType}`;
         targetMap[key] = target.score;
     });
-    
+   
     records.forEach(record => {
         const key = `${record.subject}|${target.grade}|${record.stream}|${record.term}|${record.examType}`;
         const target = targetMap[key];
-        
+       
         // Critical if significantly below target or very low score
         if ((target && record.mean < target - 10) || record.mean < 40) {
             critical.push(record);
         }
     });
-    
+   
     return { count: critical.length, records: critical };
 };
-
 const calculateOutstanding = (records) => {
     const outstanding = records.filter(record => record.mean >= 80);
     return { count: outstanding.length, records: outstanding };
 };
-
 const updateAlerts = (records, targets) => {
     const attention = calculateAttentionNeeded(records, targets);
     const outstanding = calculateOutstanding(records);
-    
+   
     // Update critical alerts
     updateAlertSection('criticalAlerts', attention.records, 'critical', 'No critical alerts! All subjects are performing well.');
     el('criticalBadge').textContent = attention.count + ' critical';
-    
+   
     // Update positive alerts
     updateAlertSection('positiveAlerts', outstanding.records, 'positive', 'No outstanding performance alerts yet.');
     el('positiveBadge').textContent = outstanding.count + ' outstanding';
-    
+   
     // Update on-track alerts
     updateOnTrackAlerts(records, targets);
 };
-
 const updateAlertSection = (containerId, records, type, emptyMessage) => {
     const container = el(containerId);
-    
+   
     if (records.length === 0) {
         container.innerHTML = `
             <div class="empty-alert">
@@ -1188,7 +1089,7 @@ const updateAlertSection = (containerId, records, type, emptyMessage) => {
         `;
         return;
     }
-    
+   
     container.innerHTML = records.map(record => `
         <div class="alert-item ${type}">
             <div class="alert-icon">${type === 'critical' ? '⚠️' : '🎉'}</div>
@@ -1200,35 +1101,33 @@ const updateAlertSection = (containerId, records, type, emptyMessage) => {
         </div>
     `).join('');
 };
-
 const updateOnTrackAlerts = (records, targets) => {
     const onTrack = [];
     const targetMap = {};
-    
+   
     targets.forEach(target => {
         const key = `${target.subject}|${target.grade}|${target.stream}|${target.term}|${target.examType}`;
         targetMap[key] = target.score;
     });
-    
+   
     records.forEach(record => {
         const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
         const target = targetMap[key];
-        
+       
         if (target && Math.abs(record.mean - target) <= 5) {
             onTrack.push(record);
         }
     });
-    
+   
     updateAlertSection('onTrackAlerts', onTrack, 'info', 'No subjects currently tracked against targets.');
     el('onTrackBadge').textContent = onTrack.length + ' on track';
 };
-
 const updateRecommendations = (records, targets) => {
     const recommendations = generateAIRecommendations(records, targets);
     const container = el('aiRecommendations');
-    
+   
     el('recommendationBadge').textContent = recommendations.length + ' recommendations';
-    
+   
     if (recommendations.length === 0) {
         container.innerHTML = `
             <div class="empty-recommendation">
@@ -1238,7 +1137,7 @@ const updateRecommendations = (records, targets) => {
         `;
         return;
     }
-    
+   
     container.innerHTML = recommendations.map(rec => `
         <div class="recommendation-item">
             <div class="recommendation-icon">💡</div>
@@ -1250,12 +1149,11 @@ const updateRecommendations = (records, targets) => {
         </div>
     `).join('');
 };
-
 const generateAIRecommendations = (records, targets) => {
     const recommendations = [];
-    
+   
     if (records.length === 0) return recommendations;
-    
+   
     // Check for low performing subjects
     const subjectAverages = {};
     records.forEach(record => {
@@ -1266,7 +1164,7 @@ const generateAIRecommendations = (records, targets) => {
         subjectAverages[key].sum += record.mean;
         subjectAverages[key].count++;
     });
-    
+   
     Object.entries(subjectAverages).forEach(([subject, data]) => {
         const avg = data.sum / data.count;
         if (avg < 50) {
@@ -1277,14 +1175,14 @@ const generateAIRecommendations = (records, targets) => {
             });
         }
     });
-    
+   
     // Check target performance
     const targetMap = {};
     targets.forEach(target => {
         const key = `${target.subject}|${target.grade}|${target.stream}|${target.term}|${target.examType}`;
         targetMap[key] = target.score;
     });
-    
+   
     let belowTargetCount = 0;
     records.forEach(record => {
         const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
@@ -1293,7 +1191,7 @@ const generateAIRecommendations = (records, targets) => {
             belowTargetCount++;
         }
     });
-    
+   
     if (belowTargetCount > 0) {
         recommendations.push({
             title: 'Multiple Subjects Below Target',
@@ -1301,13 +1199,13 @@ const generateAIRecommendations = (records, targets) => {
             suggestion: 'Review teaching strategies and provide targeted interventions.'
         });
     }
-    
+   
     return recommendations;
 };
 // ==================== TARGET MANAGEMENT ====================
 const handleSaveTarget = async (event) => { // ADDED ASYNC
     if (event) event.preventDefault();
-    
+   
     const target = {
         subject: el('targetSubject')?.value?.trim(),
         grade: el('targetGrade')?.value?.trim(),
@@ -1316,9 +1214,9 @@ const handleSaveTarget = async (event) => { // ADDED ASYNC
         examType: el('targetExamType')?.value?.trim(),
         score: parseFloat(el('targetScore')?.value)
     };
-    
+   
     // ... (keep all your existing validation code) ...
-    
+   
     const existingTargets = await loadTargets(); // CHANGED TO AWAIT
     const duplicate = existingTargets.find(t =>
         t.subject === target.subject &&
@@ -1327,18 +1225,18 @@ const handleSaveTarget = async (event) => { // ADDED ASYNC
         t.term === target.term &&
         t.examType === target.examType
     );
-    
+   
     if (duplicate) {
         showAlert('A target for this subject/grade/stream/term/exam combination already exists!', 'error');
         return;
     }
-    
+   
     existingTargets.push({
         ...target,
         id: Date.now(),
         timestamp: new Date().toISOString()
     });
-    
+   
     if (await saveTargets(existingTargets)) { // CHANGED TO AWAIT
         showAlert('Target saved successfully!', 'success');
         if (el('targetsForm')) {
@@ -1359,7 +1257,6 @@ window.deleteTarget = (index) => {
         }
     }
 };
-
 // ==================== RECORD MANAGEMENT ====================
 window.deleteRecord = async (index) => { // ADDED ASYNC
     if (confirm('Are you sure you want to delete this record?')) {
@@ -1373,102 +1270,97 @@ window.deleteRecord = async (index) => { // ADDED ASYNC
         }
     }
 };
-
 // ==================== SEARCH & FILTER ====================
 window.filterRecords = () => {
     const searchTerm = (el('searchInput')?.value || '').toLowerCase();
     const tbody = document.querySelector('#recordsTable tbody') || el('recordsBody');
-    
+   
     if (!tbody) return;
-    
+   
     const rows = Array.from(tbody.querySelectorAll('tr'));
     let visibleCount = 0;
-    
+   
     rows.forEach(row => {
         const text = row.textContent.toLowerCase();
         const isVisible = !searchTerm || text.includes(searchTerm);
         row.style.display = isVisible ? '' : 'none';
         if (isVisible) visibleCount++;
     });
-    
+   
     const recordsShown = el('recordsShown');
     if (recordsShown) {
         recordsShown.textContent = visibleCount;
     }
-    
+   
     const emptyState = el('emptyState');
     if (emptyState) {
         emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
     }
 };
-
 window.filterTargets = () => {
     const searchTerm = (el('targetSearch')?.value || '').toLowerCase();
     const tbody = document.querySelector('#targetsTable tbody');
-    
+   
     if (!tbody) return;
-    
+   
     const rows = Array.from(tbody.querySelectorAll('tr'));
     let visibleCount = 0;
-    
+   
     rows.forEach(row => {
         const text = row.textContent.toLowerCase();
         const isVisible = !searchTerm || text.includes(searchTerm);
         row.style.display = isVisible ? '' : 'none';
         if (isVisible) visibleCount++;
     });
-    
+   
     const emptyTargets = el('emptyTargets');
     if (emptyTargets) {
         emptyTargets.style.display = visibleCount === 0 ? 'block' : 'none';
     }
 };
-
 // ==================== SORTING ====================
 let currentSort = { column: 0, direction: 'asc' };
-
 window.sortRecords = (columnIndex) => {
     const tbody = document.querySelector('#recordsTable tbody') || el('recordsBody');
     if (!tbody) return;
-    
+   
     const rows = Array.from(tbody.rows);
     if (rows.length === 0) return;
-    
+   
     if (currentSort.column === columnIndex) {
         currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
     } else {
         currentSort.column = columnIndex;
         currentSort.direction = 'asc';
     }
-    
+   
     rows.sort((a, b) => {
         let aValue = a.cells[columnIndex]?.textContent?.trim() || '';
         let bValue = b.cells[columnIndex]?.textContent?.trim() || '';
-        
+       
         if (columnIndex === 7 || columnIndex === 8 || columnIndex === 9) {
             aValue = parseFloat(aValue.replace(/[^\d.-]/g, '')) || 0;
             bValue = parseFloat(bValue.replace(/[^\d.-]/g, '')) || 0;
         }
-        
+       
         if (columnIndex === 6) {
             aValue = parseInt(aValue) || 0;
             bValue = parseInt(bValue) || 0;
         }
-        
+       
         let result;
         if (typeof aValue === 'number' && typeof bValue === 'number') {
             result = aValue - bValue;
         } else {
             result = aValue.toString().localeCompare(bValue.toString());
         }
-        
+       
         return currentSort.direction === 'asc' ? result : -result;
     });
-    
+   
     rows.forEach(row => tbody.appendChild(row));
     updateSortIndicators(columnIndex);
 };
-
 const updateSortIndicators = (sortedColumn) => {
     const headers = document.querySelectorAll('#recordsTable th');
     headers.forEach((header, index) => {
@@ -1479,65 +1371,57 @@ const updateSortIndicators = (sortedColumn) => {
         header.textContent = text;
     });
 };
-
 // ==================== TRENDS & AVERAGES FILTERS ====================
 window.applyTrendFilters = () => {
     showAlert('Trend filters applied!', 'success');
     // Implementation for trend filtering would go here
 };
-
 window.resetTrendFilters = () => {
     const trendFilter = el('trendFilter');
     const subjectFilter = el('subjectFilter');
     const trendGradeFilter = el('trendGradeFilter');
-    
+   
     if (trendFilter) trendFilter.value = '';
     if (subjectFilter) subjectFilter.value = '';
     if (trendGradeFilter) trendGradeFilter.value = '';
-    
+   
     showAlert('Trend filters reset!', 'info');
 };
-
 window.sortTrendsTable = (column) => {
     showAlert(`Sorting trends table by column ${column}`, 'info');
     // Implementation for trends table sorting would go here
 };
-
 window.applyAveragesFilters = () => {
     showAlert('Averages filters applied!', 'success');
     // Implementation for averages filtering would go here
 };
-
 window.resetAveragesFilters = () => {
     const gradeFilter = el('gradeFilter');
     const streamFilter = el('streamFilter');
     const termFilter = el('termFilter');
-    
+   
     if (gradeFilter) gradeFilter.value = '';
     if (streamFilter) streamFilter.value = '';
     if (termFilter) termFilter.value = '';
-    
+   
     showAlert('Averages filters reset!', 'info');
 };
-
 window.sortAveragesTable = (column) => {
     showAlert(`Sorting averages table by column ${column}`, 'info');
     // Implementation for averages table sorting would go here
 };
-
 window.exportAverages = () => {
     showAlert('Exporting averages data...', 'info');
     // Implementation for averages export would go here
 };
-
 // ==================== RENDERING FUNCTIONS ====================
 const renderRecords = async () => { // ADDED ASYNC
     const tbody = document.querySelector('#recordsTable tbody') || el('recordsBody');
     if (!tbody) return;
-    
+   
     const records = await loadRecords(); // CHANGED TO AWAIT
     const targets = await loadTargets(); // CHANGED TO AWAIT
-    
+   
     if (records.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -1548,20 +1432,20 @@ const renderRecords = async () => { // ADDED ASYNC
         `;
         return;
     }
-    
+   
     const targetMap = {};
     targets.forEach(target => {
         const key = `${target.subject}|${target.grade}|${target.stream}|${target.term}|${target.examType}`;
         targetMap[key] = target.score;
     });
-    
+   
     tbody.innerHTML = records.map((record, index) => {
         const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
         const targetScore = targetMap[key] || null;
         const deviation = targetScore !== null ? record.mean - targetScore : null;
         const deviationStr = deviation !== null ? `${deviation >= 0 ? '+' : ''}${deviation.toFixed(1)}%` : '–';
         const rubricBadge = formatRubricBadge(record.mean);
-        
+       
         return `
             <tr>
                 <td>${record.teacher || '–'}</td>
@@ -1583,25 +1467,24 @@ const renderRecords = async () => { // ADDED ASYNC
             </tr>
         `;
     }).join('');
-    
+   
     const totalRecords = el('totalRecordsCount');
     if (totalRecords) {
         totalRecords.textContent = records.length;
     }
-    
+   
     const averageScore = el('averageScore');
     if (averageScore && records.length > 0) {
         const avg = records.reduce((sum, r) => sum + r.mean, 0) / records.length;
         averageScore.textContent = avg.toFixed(1) + '%';
     }
 };
-
 const renderTargets = () => {
     const tbody = document.querySelector('#targetsTable tbody');
     if (!tbody) return;
-    
+   
     const targets = loadTargets();
-    
+   
     if (targets.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -1610,12 +1493,12 @@ const renderTargets = () => {
                 </td>
             </tr>
         `;
-        
+       
         const emptyTargets = el('emptyTargets');
         if (emptyTargets) emptyTargets.style.display = 'block';
         return;
     }
-    
+   
     tbody.innerHTML = targets.map((target, index) => `
         <tr>
             <td>${target.subject}</td>
@@ -1629,35 +1512,33 @@ const renderTargets = () => {
             </td>
         </tr>
     `).join('');
-    
+   
     updateTargetsSummary(targets);
     const emptyTargets = el('emptyTargets');
     if (emptyTargets) emptyTargets.style.display = 'none';
 };
-
 const updateTargetsSummary = (targets) => {
     const totalTargets = el('totalTargets');
     const averageTarget = el('averageTarget');
     const activeTargets = el('activeTargets');
-    
+   
     if (totalTargets) totalTargets.textContent = targets.length;
-    
+   
     if (averageTarget && targets.length > 0) {
         const avg = targets.reduce((sum, t) => sum + t.score, 0) / targets.length;
         averageTarget.textContent = avg.toFixed(1) + '%';
     }
-    
+   
     if (activeTargets) activeTargets.textContent = targets.length;
 };
-
 // ==================== AI INSIGHTS ====================
 const renderAIInsights = () => {
     const container = el('insights');
     if (!container) return;
-    
+   
     const records = loadRecords();
     const targets = loadTargets();
-    
+   
     if (records.length === 0) {
         container.innerHTML = `
             <div class="insight-item">
@@ -1666,26 +1547,26 @@ const renderAIInsights = () => {
         `;
         return;
     }
-    
+   
     const targetMap = {};
     targets.forEach(target => {
         const key = `${target.subject}|${target.grade}|${target.stream}|${target.term}|${target.examType}`;
         targetMap[key] = target.score;
     });
-    
+   
     const insights = [];
     let onTrackCount = 0;
     let aboveTargetCount = 0;
     let belowTargetCount = 0;
-    
+   
     records.forEach(record => {
         const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
         const target = targetMap[key];
-        
+       
         if (target !== undefined) {
             const deviation = ((record.mean - target) / target) * 100;
             const absoluteDeviation = Math.abs(deviation);
-            
+           
             if (absoluteDeviation > 10) {
                 const insight = {
                     subject: record.subject,
@@ -1698,7 +1579,7 @@ const renderAIInsights = () => {
                     type: deviation > 0 ? 'above' : 'below'
                 };
                 insights.push(insight);
-                
+               
                 if (deviation > 0) aboveTargetCount++;
                 else belowTargetCount++;
             } else {
@@ -1706,9 +1587,9 @@ const renderAIInsights = () => {
             }
         }
     });
-    
+   
     let insightsHTML = '';
-    
+   
     if (insights.length === 0 && targets.length > 0) {
         insightsHTML = `
             <div class="insight-item positive">
@@ -1727,7 +1608,7 @@ const renderAIInsights = () => {
                 </strong></p>
             </div>
         `).join('');
-        
+       
         insightsHTML += `
             <div class="insights-summary">
                 <p><strong>Summary:</strong> ${aboveTargetCount} above target, ${belowTargetCount} below target, ${onTrackCount} on track</p>
@@ -1742,17 +1623,16 @@ const renderAIInsights = () => {
             </div>
         `;
     }
-    
+   
     container.innerHTML = insightsHTML;
 };
-
 // ==================== CUMULATIVE AVERAGES ====================
 const renderCumulativeAverages = () => {
     const tbody = document.querySelector('#cumulativeTable tbody');
     if (!tbody) return;
-    
+   
     const records = loadRecords();
-    
+   
     if (records.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -1763,7 +1643,7 @@ const renderCumulativeAverages = () => {
         `;
         return;
     }
-    
+   
     const groups = {};
     records.forEach(record => {
         const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}`;
@@ -1780,7 +1660,7 @@ const renderCumulativeAverages = () => {
                 }
             };
         }
-        
+       
         const examType = record.examType || '';
         if (examType.includes('Opener')) {
             groups[key].exams['Opener Exam'].push(record.mean);
@@ -1790,23 +1670,23 @@ const renderCumulativeAverages = () => {
             groups[key].exams['End Term Exam'].push(record.mean);
         }
     });
-    
+   
     const averages = Object.values(groups).map(group => {
         const openerScores = group.exams['Opener Exam'];
         const midScores = group.exams['Mid Term Exam'];
         const endScores = group.exams['End Term Exam'];
-        
-        const openerAvg = openerScores.length > 0 ? 
+       
+        const openerAvg = openerScores.length > 0 ?
             openerScores.reduce((a, b) => a + b, 0) / openerScores.length : null;
-        const midAvg = midScores.length > 0 ? 
+        const midAvg = midScores.length > 0 ?
             midScores.reduce((a, b) => a + b, 0) / midScores.length : null;
-        const endAvg = endScores.length > 0 ? 
+        const endAvg = endScores.length > 0 ?
             endScores.reduce((a, b) => a + b, 0) / endScores.length : null;
-        
+       
         const allScores = [...openerScores, ...midScores, ...endScores];
-        const overallAvg = allScores.length > 0 ? 
+        const overallAvg = allScores.length > 0 ?
             allScores.reduce((a, b) => a + b, 0) / allScores.length : 0;
-        
+       
         return {
             ...group,
             openerAvg,
@@ -1816,29 +1696,29 @@ const renderCumulativeAverages = () => {
             rubric: getRubric(overallAvg)
         };
     });
-    
+   
     averages.sort((a, b) => {
         return a.subject.localeCompare(b.subject) ||
                a.grade.localeCompare(b.grade) ||
                a.stream.localeCompare(b.stream) ||
                a.term.localeCompare(b.term);
     });
-    
+   
     tbody.innerHTML = averages.map(avg => `
         <tr>
             <td>${avg.subject}</td>
             <td>${avg.grade}</td>
             <td>${avg.stream}</td>
             <td>${avg.term}</td>
-            <td style="text-align: center; font-weight: ${avg.openerAvg !== null ? 'bold' : 'normal'}; 
+            <td style="text-align: center; font-weight: ${avg.openerAvg !== null ? 'bold' : 'normal'};
                        color: ${avg.openerAvg !== null ? (avg.openerAvg >= 50 ? '#10b981' : '#ef4444') : '#666'};">
                 ${avg.openerAvg !== null ? avg.openerAvg.toFixed(1) + '%' : '–'}
             </td>
-            <td style="text-align: center; font-weight: ${avg.midAvg !== null ? 'bold' : 'normal'}; 
+            <td style="text-align: center; font-weight: ${avg.midAvg !== null ? 'bold' : 'normal'};
                        color: ${avg.midAvg !== null ? (avg.midAvg >= 50 ? '#10b981' : '#ef4444') : '#666'};">
                 ${avg.midAvg !== null ? avg.midAvg.toFixed(1) + '%' : '–'}
             </td>
-            <td style="text-align: center; font-weight: ${avg.endAvg !== null ? 'bold' : 'normal'}; 
+            <td style="text-align: center; font-weight: ${avg.endAvg !== null ? 'bold' : 'normal'};
                        color: ${avg.endAvg !== null ? (avg.endAvg >= 50 ? '#10b981' : '#ef4444') : '#666'};">
                 ${avg.endAvg !== null ? avg.endAvg.toFixed(1) + '%' : '–'}
             </td>
@@ -1849,14 +1729,13 @@ const renderCumulativeAverages = () => {
         </tr>
     `).join('');
 };
-
 // ==================== TREND ANALYSIS ====================
 const renderTrendAnalysis = () => {
     const tbody = document.querySelector('#trendTable tbody');
     if (!tbody) return;
-    
+   
     const records = loadRecords();
-    
+   
     if (records.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -1867,7 +1746,7 @@ const renderTrendAnalysis = () => {
         `;
         return;
     }
-    
+   
     const groups = {};
     records.forEach(record => {
         const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}`;
@@ -1880,26 +1759,26 @@ const renderTrendAnalysis = () => {
                 exams: {}
             };
         }
-        
+       
         const examType = record.examType || '';
         groups[key].exams[examType] = record.mean;
     });
-    
+   
     const trends = [];
     Object.values(groups).forEach(group => {
         const { exams } = group;
         const opener = exams['Opener Exam'];
         const mid = exams['Mid Term Exam'];
         const end = exams['End Term Exam'];
-        
+       
         const examCount = [opener, mid, end].filter(score => score !== undefined).length;
         if (examCount < 2) return;
-        
+       
         let trend = '';
         let trendValue = 0;
         let status = '';
         let statusColor = '#666';
-        
+       
         if (opener !== undefined && end !== undefined) {
             trendValue = end - opener;
             trend = `${trendValue >= 0 ? '+' : ''}${trendValue.toFixed(1)}%`;
@@ -1916,7 +1795,7 @@ const renderTrendAnalysis = () => {
             status = trendValue > 0 ? 'Improving' : 'Declining';
             statusColor = trendValue > 0 ? '#10b981' : '#ef4444';
         }
-        
+       
         trends.push({
             ...group,
             opener: opener !== undefined ? opener.toFixed(1) : '–',
@@ -1927,14 +1806,14 @@ const renderTrendAnalysis = () => {
             statusColor
         });
     });
-    
+   
     trends.sort((a, b) => {
         return a.subject.localeCompare(b.subject) ||
                a.grade.localeCompare(b.grade) ||
                a.stream.localeCompare(b.stream) ||
                a.term.localeCompare(b.term);
     });
-    
+   
     tbody.innerHTML = trends.length > 0 ? trends.map(trend => `
         <tr>
             <td>${trend.subject}</td>
@@ -1957,11 +1836,10 @@ const renderTrendAnalysis = () => {
         </tr>
     `;
 };
-
 // ==================== DASHBOARD FUNCTIONS ====================
 const updateDashboardStats = () => {
     const records = loadRecords();
-    
+   
     const totalAvgCard = el('totalAvgCard');
     if (totalAvgCard && records.length > 0) {
         const totalAvg = records.reduce((sum, record) => sum + record.mean, 0) / records.length;
@@ -1979,7 +1857,7 @@ const updateDashboardStats = () => {
             <p class="card-subtitle">No data yet</p>
         `;
     }
-    
+   
     const bestCard = el('bestSubjectCard');
     if (bestCard && records.length > 0) {
         const subjectAverages = {};
@@ -1991,7 +1869,7 @@ const updateDashboardStats = () => {
             subjectAverages[key].sum += record.mean;
             subjectAverages[key].count++;
         });
-        
+       
         let best = null;
         Object.values(subjectAverages).forEach(subject => {
             const avg = subject.sum / subject.count;
@@ -1999,7 +1877,7 @@ const updateDashboardStats = () => {
                 best = { ...subject, avg };
             }
         });
-        
+       
         if (best) {
             const rubric = getRubric(best.avg);
             bestCard.innerHTML = `
@@ -2016,7 +1894,7 @@ const updateDashboardStats = () => {
             <p class="card-subtitle">No data yet</p>
         `;
     }
-    
+   
     const worstCard = el('worstSubjectCard');
     if (worstCard && records.length > 0) {
         const subjectAverages = {};
@@ -2028,7 +1906,7 @@ const updateDashboardStats = () => {
             subjectAverages[key].sum += record.mean;
             subjectAverages[key].count++;
         });
-        
+       
         let worst = null;
         Object.values(subjectAverages).forEach(subject => {
             const avg = subject.sum / subject.count;
@@ -2036,7 +1914,7 @@ const updateDashboardStats = () => {
                 worst = { ...subject, avg };
             }
         });
-        
+       
         if (worst) {
             const rubric = getRubric(worst.avg);
             worstCard.innerHTML = `
@@ -2054,17 +1932,16 @@ const updateDashboardStats = () => {
         `;
     }
 };
-
 const renderProgressChart = () => {
     const canvas = el('progressChart');
     if (!canvas || !window.Chart) return;
-    
+   
     const records = loadRecords();
     if (records.length === 0) {
         canvas.style.display = 'none';
         return;
     }
-    
+   
     const termData = {};
     records.forEach(record => {
         const key = `${record.term} ${record.year}`;
@@ -2074,17 +1951,17 @@ const renderProgressChart = () => {
         termData[key].sum += record.mean;
         termData[key].count++;
     });
-    
+   
     const labels = Object.keys(termData).sort();
     const data = labels.map(key => {
         const term = termData[key];
         return Number((term.sum / term.count).toFixed(1));
     });
-    
+   
     if (window.progressChartInstance) {
         window.progressChartInstance.destroy();
     }
-    
+   
     const ctx = canvas.getContext('2d');
     window.progressChartInstance = new Chart(ctx, {
         type: 'line',
@@ -2139,7 +2016,6 @@ const renderProgressChart = () => {
         }
     });
 };
-
 // ==================== EXPORT FUNCTIONS ====================
 window.downloadPDF = () => {
     const { jsPDF } = window.jspdf || {};
@@ -2147,26 +2023,26 @@ window.downloadPDF = () => {
         showAlert('PDF library not loaded. Please check your internet connection.', 'error');
         return;
     }
-    
+   
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const teacherName = getTeacherName();  || 'Teacher';
+    const teacherName = getTeacherName() || 'Teacher';
     const records = loadRecords();
-    
+   
     let y = 20;
-    
+   
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(139, 0, 0);
     doc.text('SmartScores Performance Report', pageWidth / 2, y, { align: 'center' });
     y += 10;
-    
+   
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     doc.text(`Teacher: ${teacherName} | Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, y, { align: 'center' });
     y += 15;
-    
+   
     if (records.length === 0) {
         doc.setFontSize(12);
         doc.setTextColor(0, 0, 0);
@@ -2174,23 +2050,23 @@ window.downloadPDF = () => {
         doc.save(`SmartScores_Report_${teacherName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
         return;
     }
-    
+   
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(255, 255, 255);
     doc.setFillColor(139, 0, 0);
-    
+   
     const colWidths = [15, 25, 25, 20, 15, 20, 15, 15, 15, 15];
     const headers = ['Year', 'Teacher', 'Subject', 'Grade', 'Stream', 'Term', 'Exam', 'Mean', 'Target', 'Rubric'];
     let x = 10;
-    
+   
     headers.forEach((header, i) => {
         doc.rect(x, y, colWidths[i], 6, 'F');
         doc.text(header, x + 2, y + 4);
         x += colWidths[i];
     });
     y += 6;
-    
+   
     doc.setFont('helvetica', 'normal');
     const targets = loadTargets();
     const targetMap = {};
@@ -2198,18 +2074,18 @@ window.downloadPDF = () => {
         const key = `${t.subject}|${t.grade}|${t.stream}|${t.term}|${t.examType}`;
         targetMap[key] = t.score;
     });
-    
+   
     records.forEach(record => {
         if (y > pageHeight - 20) {
             doc.addPage();
             y = 20;
         }
-        
+       
         const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
         const target = targetMap[key] || null;
         const rubric = getRubric(record.mean);
         const textColor = getContrastColor(rubric.color);
-        
+       
         x = 10;
         const cells = [
             record.year || '',
@@ -2223,7 +2099,7 @@ window.downloadPDF = () => {
             target ? target.toFixed(1) : '–',
             rubric.code
         ];
-        
+       
         cells.forEach((cell, i) => {
             if (i === 9) {
                 doc.setFillColor(...hexToRgb(rubric.color));
@@ -2235,84 +2111,82 @@ window.downloadPDF = () => {
             doc.text(String(cell), x + 1, y + 3);
             x += colWidths[i];
         });
-        
+       
         y += 6;
     });
-    
+   
     if (y > pageHeight - 40) {
         doc.addPage();
         y = 20;
     } else {
         y += 10;
     }
-    
+   
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(139, 0, 0);
     doc.text('Performance Rubric Key:', 10, y);
     y += 8;
-    
+   
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
-    
+   
     let legendX = 10;
     RUBRIC_MAP.forEach((rubric, index) => {
         if (legendX > pageWidth - 40) {
             legendX = 10;
             y += 8;
         }
-        
+       
         doc.setFillColor(...hexToRgb(rubric.color));
         doc.rect(legendX, y, 8, 4, 'F');
         doc.setTextColor(...hexToRgb(getContrastColor(rubric.color)));
         doc.text(rubric.code, legendX + 1, y + 3);
         doc.setTextColor(0, 0, 0);
         doc.text(` ${rubric.min}-${rubric.max}`, legendX + 10, y + 3);
-        
+       
         legendX += 35;
     });
-    
+   
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.text('SmartScores v3.0 © 2025 - Generated by Progressive Web App', pageWidth / 2, pageHeight - 10, { align: 'center' });
-    
+   
     const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
     doc.save(`SmartScores_Report_${safeName}_${new Date().toISOString().slice(0, 10)}.pdf`);
 };
-
 const hexToRgb = (hex) => {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
     return [r, g, b];
 };
-
 window.exportToExcel = () => {
     if (typeof XLSX === 'undefined') {
         showAlert('Excel export library not loaded. Please check your internet connection.', 'error');
         return;
     }
-    
+   
     const records = loadRecords();
     if (records.length === 0) {
         showAlert('No data to export', 'error');
         return;
     }
-    
+   
     const targets = loadTargets();
     const targetMap = {};
     targets.forEach(t => {
         const key = `${t.subject}|${t.grade}|${t.stream}|${t.term}|${t.examType}`;
         targetMap[key] = t.score;
     });
-    
+   
     const excelData = records.map(record => {
         const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
         const target = targetMap[key] || null;
         const deviation = target !== null ? record.mean - target : null;
         const rubric = getRubric(record.mean);
-        
+       
         return {
             'Year': record.year,
             'Teacher': record.teacher,
@@ -2328,11 +2202,11 @@ window.exportToExcel = () => {
             'Rubric Range': `${rubric.min}-${rubric.max}`
         };
     });
-    
+   
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Scores');
-   
+  
 const summaryData = [
     ['SmartScores Export Summary'],
     ['Generated', new Date().toLocaleString()],
@@ -2342,22 +2216,19 @@ const summaryData = [
     ['Rubric Key'],
     ...RUBRIC_MAP.map(r => [r.code, `${r.min}-${r.max}`])
 ];
-    
+   
     const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
 XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
-
 const teacherName = getTeacherName() || 'Teacher';
 const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
 XLSX.writeFile(workbook, `SmartScores_Export_${safeName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
-
 showAlert('Excel file exported successfully!', 'success');
 };
-
 window.exportBackup = () => {
     const records = loadRecords();
     const targets = loadTargets();
     const teacher = localStorage.getItem(STORAGE_KEYS.TEACHER);
-    
+   
     const backupData = {
         version: '3.0',
         exported: new Date().toISOString(),
@@ -2366,10 +2237,10 @@ window.exportBackup = () => {
         targets: targets,
         rubricSystem: 'EE1-BE2'
     };
-    
+   
     const dataStr = JSON.stringify(backupData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    
+   
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
@@ -2378,10 +2249,9 @@ window.exportBackup = () => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
+   
     showAlert('Backup file downloaded successfully!', 'success');
 };
-
 window.clearAllData = () => {
     if (confirm('⚠️ ARE YOU SURE?\n\nThis will delete ALL your records and targets permanently. This action cannot be undone.')) {
         localStorage.removeItem(STORAGE_KEYS.RECORDS);
@@ -2390,95 +2260,34 @@ window.clearAllData = () => {
         renderAll();
     }
 };
-
 // ==================== MAIN RENDER FUNCTION ====================
-
-const renderAll = async () => {
-    const currentPage = window.location.pathname.split('/').pop();
-    
-    // Always render records first
-    await renderRecords();
-    
-    // Page-specific rendering
-    if (currentPage === 'index.html' || currentPage === '' || currentPage === 'index.html#') {
-        updateDashboardStats();
-        renderRecentRecords(); // Now this function exists
-        renderProgressChart();
-    } else if (currentPage === 'set-targets.html') {
-        renderTargets();
-    } else if (currentPage === 'ai-insights.html') {
-        updateAIInsights();
-    } else if (currentPage === 'averages.html') {
-        renderCumulativeAverages();
-    } else if (currentPage === 'trends.html') {
-        renderTrendAnalysis();
-    } else if (currentPage === 'data-entry.html') {
-        const teacherDisplay = document.getElementById('currentTeacher');
-        if (teacherDisplay) {
-            teacherDisplay.textContent = getTeacherName() || 'Not logged in';
-        }
-        
-        const records = loadRecords();
-        const totalRecords = document.getElementById('totalRecords');
-        const termRecords = document.getElementById('termRecords');
-        const yearRecords = document.getElementById('yearRecords');
-        
-        if (totalRecords) totalRecords.textContent = records.length;
-        
-        if (termRecords) {
-            const currentTerm = 'Term 1';
-            const termCount = records.filter(r => r.term === currentTerm).length;
-            termRecords.textContent = termCount;
-        }
-        
-        if (yearRecords) {
-            const currentYear = new Date().getFullYear();
-            const yearCount = records.filter(r => parseInt(r.year) === currentYear).length;
-            yearRecords.textContent = yearCount;
-        }
-    } else if (currentPage === 'recorded-scores.html') {
-        // Ensure the recorded scores table is properly rendered
-        await renderRecords();
-    }
-};
-// ==================== GLOBAL RENDERING ORCHESTRATOR (MISSING FUNCTION) ====================
-// This function is called on page load and after every data modification 
-// to ensure all necessary components are updated across the application.
 window.renderAll = async () => {
-    // 1. Render the main Recorded Scores table (for recorded-scores.html)
-    if (el('recordsBody')) {
-        await renderRecords(); 
-    }
-    
-    // 2. Render the Set Targets table (for set-targets.html)
-    if (el('targetsTable')) {
-        renderTargets();
+    // 1. Core data
+    await renderRecords();               // recorded-scores.html + dashboard recent
+    renderTargets();                     // set-targets.html
+
+    // 2. Page-specific
+    const page = window.location.pathname.split('/').pop();
+
+    if (page === 'index.html' || page === '' || page === 'index.html#') {
+        updateDashboardStats();
+        renderRecentRecords();   // now safe
+        renderProgressChart();
     }
 
-    // 3. Render the Learner Scores table (for learner-scores.html)
-    if (el('learnerScoresBody')) {
-        await renderLearnerScores();
-    }
-    
-    // 4. Update the Dashboard Analytics (calls updateAnalyticsDashboard which handles many dashboard cards)
-    // Check for a key dashboard element (e.g., 'classAverageCard')
-    if (el('classAverageCard')) { 
-        await updateAnalyticsDashboard(); 
-    }
-    
-    // 5. Update the overall record counts and stats
-    if (window.updateRecordCounts) {
-        window.updateRecordCounts();
-    }
-};
-// ==================== TEACHER UTILITY ====================
-const getTeacherName = () => {
-    return localStorage.getItem(STORAGE_KEYS.TEACHER_FULL_NAME) || 
-           localStorage.getItem('teacherFullName') || 
-           localStorage.getItem(STORAGE_KEYS.TEACHER) || 
-           'Guest Teacher';
+    if (el('learnerScoresBody')) await renderLearnerScores();
+    if (el('classAverageCard')) await updateAnalyticsDashboard();
+
+    // 3. UI helpers
+    updateTeacherDisplays();   // new helper, see below
+    updateSyncStatus();
 };
 
+function updateTeacherDisplays() {
+  const name = getTeacherName();
+  document.querySelectorAll('#teacherName, #currentTeacher, .teacher-name')
+          .forEach(el => el.textContent = name);
+}
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async () => {
    // NEW: Run the session check on every page load immediately
@@ -2487,36 +2296,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     loadTheme();
     autoFillYear();
-    
+   
     // Setup mobile navigation
     setupMobileSidebarAutoClose();
-    
+   
     const dataForm = el('dataEntryForm');
     if (dataForm) {
         dataForm.addEventListener('submit', handleSaveRecord);
     }
-    
+   
     const targetForm = el('targetsForm');
     if (targetForm) {
         targetForm.addEventListener('submit', handleSaveTarget);
     }
-    
+   
     const searchInput = el('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', filterRecords);
     }
-    
+   
     const targetSearch = el('targetSearch');
     if (targetSearch) {
         targetSearch.addEventListener('input', filterTargets);
     }
-    
+   
     await renderAll();
-    
+   
     // New (Consistent and Complete):
 const teacherFullName = localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Guest Teacher';
-
 // Query for all known teacher name elements across all pages
 document.querySelectorAll('#teacherName, #currentTeacher, .teacher-name').forEach(element => {
     element.textContent = teacherFullName;
+});
 });
