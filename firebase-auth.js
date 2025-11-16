@@ -52,23 +52,14 @@ class FirebaseAuthService {
     localStorage.setItem('teacherLastName', lastName);
   }
 
-// --- Inside class FirebaseAuthService in firebase-auth.js ---
-
-// Helper to update local storage and UI after a successful login (or registration)
-async handleSignInSuccess(user, fullName) {
-    // 1. Store Full, First, and Last names (Calls your provided helper function)
-    this.storeTeacherName(fullName); 
-    
-    // 2. Store Email (Guaranteed to exist after email sign-in)
+  // Helper to update local storage and UI after a successful login (or registration)
+  async handleSignInSuccess(user, fullName) {
+    // Store user data locally using consistent keys
+    this.storeTeacherName(fullName);
     localStorage.setItem('teacherEmail', user.email);
-    
-    // 3. Store Auth/Activity Data
     localStorage.setItem('authMethod', 'email');
     localStorage.setItem('lastActivityTime', new Date().toISOString());
-    
-    // 4. Update UI
     this.updateUI(true, fullName);
-}
 
     // Ensure Firestore profile is up to date
     try {
