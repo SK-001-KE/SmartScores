@@ -2505,3 +2505,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         element.textContent = teacherFullName;
     });
 };
+// ==================== GLOBAL FUNCTION EXPORTS ====================
+// Add this section at the VERY END of app.js, after all your functions
+
+// Ensure functions are available globally for HTML event handlers
+window.handleSaveRecord = handleSaveRecord;
+window.renderRecords = renderRecords;
+window.renderTargets = renderTargets;
+window.deleteRecord = deleteRecord;
+window.deleteTarget = deleteTarget;
+window.filterRecords = filterRecords;
+window.filterTargets = filterTargets;
+window.sortRecords = sortRecords;
+window.updateDashboardStats = updateDashboardStats;
+window.renderRecentRecords = renderRecentRecords;
+window.renderProgressChart = renderProgressChart;
+window.downloadPDF = downloadPDF;
+window.exportToExcel = exportToExcel;
+window.exportBackup = exportBackup;
+window.clearAllData = clearAllData;
+window.toggleDarkMode = toggleDarkMode;
+window.toggleMobileMenu = toggleMobileMenu;
+window.renderAll = renderAll;
+
+// Analytics and Learner Scores functions
+window.updateAnalyticsDashboard = updateAnalyticsDashboard;
+window.renderLearnerScores = renderLearnerScores;
+window.exportSubjectReportExcel = exportSubjectReportExcel;
+
+// AI Insights functions
+window.updateAIInsights = updateAIInsights;
+
+// Trends and Averages functions  
+window.applyTrendFilters = applyTrendFilters;
+window.resetTrendFilters = resetTrendFilters;
+window.sortTrendsTable = sortTrendsTable;
+window.applyAveragesFilters = applyAveragesFilters;
+window.resetAveragesFilters = resetAveragesFilters;
+window.sortAveragesTable = sortAveragesTable;
+window.exportAverages = exportAverages;
+
+// Helper functions
+window.getTeacherName = getTeacherName;
+window.formatRubricBadge = formatRubricBadge;
+
+// Sync and migration functions
+window.updateSyncStatus = updateSyncStatus;
+window.migrateExistingData = migrateExistingData;
+
+// Debug: Log available functions
+console.log('✅ app.js loaded - Global functions exported:', Object.keys(window).filter(key => 
+    typeof window[key] === 'function' && 
+    (key.includes('render') || key.includes('save') || key.includes('update') || key.includes('handle'))
+).length + ' functions available');
+
+
