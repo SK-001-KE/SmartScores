@@ -13,7 +13,143 @@ const STORAGE_KEYS = {
     THEME: 'themeMode',
     LEARNER_SCORES: 'learnerScores'
 };
+// ==================== TERM PERIODS CONFIGURATION ====================
+const TERM_PERIODS = {
+    'Term 1': {
+        start: 'January 1',
+        end: 'April 30',
+        fullPeriod: '1st January to 30th April'
+    },
+    'Term 2': {
+        start: 'May 1', 
+        end: 'August 31',
+        fullPeriod: '1st May to 31st August'
+    },
+    'Term 3': {
+        start: 'September 1',
+        end: 'December 31',
+        fullPeriod: '1st September to 31st December'
+    }
+};
 
+// Function to get current term based on current date
+const getCurrentTerm = () => {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1; // JavaScript months are 0-11
+    
+    if (currentMonth >= 1 && currentMonth <= 4) {
+        return 'Term 1';
+    } else if (currentMonth >= 5 && currentMonth <= 8) {
+        return 'Term 2';
+    } else {
+        return 'Term 3';
+    }
+};
+
+// Function to get term period display text
+const getTermPeriod = (term) => {
+    return TERM_PERIODS[term] ? TERM_PERIODS[term].fullPeriod : 'Period not defined';
+};
+
+// Function to display term periods in the UI
+const displayTermPeriods = () => {
+    const termPeriodsContainer = document.getElementById('termPeriodsDisplay');
+    
+    if (!termPeriodsContainer) return;
+    
+    const currentTerm = getCurrentTerm();
+    
+    let html = `
+        <div class="term-periods-container">
+            <h3>Academic Term Periods</h3>
+            <div class="current-term-badge">
+                📅 Current Term: <strong>${currentTerm}</strong>
+            </div>
+            <div class="term-periods-grid">
+    `;
+    
+    Object.entries(TERM_PERIODS).forEach(([term, period]) => {
+        const isCurrent = term === currentTerm;
+        html += `
+            <div class="term-period-card ${isCurrent ? 'current-term' : ''}">
+                <div class="term-header">
+                    <h4>${term}</h4>
+                    ${isCurrent ? '<span class="current-badge">Current</span>' : ''}
+                </div>
+                <div class="term-dates">
+                    <div class="date-range">
+                        <span class="date-label">Starts:</span>
+                        <span class="date-value">${period.start}</span>
+                    </div>
+                    <div class="date-range">
+                        <span class="date-label">Ends:</span>
+                        <span class="date-value">${period.end}</span>
+                    </div>
+                </div>
+                <div class="full-period">${period.fullPeriod}</div>
+            </div>
+        `;
+    });
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    termPeriodsContainer.innerHTML = html;
+};
+
+// Function to add term period info to data entry forms
+const enhanceFormsWithTermInfo = () => {
+    const termSelect = document.getElementById('term');
+    
+    if (termSelect) {
+        // Add change event to show term period when term is selected
+        termSelect.addEventListener('change', function() {
+            const selectedTerm = this.value;
+            if (selectedTerm && TERM_PERIODS[selectedTerm]) {
+                // Create or update term period info display
+                let termInfo = document.getElementById('termPeriodInfo');
+                if (!termInfo) {
+                    termInfo = document.createElement('div');
+                    termInfo.id = 'termPeriodInfo';
+                    termInfo.className = 'term-period-info';
+                    termSelect.parentNode.appendChild(termInfo);
+                }
+                termInfo.innerHTML = `
+                    <small>📅 ${TERM_PERIODS[selectedTerm].fullPeriod}</small>
+                `;
+            } else {
+                const termInfo = document.getElementById('termPeriodInfo');
+                if (termInfo) {
+                    termInfo.remove();
+                }
+            }
+        });
+        
+        // Trigger change event if there's already a selected value
+        if (termSelect.value) {
+            termSelect.dispatchEvent(new Event('change'));
+        }
+    }
+};
+
+// Function to add term period validation
+const validateTermDate = (term, date) => {
+    if (!term || !date || !TERM_PERIODS[term]) return true; // Skip validation if data missing
+    
+    const inputDate = new Date(date);
+    const termData = TERM_PERIODS[term];
+    
+    // Simple month-based validation (you can enhance this with exact dates)
+    const inputMonth = inputDate.getMonth() + 1;
+    
+    if (term === 'Term 1' && (inputMonth >= 1 && inputMonth <= 4)) return true;
+    if (term === 'Term 2' && (inputMonth >= 5 && inputMonth <= 8)) return true;
+    if (term === 'Term 3' && (inputMonth >= 9 && inputMonth <= 12)) return true;
+    
+    return false;
+};
 // DOM Helper
 const el = id => document.getElementById(id);
 
