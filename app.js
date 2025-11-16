@@ -11,12 +11,9 @@ const STORAGE_KEYS = {
     TEACHER_FULL_NAME: 'teacherFullName',
     TEACHER_FIRST_NAME: 'teacherFirstName', 
     TEACHER_LAST_NAME: 'teacherLastName',
-    THEME: 'themeMode',
-    
-    // <--- FIX 1: ADD THIS MISSING KEY --->
-    TEACHER: 'teacherFullName' 
+    TEACHER: 'teacherFullName', // <--- CRITICAL ADDITION
+    THEME: 'themeMode'
 };
-
 // DOM Helper
 const el = id => document.getElementById(id);
 
