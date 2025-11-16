@@ -1,3 +1,5 @@
+[file name]: ai-insights.html
+[file content begin]
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -157,25 +159,6 @@
 
     .empty-recommendation { text-align: center; padding: 40px 20px; color: var(--secondary); }
 
-    /* Debug Section */
-    .debug-section {
-      background: var(--card);
-      padding: 20px;
-      border-radius: 12px;
-      margin-top: 30px;
-      box-shadow: var(--shadow);
-    }
-
-    .debug-section h3 {
-      color: var(--primary);
-      margin-bottom: 15px;
-    }
-
-    .debug-section p {
-      margin: 8px 0;
-      color: var(--text);
-    }
-
     @media (max-width: 768px) {
       .summary-cards { grid-template-columns: 1fr; }
       .section-header { flex-direction: column; gap: 15px; align-items: flex-start; }
@@ -270,48 +253,6 @@
       </div>
     </section>
 
-    <!-- PRIORITY ALERTS -->
-    <section class="alerts-section critical-section">
-      <div class="section-header">
-        <h2>🚨 Priority Attention Needed</h2>
-        <span class="alert-badge" id="criticalBadge">0 critical</span>
-      </div>
-      <div id="criticalAlerts" class="alert-list">
-        <div class="empty-alert">
-          <div class="empty-icon">📊</div>
-          <p>Loading critical alerts...</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- OUTSTANDING PERFORMANCE -->
-    <section class="alerts-section positive-section">
-      <div class="section-header">
-        <h2>🎉 Outstanding Performance</h2>
-        <span class="alert-badge positive" id="positiveBadge">0 outstanding</span>
-      </div>
-      <div id="positiveAlerts" class="alert-list">
-        <div class="empty-alert">
-          <div class="empty-icon">📊</div>
-          <p>Loading outstanding performance...</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ON TRACK PERFORMANCE -->
-    <section class="alerts-section info-section">
-      <div class="section-header">
-        <h2>✅ On Track Performance</h2>
-        <span class="alert-badge info" id="onTrackBadge">0 on track</span>
-      </div>
-      <div id="onTrackAlerts" class="alert-list">
-        <div class="empty-alert">
-          <div class="empty-icon">📊</div>
-          <p>Loading on-track performance...</p>
-        </div>
-      </div>
-    </section>
-
     <!-- AI RECOMMENDATIONS -->
     <section class="recommendations-section">
       <div class="section-header">
@@ -326,17 +267,10 @@
       </div>
     </section>
 
-    <!-- DEBUG INFO -->
-    <section class="debug-section">
-      <h3>🔧 Debug Information</h3>
-      <p><strong>Records Found:</strong> <span id="debugRecords">0</span></p>
-      <p><strong>Targets Found:</strong> <span id="debugTargets">0</span></p>
-      <p><strong>Last Updated:</strong> <span id="debugTime">--</span></p>
-      <p><strong>Screen Width:</strong> <span id="screenWidth">--</span></p>
-      <p><strong>Navigation State:</strong> <span id="navState">--</span></p>
-      <button onclick="refreshInsights()" class="btn btn-primary" style="margin-top: 10px; margin-right: 10px;">🔄 Refresh Insights</button>
-      <button onclick="testNavigation()" class="btn btn-secondary" style="margin-top: 10px;">🧪 Test Navigation</button>
-    </section>
+    <!-- REFRESH BUTTON -->
+    <div style="text-align: center; margin-top: 30px;">
+      <button onclick="refreshInsights()" class="btn btn-primary">🔄 Refresh Insights</button>
+    </div>
   </div>
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
@@ -349,66 +283,62 @@
     const el = id => document.getElementById(id);
 
     // ===== NAVIGATION MANAGEMENT =====
-   function toggleMobileMenu() {
-  const mobileSidebar = document.getElementById('mobileSidebar');
-  const toggleBtn = document.getElementById('mobileMenuToggle');
-  
-  if (mobileSidebar) {
-    mobileSidebar.classList.toggle('closed');
-    if (toggleBtn) {
-      toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
-    }
-    
-    // Add/remove click outside listener
-    if (!mobileSidebar.classList.contains('closed')) {
-      setTimeout(() => {
-        document.addEventListener('click', closeMobileSidebarOnClickOutside);
-      }, 100);
-    } else {
-      document.removeEventListener('click', closeMobileSidebarOnClickOutside);
-    }
-    
-    updateNavDebugInfo();
-  }
-}
-
-// Add this function to ai-insights.html
-function closeMobileSidebarOnClickOutside(event) {
-  const mobileSidebar = document.getElementById('mobileSidebar');
-  const toggleBtn = document.getElementById('mobileMenuToggle');
-  
-  if (!mobileSidebar || !toggleBtn) return;
-  
-  const isClickInsideSidebar = mobileSidebar.contains(event.target);
-  const isClickOnToggle = toggleBtn.contains(event.target);
-  
-  if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
-    mobileSidebar.classList.add('closed');
-    toggleBtn.textContent = '☰';
-    document.removeEventListener('click', closeMobileSidebarOnClickOutside);
-    updateNavDebugInfo();
-  }
-}
-
-    // Auto-close mobile sidebar when navigating
-  function setupMobileSidebarAutoClose() {
-  const mobileSidebarLinks = document.querySelectorAll('.mobile-sidebar a, .mobile-sidebar button');
-  mobileSidebarLinks.forEach(link => {
-    link.addEventListener('click', () => {
+    function toggleMobileMenu() {
       const mobileSidebar = document.getElementById('mobileSidebar');
       const toggleBtn = document.getElementById('mobileMenuToggle');
       
-      if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
-        mobileSidebar.classList.add('closed');
+      if (mobileSidebar) {
+        mobileSidebar.classList.toggle('closed');
         if (toggleBtn) {
-          toggleBtn.textContent = '☰';
+          toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
         }
-        document.removeEventListener('click', closeMobileSidebarOnClickOutside);
-        updateNavDebugInfo();
+        
+        // Add/remove click outside listener
+        if (!mobileSidebar.classList.contains('closed')) {
+          setTimeout(() => {
+            document.addEventListener('click', closeMobileSidebarOnClickOutside);
+          }, 100);
+        } else {
+          document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+        }
       }
-    });
-  });
-}
+    }
+
+    function closeMobileSidebarOnClickOutside(event) {
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      const toggleBtn = document.getElementById('mobileMenuToggle');
+      
+      if (!mobileSidebar || !toggleBtn) return;
+      
+      const isClickInsideSidebar = mobileSidebar.contains(event.target);
+      const isClickOnToggle = toggleBtn.contains(event.target);
+      
+      if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
+        mobileSidebar.classList.add('closed');
+        toggleBtn.textContent = '☰';
+        document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+      }
+    }
+
+    // Auto-close mobile sidebar when navigating
+    function setupMobileSidebarAutoClose() {
+      const mobileSidebarLinks = document.querySelectorAll('.mobile-sidebar a, .mobile-sidebar button');
+      mobileSidebarLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          const mobileSidebar = document.getElementById('mobileSidebar');
+          const toggleBtn = document.getElementById('mobileMenuToggle');
+          
+          if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
+            mobileSidebar.classList.add('closed');
+            if (toggleBtn) {
+              toggleBtn.textContent = '☰';
+            }
+            document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+          }
+        });
+      });
+    }
+
     // ===== THEME MANAGEMENT =====
     function toggleDarkMode() {
       const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -482,11 +412,6 @@ function closeMobileSidebarOnClickOutside(event) {
       
       const records = loadRecords();
       const targets = loadTargets();
-      
-      // Update debug info
-      el('debugRecords').textContent = records.length;
-      el('debugTargets').textContent = targets.length;
-      el('debugTime').textContent = new Date().toLocaleTimeString();
 
       // If no records, show empty state
       if (records.length === 0) {
@@ -534,67 +459,50 @@ function closeMobileSidebarOnClickOutside(event) {
       el('targetsMet').textContent = targetsMet;
       el('targetsCount').textContent = targets.length + ' subjects';
 
-      // Update alerts with fallback data
-      updateFallbackAlerts(records, targets);
+      // Update recommendations with fallback data
+      updateFallbackRecommendations(records, targets);
     }
 
-    function updateFallbackAlerts(records, targets) {
-      // Critical alerts (scores below 40)
-      const critical = records.filter(record => record.mean < 40);
-      updateAlertSection('criticalAlerts', critical, 'critical', 'No critical alerts! All subjects are performing well.');
-      el('criticalBadge').textContent = critical.length + ' critical';
-
-      // Positive alerts (scores above 80)
-      const positive = records.filter(record => record.mean >= 80);
-      updateAlertSection('positiveAlerts', positive, 'positive', 'No outstanding performance alerts yet.');
-      el('positiveBadge').textContent = positive.length + ' outstanding';
-
-      // On-track alerts (scores between 50-80)
-      const onTrack = records.filter(record => record.mean >= 50 && record.mean < 80);
-      updateAlertSection('onTrackAlerts', onTrack, 'info', 'No subjects currently on track.');
-      el('onTrackBadge').textContent = onTrack.length + ' on track';
-
-      // Simple recommendations
+    function updateFallbackRecommendations(records, targets) {
       const recommendations = [];
+      
+      // Check for low performing subjects
+      const critical = records.filter(record => record.mean < 40);
       if (critical.length > 0) {
         recommendations.push({
           title: 'Address Low Performance',
           message: `${critical.length} subjects are performing below 40%. Consider targeted interventions.`
         });
       }
+      
+      // Check for outstanding performance
+      const positive = records.filter(record => record.mean >= 80);
       if (positive.length > 0) {
         recommendations.push({
           title: 'Leverage High Performers',
           message: `${positive.length} subjects are excelling. Consider sharing best practices.`
         });
       }
+      
+      // Check for targets not met
+      let belowTargetCount = 0;
+      targets.forEach(target => {
+        const matchingRecords = records.filter(record => 
+          record.subject === target.subject && 
+          record.grade === target.grade &&
+          record.mean < target.score
+        );
+        if (matchingRecords.length > 0) belowTargetCount++;
+      });
+      
+      if (belowTargetCount > 0) {
+        recommendations.push({
+          title: 'Targets Not Met',
+          message: `${belowTargetCount} subjects are below their target scores. Review teaching strategies.`
+        });
+      }
 
       updateRecommendations(recommendations);
-    }
-
-    function updateAlertSection(containerId, records, type, emptyMessage) {
-      const container = el(containerId);
-      
-      if (records.length === 0) {
-        container.innerHTML = `
-          <div class="empty-alert">
-            <div class="empty-icon">${type === 'critical' ? '✅' : '📊'}</div>
-            <p>${emptyMessage}</p>
-          </div>
-        `;
-        return;
-      }
-      
-      container.innerHTML = records.map(record => `
-        <div class="alert-item ${type}">
-          <div class="alert-icon">${type === 'critical' ? '⚠️' : '🎉'}</div>
-          <div class="alert-content">
-            <h4>${record.subject} - ${type === 'critical' ? 'Needs Attention' : 'Outstanding!'}</h4>
-            <p>Grade ${record.grade}, ${record.stream} - ${record.mean.toFixed(1)}%</p>
-          </div>
-          <span class="alert-tag">${type === 'critical' ? 'Critical' : 'Excellent'}</span>
-        </div>
-      `).join('');
     }
 
     function updateRecommendations(recommendations) {
@@ -638,11 +546,6 @@ function closeMobileSidebarOnClickOutside(event) {
       console.log('🔄 Refreshing insights...');
       analyzePerformance();
       showNotification('Insights refreshed!');
-    }
-
-    function testNavigation() {
-      showNotification('Navigation test completed!');
-      updateNavDebugInfo();
     }
 
     function showNotification(message) {
@@ -692,16 +595,6 @@ function closeMobileSidebarOnClickOutside(event) {
       
       // Run analysis
       analyzePerformance();
-      updateNavDebugInfo();
-
-      // Set initial navigation state
-      setTimeout(() => {
-        if (window.innerWidth >= 1024) {
-          el('navState').textContent = 'Desktop Navigation Active';
-        } else {
-          el('navState').textContent = 'Mobile Navigation Ready';
-        }
-      }, 100);
     });
 
     // Make functions available globally
@@ -709,7 +602,7 @@ function closeMobileSidebarOnClickOutside(event) {
     window.toggleDarkMode = toggleDarkMode;
     window.logout = logout;
     window.refreshInsights = refreshInsights;
-    window.testNavigation = testNavigation;
   </script>
 </body>
 </html>
+[file content end]
