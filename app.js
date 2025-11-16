@@ -198,6 +198,56 @@ const calculateProgress = (term1Avg, term3Avg) => {
     
     return `<span class="${className}">${icon} ${sign}${progress.toFixed(1)}</span>`;
 };
+// Add this function to app.js
+const renderRecentRecords = () => {
+    const container = document.getElementById('recentRecords');
+    if (!container) return;
+    
+    const records = loadRecords();
+    
+    if (records.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <p>No records yet. Start by entering scores in the Data Entry page.</p>
+                <a href="./data-entry.html" class="btn btn-primary">Add First Record</a>
+            </div>
+        `;
+        return;
+    }
+    
+    const recentRecords = records
+        .sort((a, b) => new Date(b.timestamp || b.id) - new Date(a.timestamp || a.id))
+        .slice(0, 5);
+    
+    container.innerHTML = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Grade</th>
+                    <th>Stream</th>
+                    <th>Term</th>
+                    <th>Exam</th>
+                    <th>Mean Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${recentRecords.map(record => `
+                    <tr>
+                        <td>${record.subject}</td>
+                        <td>${record.grade}</td>
+                        <td>${record.stream}</td>
+                        <td>${record.term}</td>
+                        <td>${record.examType}</td>
+                        <td style="font-weight: bold; color: ${getColorForScore(record.mean)}">
+                            ${record.mean.toFixed(1)}%
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+};
 
 // Enhanced grouping function with deviation calculation
 const groupLearnerScores = (scores) => {
@@ -923,15 +973,15 @@ const getTeacherFirstName = () => {
 const handleSaveRecord = async (event) => {
     if (event) event.preventDefault();
 
-    console.log('🔄 Starting save process...'); // Debug log
+    console.log('🔄 Starting save process...');
 
     const teacherName = getTeacherName();
-    console.log('👨‍🏫 Teacher name:', teacherName); // Debug log
+    console.log('👨‍🏫 Teacher name:', teacherName);
     
-    // --- 1. Basic Validation (Fields must exist) ---
-    const subject = el('subject')?.value?.trim();
-    const grade = el('grade')?.value?.trim();
-    const meanScoreValue = el('meanScore')?.value;
+    // Basic Validation
+    const subject = document.getElementById('subject')?.value?.trim();
+    const grade = document.getElementById('grade')?.value?.trim();
+    const meanScoreValue = document.getElementById('meanScore')?.value;
 
     if (!teacherName || teacherName === 'Guest Teacher') {
         showAlert('Please sign in or set your teacher name in the profile section.', 'error');
@@ -949,26 +999,26 @@ const handleSaveRecord = async (event) => {
         return;
     }
 
-    // --- 2. Create Record Object ---
+    // Create Record Object
     const record = {
-        id: Date.now(), // Unique ID
+        id: Date.now(),
         timestamp: new Date().toISOString(),
         teacher: teacherName, 
         subject: subject,
         grade: grade,
-        stream: el('stream')?.value?.trim() || 'N/A', 
-        term: el('term')?.value?.trim(),
-        examType: el('examType')?.value?.trim(),
-        year: el('year')?.value?.trim(),
+        stream: document.getElementById('stream')?.value?.trim() || 'N/A', 
+        term: document.getElementById('term')?.value?.trim(),
+        examType: document.getElementById('examType')?.value?.trim(),
+        year: document.getElementById('year')?.value?.trim(),
         mean: mean
     };
 
-    console.log('📝 Record to save:', record); // Debug log
+    console.log('📝 Record to save:', record);
 
     try {
-        // --- 3. Load, Check Duplicate, and Push ---
-        const existingRecords = await loadRecords(); 
-        console.log('📊 Existing records count:', existingRecords.length); // Debug log
+        // Load, Check Duplicate, and Push
+        const existingRecords = loadRecords(); 
+        console.log('📊 Existing records count:', existingRecords.length);
 
         // Simple check for duplicate entry 
         const duplicate = existingRecords.find(r => 
@@ -988,27 +1038,31 @@ const handleSaveRecord = async (event) => {
 
         existingRecords.push(record);
 
-        // --- 4. Save and Refresh ---
-        const saveSuccess = await saveRecords(existingRecords);
+        // Save and Refresh
+        const saveSuccess = saveRecords(existingRecords);
         
         if (saveSuccess) {
-            console.log('✅ Record saved successfully'); // Debug log
+            console.log('✅ Record saved successfully');
             showAlert('Record saved successfully!', 'success');
             
             // Reset form and refill the year field
-            const dataForm = el('dataEntryForm');
+            const dataForm = document.getElementById('dataEntryForm');
             if (dataForm) {
                 dataForm.reset(); 
-                if (window.autoFillYear) window.autoFillYear();
+                // Auto-fill year again after reset
+                const yearInput = document.getElementById('year');
+                if (yearInput) {
+                    yearInput.value = new Date().getFullYear();
+                }
             }
 
-            // CRITICAL STEP: Refresh all views
+            // CRITICAL: Refresh all views
             await renderAll();
+           // Force refresh of recorded-scores page if we're there
+    if (window.location.pathname.includes('recorded-scores.html')) {
+        await renderRecords();
+    }
             
-            // Force refresh of recorded-scores page if we're there
-            if (window.location.pathname.includes('recorded-scores.html')) {
-                await renderRecords();
-            }
         } else {
             throw new Error('Failed to save records');
         }
@@ -1017,12 +1071,11 @@ const handleSaveRecord = async (event) => {
         showAlert('Error saving record: ' + error.message, 'error');
     }
 };
-const autoFillYear = () => {
-    const yearInput = el('year');
-    if (yearInput && !yearInput.value.trim()) {
-        yearInput.value = new Date().getFullYear();
-    }
-};
+          // ✅ CORRECT - Properly closed
+if (dataForm) {
+    dataForm.reset(); 
+    if (window.autoFillYear) window.autoFillYear();
+}
 
 // Add these missing functions to app.js
 
@@ -2343,14 +2396,16 @@ window.clearAllData = () => {
 const renderAll = async () => {
     const currentPage = window.location.pathname.split('/').pop();
     
+    // Always render records first
     await renderRecords();
     
+    // Page-specific rendering
     if (currentPage === 'index.html' || currentPage === '' || currentPage === 'index.html#') {
-        await updateDashboardStats();
-        await renderRecentRecords();
+        updateDashboardStats();
+        renderRecentRecords(); // Now this function exists
         renderProgressChart();
     } else if (currentPage === 'set-targets.html') {
-        await renderTargets();
+        renderTargets();
     } else if (currentPage === 'ai-insights.html') {
         updateAIInsights();
     } else if (currentPage === 'averages.html') {
@@ -2358,20 +2413,20 @@ const renderAll = async () => {
     } else if (currentPage === 'trends.html') {
         renderTrendAnalysis();
     } else if (currentPage === 'data-entry.html') {
-        const teacherDisplay = el('currentTeacher');
+        const teacherDisplay = document.getElementById('currentTeacher');
         if (teacherDisplay) {
             teacherDisplay.textContent = getTeacherName() || 'Not logged in';
         }
         
-        const records = await loadRecords();
-        const totalRecords = el('totalRecords');
-        const termRecords = el('termRecords');
-        const yearRecords = el('yearRecords');
+        const records = loadRecords();
+        const totalRecords = document.getElementById('totalRecords');
+        const termRecords = document.getElementById('termRecords');
+        const yearRecords = document.getElementById('yearRecords');
         
         if (totalRecords) totalRecords.textContent = records.length;
         
         if (termRecords) {
-            const currentTerm = 'Term 1'; // You might want to make this dynamic
+            const currentTerm = 'Term 1';
             const termCount = records.filter(r => r.term === currentTerm).length;
             termRecords.textContent = termCount;
         }
@@ -2381,6 +2436,9 @@ const renderAll = async () => {
             const yearCount = records.filter(r => parseInt(r.year) === currentYear).length;
             yearRecords.textContent = yearCount;
         }
+    } else if (currentPage === 'recorded-scores.html') {
+        // Ensure the recorded scores table is properly rendered
+        await renderRecords();
     }
 };
 // ==================== GLOBAL RENDERING ORCHESTRATOR (MISSING FUNCTION) ====================
