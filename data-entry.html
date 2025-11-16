@@ -68,7 +68,6 @@
     </div>
 
     <form id="dataEntryForm" class="form-box">
-      <!-- Your existing form fields remain the same -->
       <div class="form-row">
         <div class="form-group">
           <label>Subject *</label>
@@ -187,9 +186,42 @@
       });
     }
 
-    // Enhanced mobile menu functionality
+    // Auto-fill year function
+    function autoFillYear() {
+      const yearInput = document.getElementById('year');
+      if (yearInput && !yearInput.value.trim()) {
+        yearInput.value = new Date().getFullYear();
+      }
+    }
+
+    // Update statistics function
+    function updateDataEntryStats() {
+      try {
+        const records = JSON.parse(localStorage.getItem('smartScoresRecords') || '[]');
+        const totalRecords = document.getElementById('totalRecords');
+        const termRecords = document.getElementById('termRecords');
+        const yearRecords = document.getElementById('yearRecords');
+        
+        if (totalRecords) totalRecords.textContent = records.length;
+        
+        if (termRecords) {
+          const currentTerm = 'Term 1';
+          const termCount = records.filter(r => r.term === currentTerm).length;
+          termRecords.textContent = termCount;
+        }
+        
+        if (yearRecords) {
+          const currentYear = new Date().getFullYear();
+          const yearCount = records.filter(r => parseInt(r.year) === currentYear).length;
+          yearRecords.textContent = yearCount;
+        }
+      } catch (error) {
+        console.error('Error updating stats:', error);
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-      // Mobile menu functionality - use the same setup as index.html
+      // Mobile menu functionality
       const mobileMenuToggle = document.getElementById('mobileMenuToggle');
       const mobileSidebar = document.getElementById('mobileSidebar');
       
@@ -235,13 +267,11 @@
         }
       }
 
-      // UPDATED: Get teacher name using the new consistent storage keys
+      // Get teacher name
       const teacherNameElement = document.getElementById('teacherName');
       const currentTeacherElement = document.getElementById('currentTeacher');
       
-      // Get teacher name from localStorage using consistent keys
-      const teacherFullName = localStorage.getItem('teacherFullName') || 
-                             'Guest Teacher';
+      const teacherFullName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
       
       if (teacherNameElement) {
         teacherNameElement.textContent = teacherFullName;
@@ -250,49 +280,54 @@
         currentTeacherElement.textContent = teacherFullName;
       }
 
-      // UPDATED: Auto-fill year if empty
-      const yearInput = document.getElementById('year');
-      if (yearInput && !yearInput.value.trim()) {
-        yearInput.value = new Date().getFullYear();
-      }
+      // Auto-fill year
+      autoFillYear();
 
-      // UPDATED: Form submission will now use the proper teacher name from storage
+      // FORM SUBMISSION - CRITICAL FIX
       const dataEntryForm = document.getElementById('dataEntryForm');
       if (dataEntryForm) {
         dataEntryForm.addEventListener('submit', function(event) {
-          // The actual saving is handled by app.js handleSaveRecord function
-          // which now uses getTeacherName() that reads from teacherFullName
-          console.log('Form submitted - teacher name will be:', teacherFullName);
+          event.preventDefault(); // PREVENT DEFAULT FORM SUBMISSION
+          
+          // Call the save function from app.js
+          if (window.handleSaveRecord) {
+            window.handleSaveRecord(event);
+          } else {
+            console.error('handleSaveRecord function not found');
+            alert('Error: Save function not available. Please check app.js');
+          }
         });
       }
+
+      // Update stats
+      updateDataEntryStats();
     });
 
-    // Logout function - UPDATED to use global logout
+    // Make functions available globally
+    window.autoFillYear = autoFillYear;
+    window.updateDataEntryStats = updateDataEntryStats;
+
+    // Logout function
     function logout() {
       if (window.logout) {
         window.logout();
       } else {
         console.log('Logout function not available');
-        // Fallback redirect
         window.location.href = './login.html';
       }
     }
 
-    // UPDATED: Use the global toggleDarkMode function if available
+    // Toggle dark mode
     function toggleDarkMode() {
       if (window.toggleDarkMode) {
         window.toggleDarkMode();
       } else {
-        // Fallback implementation
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('themeMode', newTheme);
       }
     }
-
-    // UPDATED: Use the global toggleMobileMenu function from app.js
-    // No need to redefine it here - it's already available from app.js
   </script>
 </body>
 </html>
