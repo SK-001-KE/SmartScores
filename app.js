@@ -8,10 +8,7 @@
 const STORAGE_KEYS = {
     RECORDS: 'smartScoresRecords',
     TARGETS: 'smartScoresTargets', 
-    TEACHER_FULL_NAME: 'teacherFullName',
-    TEACHER_FIRST_NAME: 'teacherFirstName', 
-    TEACHER_LAST_NAME: 'teacherLastName',
-    TEACHER: 'teacherFullName', // <--- CRITICAL ADDITION
+    TEACHER: 'teacherFullName', // Use only this one
     THEME: 'themeMode'
 };
 // DOM Helper
