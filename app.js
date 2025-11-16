@@ -2438,8 +2438,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     await renderAll();
     
-    const teacherNameElement = el('teacherName');
-    if (teacherNameElement) {
-        teacherNameElement.textContent = localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Guest Teacher';
-    }
+    // New (Consistent and Complete):
+const teacherFullName = localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Guest Teacher';
+
+// Query for all known teacher name elements across all pages
+document.querySelectorAll('#teacherName, #currentTeacher, .teacher-name').forEach(element => {
+    element.textContent = teacherFullName;
 });
