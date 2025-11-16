@@ -1,5 +1,3 @@
-[file name]: grade-distribution.html
-[file content begin]
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -12,8 +10,6 @@
   <script src="./auth.js" defer></script>
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./firebase-sync.js"></script>
-  <!-- Add Chart.js for visualizations -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* Additional styles specific to grade distribution */
     .distribution-inputs {
@@ -151,37 +147,76 @@
       align-items: end;
     }
 
-    /* Charts Section */
-    .charts-section {
+    /* Grade Cards Section */
+    .grade-cards-section {
       margin: 30px 0;
     }
 
-    .charts-grid {
+    .grade-cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 25px;
       margin: 25px 0;
     }
 
-    .chart-card {
+    .grade-card {
       background: var(--card);
       padding: 25px;
       border-radius: 12px;
       box-shadow: var(--shadow);
-      height: 300px;
       display: flex;
       flex-direction: column;
+      border-top: 4px solid;
     }
 
-    .chart-card h3 {
+    .grade-card h3 {
       margin-bottom: 20px;
       text-align: center;
     }
 
-    .chart-container {
+    .grade-card-content {
       flex: 1;
-      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
+
+    .grade-pair {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .grade-name {
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    .grade-count {
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+
+    .grade-percentage {
+      font-size: 0.9em;
+      opacity: 0.8;
+    }
+
+    /* Card-specific colors */
+    .card-excellent { border-color: #0B6623; }
+    .card-excellent .grade-pair { background: rgba(11, 102, 35, 0.1); }
+
+    .card-good { border-color: #1E3A8A; }
+    .card-good .grade-pair { background: rgba(30, 58, 138, 0.1); }
+
+    .card-average { border-color: #F97316; }
+    .card-average .grade-pair { background: rgba(249, 115, 22, 0.1); }
+
+    .card-poor { border-color: #DC2626; }
+    .card-poor .grade-pair { background: rgba(220, 38, 38, 0.1); }
 
     @media (max-width: 768px) {
       .grade-inputs-grid {
@@ -189,7 +224,7 @@
       }
       
       .stats-grid,
-      .charts-grid {
+      .grade-cards-grid {
         grid-template-columns: 1fr;
       }
 
@@ -212,10 +247,6 @@
         width: 100%;
         text-align: center;
         justify-content: center;
-      }
-      
-      .chart-card {
-        height: 250px;
       }
     }
   </style>
@@ -276,34 +307,7 @@
       <p class="teacher-info">Teacher: <span id="currentTeacher">Loading...</span></p>
     </div>
 
-    <!-- QUICK STATS -->
-    <section class="quick-stats">
-      <h2>Distribution Summary</h2>
-      <div class="stats-grid">
-        <div class="stat-item">
-          <div class="stat-value" id="totalDistributions">--</div>
-          <div class="stat-label">Total Distributions</div>
-          <div class="stat-subtext">Across all subjects</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="totalLearners">--</div>
-          <div class="stat-label">Total Learners</div>
-          <div class="stat-subtext">All records combined</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="topPerformersPercent">--%</div>
-          <div class="stat-label">EE1-EE2 (75-100%)</div>
-          <div class="stat-subtext" id="topPerformersCount">-- learners</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="needsSupportPercent">--%</div>
-          <div class="stat-label">BE1-BE2 (0-20%)</div>
-          <div class="stat-subtext" id="needsSupportCount">-- learners</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- DATA ENTRY FORM -->
+    <!-- GRADE DISTRIBUTION FORM -->
     <section class="form-section">
       <h2>➕ Add Grade Distribution</h2>
       <form id="distributionForm" class="form-box">
@@ -456,6 +460,27 @@
           </select>
         </div>
         <div class="filter-group">
+          <label>Stream</label>
+          <select id="filterStream">
+            <option value="">All Streams</option>
+            <option>Faith</option>
+            <option>Glory</option>
+            <option>Joy</option>
+            <option>Love</option>
+            <option>Peace</option>
+            <option>Unity</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Exam Type</label>
+          <select id="filterExamType">
+            <option value="">All Exam Types</option>
+            <option>Opener Exam</option>
+            <option>Mid Term Exam</option>
+            <option>End Term Exam</option>
+          </select>
+        </div>
+        <div class="filter-group">
           <label>Term</label>
           <select id="filterTerm">
             <option value="">All Terms</option>
@@ -464,10 +489,22 @@
             <option>Term 3</option>
           </select>
         </div>
+        <div class="filter-group">
+          <label>Year</label>
+          <input type="number" id="filterYear" min="2000" max="2100" value="2025">
+        </div>
         <div class="filter-actions">
           <button onclick="applyDistributionFilters()" class="btn btn-primary">Apply Filters</button>
           <button onclick="resetDistributionFilters()" class="btn btn-secondary">Reset</button>
         </div>
+      </div>
+    </section>
+
+    <!-- GRADE DISTRIBUTION CARDS -->
+    <section class="grade-cards-section">
+      <h2>📊 Grade Distribution Summary</h2>
+      <div class="grade-cards-grid" id="gradeCardsContainer">
+        <!-- Cards will be dynamically generated here -->
       </div>
     </section>
 
@@ -512,37 +549,6 @@
       </div>
     </section>
 
-    <!-- VISUALIZATION CHARTS -->
-    <section class="charts-section">
-      <h2>📊 Distribution Visualization</h2>
-      <div class="charts-grid">
-        <div class="chart-card">
-          <h3>Overall Grade Distribution</h3>
-          <div class="chart-container">
-            <canvas id="overallDistributionChart"></canvas>
-          </div>
-        </div>
-        <div class="chart-card">
-          <h3>Subject Performance</h3>
-          <div class="chart-container">
-            <canvas id="subjectDistributionChart"></canvas>
-          </div>
-        </div>
-        <div class="chart-card">
-          <h3>Term Comparison</h3>
-          <div class="chart-container">
-            <canvas id="termDistributionChart"></canvas>
-          </div>
-        </div>
-        <div class="chart-card">
-          <h3>Stream Performance</h3>
-          <div class="chart-container">
-            <canvas id="streamDistributionChart"></canvas>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- RUBRIC KEY -->
     <section class="rubric-section">
       <h3>🎯 Performance Rubric Key</h3>
@@ -573,17 +579,6 @@
         <span class="stat-value" id="distributionsShown">0</span>
       </div>
     </div>
-
-    <!-- DEBUG INFO -->
-    <section class="debug-section">
-      <h3>🔧 Debug Information</h3>
-      <p><strong>Distributions Found:</strong> <span id="debugDistributions">0</span></p>
-      <p><strong>Last Updated:</strong> <span id="debugTime">--</span></p>
-      <p><strong>Screen Width:</strong> <span id="screenWidth">--</span></p>
-      <p><strong>Navigation State:</strong> <span id="navState">--</span></p>
-      <button onclick="refreshDistributionData()" class="btn btn-primary" style="margin-top: 10px; margin-right: 10px;">🔄 Refresh Data</button>
-      <button onclick="testNavigation()" class="btn btn-secondary" style="margin-top: 10px;">🧪 Test Navigation</button>
-    </section>
   </div>
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
@@ -597,9 +592,6 @@
 
     // Storage key for distributions
     const DISTRIBUTION_KEY = 'smartScoresDistributions';
-
-    // Chart instances
-    let overallChart, subjectChart, termChart, streamChart;
 
     // ===== NAVIGATION MANAGEMENT =====
     function toggleMobileMenu() {
@@ -620,8 +612,6 @@
         } else {
           document.removeEventListener('click', closeMobileSidebarOnClickOutside);
         }
-        
-        updateNavDebugInfo();
       }
     }
 
@@ -638,7 +628,6 @@
         mobileSidebar.classList.add('closed');
         toggleBtn.textContent = '☰';
         document.removeEventListener('click', closeMobileSidebarOnClickOutside);
-        updateNavDebugInfo();
       }
     }
 
@@ -656,22 +645,9 @@
               toggleBtn.textContent = '☰';
             }
             document.removeEventListener('click', closeMobileSidebarOnClickOutside);
-            updateNavDebugInfo();
           }
         });
       });
-    }
-
-    function updateNavDebugInfo() {
-      const navState = document.getElementById('navState');
-      if (navState) {
-        const mobileSidebar = document.getElementById('mobileSidebar');
-        if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
-          navState.textContent = 'Mobile Navigation Open';
-        } else {
-          navState.textContent = window.innerWidth >= 1024 ? 'Desktop Navigation Active' : 'Mobile Navigation Ready';
-        }
-      }
     }
 
     // ===== THEME MANAGEMENT =====
@@ -685,7 +661,6 @@
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('themeMode', newTheme);
       }
-      updateChartsTheme();
     }
 
     function loadTheme() {
@@ -839,6 +814,7 @@
         el('distributionForm').reset();
         calculateTotalLearners();
         renderDistributions();
+        updateGradeCards();
         updateSummaryStats();
       }
     }
@@ -872,6 +848,7 @@
           if (saveDistributions(distributions)) {
             showAlert('Distribution deleted successfully', 'success');
             renderDistributions();
+            updateGradeCards();
             updateSummaryStats();
           }
         }
@@ -929,33 +906,166 @@
     function applyCurrentDistributionFilters(distributions) {
       const subjectFilter = el('filterSubject').value;
       const gradeFilter = el('filterGrade').value;
+      const streamFilter = el('filterStream').value;
+      const examTypeFilter = el('filterExamType').value;
       const termFilter = el('filterTerm').value;
+      const yearFilter = el('filterYear').value;
       
       return distributions.filter(dist => {
         return (!subjectFilter || dist.subject === subjectFilter) &&
                (!gradeFilter || dist.grade === gradeFilter) &&
-               (!termFilter || dist.term === termFilter);
+               (!streamFilter || dist.stream === streamFilter) &&
+               (!examTypeFilter || dist.examType === examTypeFilter) &&
+               (!termFilter || dist.term === termFilter) &&
+               (!yearFilter || dist.year === yearFilter);
       });
     }
 
     function applyDistributionFilters() {
       showNotification('Filters applied!');
       renderDistributions();
+      updateGradeCards();
       updateSummaryStats();
     }
 
     function resetDistributionFilters() {
       el('filterSubject').value = '';
       el('filterGrade').value = '';
+      el('filterStream').value = '';
+      el('filterExamType').value = '';
       el('filterTerm').value = '';
+      el('filterYear').value = '';
       showNotification('Filters reset!');
       renderDistributions();
+      updateGradeCards();
       updateSummaryStats();
     }
 
     function sortDistributionsTable(column) {
       showNotification(`Sorting by column ${column}`);
       // Sorting logic would be implemented here
+    }
+
+    function updateGradeCards() {
+      const container = el('gradeCardsContainer');
+      const distributions = loadDistributions();
+      const filteredDistributions = applyCurrentDistributionFilters(distributions);
+      
+      if (filteredDistributions.length === 0) {
+        container.innerHTML = `
+          <div class="grade-card" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+            <h3>No Distribution Data</h3>
+            <p>No grade distribution data found for the current filters.</p>
+            <p><a href="#distributionForm" style="color: var(--primary);">Add your first distribution</a></p>
+          </div>
+        `;
+        return;
+      }
+      
+      // Calculate aggregated distribution data
+      const aggregatedDistribution = {
+        ee1: 0, ee2: 0, me1: 0, me2: 0,
+        ae1: 0, ae2: 0, be1: 0, be2: 0
+      };
+      
+      let totalLearners = 0;
+      
+      filteredDistributions.forEach(dist => {
+        Object.keys(aggregatedDistribution).forEach(key => {
+          aggregatedDistribution[key] += dist.distribution[key];
+        });
+        totalLearners += dist.totalLearners;
+      });
+      
+      // Calculate percentages
+      const percentages = {};
+      Object.keys(aggregatedDistribution).forEach(key => {
+        percentages[key] = totalLearners > 0 ? 
+          ((aggregatedDistribution[key] / totalLearners) * 100).toFixed(1) : 0;
+      });
+      
+      // Create grade cards
+      container.innerHTML = `
+        <div class="grade-card card-excellent">
+          <h3>Excellent Performance</h3>
+          <div class="grade-card-content">
+            <div class="grade-pair">
+              <div>
+                <div class="grade-name">EE1 (90-100%)</div>
+                <div class="grade-percentage">${percentages.ee1}% of learners</div>
+              </div>
+              <div class="grade-count">${aggregatedDistribution.ee1}</div>
+            </div>
+            <div class="grade-pair">
+              <div>
+                <div class="grade-name">EE2 (75-89%)</div>
+                <div class="grade-percentage">${percentages.ee2}% of learners</div>
+              </div>
+              <div class="grade-count">${aggregatedDistribution.ee2}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="grade-card card-good">
+          <h3>Good Performance</h3>
+          <div class="grade-card-content">
+            <div class="grade-pair">
+              <div>
+                <div class="grade-name">ME1 (58-74%)</div>
+                <div class="grade-percentage">${percentages.me1}% of learners</div>
+              </div>
+              <div class="grade-count">${aggregatedDistribution.me1}</div>
+            </div>
+            <div class="grade-pair">
+              <div>
+                <div class="grade-name">ME2 (41-57%)</div>
+                <div class="grade-percentage">${percentages.me2}% of learners</div>
+              </div>
+              <div class="grade-count">${aggregatedDistribution.me2}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="grade-card card-average">
+          <h3>Average Performance</h3>
+          <div class="grade-card-content">
+            <div class="grade-pair">
+              <div>
+                <div class="grade-name">AE1 (31-40%)</div>
+                <div class="grade-percentage">${percentages.ae1}% of learners</div>
+              </div>
+              <div class="grade-count">${aggregatedDistribution.ae1}</div>
+            </div>
+            <div class="grade-pair">
+              <div>
+                <div class="grade-name">AE2 (21-30%)</div>
+                <div class="grade-percentage">${percentages.ae2}% of learners</div>
+              </div>
+              <div class="grade-count">${aggregatedDistribution.ae2}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="grade-card card-poor">
+          <h3>Below Expectations</h3>
+          <div class="grade-card-content">
+            <div class="grade-pair">
+              <div>
+                <div class="grade-name">BE1 (11-20%)</div>
+                <div class="grade-percentage">${percentages.be1}% of learners</div>
+              </div>
+              <div class="grade-count">${aggregatedDistribution.be1}</div>
+            </div>
+            <div class="grade-pair">
+              <div>
+                <div class="grade-name">BE2 (0-10%)</div>
+                <div class="grade-percentage">${percentages.be2}% of learners</div>
+              </div>
+              <div class="grade-count">${aggregatedDistribution.be2}</div>
+            </div>
+          </div>
+        </div>
+      `;
     }
 
     function updateSummaryStats() {
@@ -972,21 +1082,12 @@
         needsSupport += dist.distribution.be1 + dist.distribution.be2;
       });
       
-      // Update quick stats
-      el('totalDistributions').textContent = totalDistributions;
-      el('totalLearners').textContent = totalLearners;
+      // Update summary stats
+      el('totalDistributionsCount').textContent = totalDistributions;
+      el('overallLearners').textContent = totalLearners;
       
-      const topPercentage = totalLearners > 0 ? Math.round((topPerformers / totalLearners) * 100) : 0;
-      el('topPerformersPercent').textContent = topPercentage + '%';
-      el('topPerformersCount').textContent = topPerformers + ' learners';
-      
-      const needsSupportPercentage = totalLearners > 0 ? Math.round((needsSupport / totalLearners) * 100) : 0;
-      el('needsSupportPercent').textContent = needsSupportPercentage + '%';
-      el('needsSupportCount').textContent = needsSupport + ' learners';
-      
-      // Update debug info
-      el('debugDistributions').textContent = totalDistributions;
-      el('debugTime').textContent = new Date().toLocaleTimeString();
+      const filteredDistributions = applyCurrentDistributionFilters(distributions);
+      el('distributionsShown').textContent = filteredDistributions.length;
     }
 
     function updateTableSummaryStats(distributions) {
@@ -1035,6 +1136,7 @@
         localStorage.removeItem(DISTRIBUTION_KEY);
         showAlert('All distribution data has been cleared successfully.', 'success');
         renderDistributions();
+        updateGradeCards();
         updateSummaryStats();
       }
     }
@@ -1042,310 +1144,9 @@
     function refreshDistributionData() {
       console.log('🔄 Refreshing distribution data...');
       renderDistributions();
+      updateGradeCards();
       updateSummaryStats();
-      renderCharts();
       showNotification('Data refreshed!');
-    }
-
-    function testNavigation() {
-      showNotification('Navigation test completed!');
-      updateNavDebugInfo();
-    }
-
-    // ===== CHART FUNCTIONS =====
-    function renderCharts() {
-      const distributions = loadDistributions();
-      if (distributions.length === 0) {
-        showEmptyCharts();
-        return;
-      }
-      
-      renderOverallDistributionChart(distributions);
-      renderSubjectDistributionChart(distributions);
-      renderTermDistributionChart(distributions);
-      renderStreamDistributionChart(distributions);
-    }
-
-    function renderOverallDistributionChart(distributions) {
-      const ctx = document.getElementById('overallDistributionChart').getContext('2d');
-      
-      // Calculate overall distribution
-      const overallDistribution = {
-        ee1: 0, ee2: 0, me1: 0, me2: 0,
-        ae1: 0, ae2: 0, be1: 0, be2: 0
-      };
-      
-      distributions.forEach(dist => {
-        Object.keys(overallDistribution).forEach(key => {
-          overallDistribution[key] += dist.distribution[key];
-        });
-      });
-      
-      const labels = ['EE1 (90-100%)', 'EE2 (75-89%)', 'ME1 (58-74%)', 'ME2 (41-57%)', 'AE1 (31-40%)', 'AE2 (21-30%)', 'BE1 (11-20%)', 'BE2 (0-10%)'];
-      const data = Object.values(overallDistribution);
-      const backgroundColors = [
-        '#0B6623', '#2E8B57', '#1E3A8A', '#3B82F6',
-        '#F97316', '#FDBA74', '#DC2626', '#7F1D1D'
-      ];
-      
-      // Destroy previous chart if exists
-      if (overallChart) overallChart.destroy();
-      
-      // Create new chart
-      overallChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: data,
-            backgroundColor: backgroundColors,
-            borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom'
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const total = data.reduce((a, b) => a + b, 0);
-                  const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
-                  return `${context.label}: ${context.parsed} learners (${percentage}%)`;
-                }
-              }
-            }
-          }
-        }
-      });
-    }
-
-    function renderSubjectDistributionChart(distributions) {
-      const ctx = document.getElementById('subjectDistributionChart').getContext('2d');
-      
-      // Calculate distribution by subject
-      const subjectData = {};
-      distributions.forEach(dist => {
-        if (!subjectData[dist.subject]) {
-          subjectData[dist.subject] = { ...dist.distribution };
-        } else {
-          Object.keys(dist.distribution).forEach(key => {
-            subjectData[dist.subject][key] += dist.distribution[key];
-          });
-        }
-      });
-      
-      const subjects = Object.keys(subjectData);
-      const datasets = ['ee1', 'ee2', 'me1', 'me2', 'ae1', 'ae2', 'be1', 'be2'].map((key, index) => {
-        const colors = ['#0B6623', '#2E8B57', '#1E3A8A', '#3B82F6', '#F97316', '#FDBA74', '#DC2626', '#7F1D1D'];
-        return {
-          label: key.toUpperCase(),
-          data: subjects.map(subject => subjectData[subject][key]),
-          backgroundColor: colors[index],
-          borderColor: colors[index].replace('0.7', '1'),
-          borderWidth: 1
-        };
-      });
-      
-      // Destroy previous chart if exists
-      if (subjectChart) subjectChart.destroy();
-      
-      // Create new chart
-      subjectChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: subjects,
-          datasets: datasets
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: {
-              stacked: true
-            },
-            y: {
-              stacked: true,
-              beginAtZero: true
-            }
-          },
-          plugins: {
-            legend: {
-              position: 'bottom'
-            }
-          }
-        }
-      });
-    }
-
-    function renderTermDistributionChart(distributions) {
-      const ctx = document.getElementById('termDistributionChart').getContext('2d');
-      
-      // Calculate distribution by term
-      const termData = {};
-      distributions.forEach(dist => {
-        if (!termData[dist.term]) {
-          termData[dist.term] = { ...dist.distribution };
-        } else {
-          Object.keys(dist.distribution).forEach(key => {
-            termData[dist.term][key] += dist.distribution[key];
-          });
-        }
-      });
-      
-      const terms = Object.keys(termData);
-      const datasets = ['ee1', 'ee2', 'me1', 'me2'].map((key, index) => {
-        const colors = ['#0B6623', '#2E8B57', '#1E3A8A', '#3B82F6'];
-        return {
-          label: key.toUpperCase(),
-          data: terms.map(term => termData[term][key]),
-          backgroundColor: colors[index],
-          borderColor: colors[index].replace('0.7', '1'),
-          borderWidth: 1
-        };
-      });
-      
-      // Destroy previous chart if exists
-      if (termChart) termChart.destroy();
-      
-      // Create new chart
-      termChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: terms,
-          datasets: datasets
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          },
-          plugins: {
-            legend: {
-              position: 'bottom'
-            }
-          }
-        }
-      });
-    }
-
-    function renderStreamDistributionChart(distributions) {
-      const ctx = document.getElementById('streamDistributionChart').getContext('2d');
-      
-      // Calculate top performers by stream
-      const streamData = {};
-      distributions.forEach(dist => {
-        if (!streamData[dist.stream]) {
-          streamData[dist.stream] = 0;
-        }
-        streamData[dist.stream] += dist.distribution.ee1 + dist.distribution.ee2;
-      });
-      
-      const streams = Object.keys(streamData);
-      const topPerformers = streams.map(stream => streamData[stream]);
-      
-      // Destroy previous chart if exists
-      if (streamChart) streamChart.destroy();
-      
-      // Create new chart
-      streamChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: streams,
-          datasets: [{
-            data: topPerformers,
-            backgroundColor: [
-              'rgba(139, 0, 0, 0.7)',
-              'rgba(0, 100, 0, 0.7)',
-              'rgba(0, 0, 139, 0.7)',
-              'rgba(139, 69, 19, 0.7)',
-              'rgba(128, 0, 128, 0.7)',
-              'rgba(0, 128, 128, 0.7)'
-            ],
-            borderColor: [
-              'rgba(139, 0, 0, 1)',
-              'rgba(0, 100, 0, 1)',
-              'rgba(0, 0, 139, 1)',
-              'rgba(139, 69, 19, 1)',
-              'rgba(128, 0, 128, 1)',
-              'rgba(0, 128, 128, 1)'
-            ],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom'
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return `${context.label}: ${context.parsed} top performers`;
-                }
-              }
-            }
-          }
-        }
-      });
-    }
-
-    function updateChartsTheme() {
-      // Update chart colors based on theme
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-      const textColor = isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)';
-      
-      // Update all charts if they exist
-      const charts = [overallChart, subjectChart, termChart, streamChart];
-      charts.forEach(chart => {
-        if (chart) {
-          if (chart.options.scales) {
-            if (chart.options.scales.x) {
-              chart.options.scales.x.grid.color = gridColor;
-              chart.options.scales.x.ticks.color = textColor;
-            }
-            if (chart.options.scales.y) {
-              chart.options.scales.y.grid.color = gridColor;
-              chart.options.scales.y.ticks.color = textColor;
-            }
-          }
-          chart.update();
-        }
-      });
-    }
-
-    function showEmptyCharts() {
-      const chartIds = [
-        'overallDistributionChart',
-        'subjectDistributionChart',
-        'termDistributionChart',
-        'streamDistributionChart'
-      ];
-      
-      chartIds.forEach(id => {
-        const canvas = document.getElementById(id);
-        if (canvas) {
-          const ctx = canvas.getContext('2d');
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = 'var(--bg)';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = 'var(--secondary)';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.font = '16px Arial';
-          ctx.fillText('No data available', canvas.width / 2, canvas.height / 2);
-        }
-      });
     }
 
     function showNotification(message) {
@@ -1410,19 +1211,8 @@
       
       // Initial render
       renderDistributions();
+      updateGradeCards();
       updateSummaryStats();
-      renderCharts();
-
-      // Set initial navigation state
-      setTimeout(() => {
-        if (window.innerWidth >= 1024) {
-          el('navState').textContent = 'Desktop Navigation Active';
-        } else {
-          el('navState').textContent = 'Mobile Navigation Ready';
-        }
-        el('screenWidth').textContent = window.innerWidth + 'px';
-        el('debugTime').textContent = new Date().toLocaleTimeString();
-      }, 100);
     });
 
     // Make functions available globally
@@ -1436,8 +1226,6 @@
     window.exportDistributionReport = exportDistributionReport;
     window.clearAllDistributions = clearAllDistributions;
     window.refreshDistributionData = refreshDistributionData;
-    window.testNavigation = testNavigation;
   </script>
 </body>
 </html>
-[file content end]
