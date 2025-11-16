@@ -7,10 +7,75 @@
   <link rel="manifest" href="./manifest.json" />
   <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="./app.js" defer></script>
+  <!-- Load app.js without defer to ensure functions are available immediately -->
+  <script src="./app.js"></script>
   <script src="./auth.js" defer></script>
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./firebase-sync.js"></script>
+  
+  <style>
+    .card-loading {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+        font-style: italic;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #666;
+    }
+
+    .empty-state p {
+        margin-bottom: 15px;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .data-table th {
+        background-color: #f5f5f5;
+        font-weight: 600;
+    }
+
+    .btn-action {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        margin: 5px;
+        transition: background 0.3s;
+    }
+
+    .btn-action:hover {
+        background: var(--primary-dark);
+    }
+
+    .card-value {
+        font-size: 2.5em;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+
+    .card-subtitle {
+        color: #666;
+        font-size: 0.9em;
+    }
+  </style>
 </head>
 <body>
   <!-- TOP NAVIGATION BAR -->
@@ -38,10 +103,10 @@
     </div>
   </nav>
 
-  <!-- MOBILE MENU TOGGLE (only show on mobile) -->
+  <!-- MOBILE MENU TOGGLE -->
   <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
 
-  <!-- MOBILE SIDEBAR (only for mobile) -->
+  <!-- MOBILE SIDEBAR -->
   <aside id="mobileSidebar" class="mobile-sidebar closed">
     <a href="./index.html" class="active">📊 Dashboard</a>
     <a href="./data-entry.html">📝 Data Entry</a>
@@ -51,7 +116,7 @@
     <a href="./trends.html">📊 Trends</a>
     <a href="./grade-distribution.html">📈 Grade Distribution</a>
     <a href="./set-targets.html">🎯 Set Targets</a>
-    <a href="./learner-scores.html" class="nav-link">👨‍🎓 Learner Scores</a>
+    <a href="./learner-scores.html">👨‍🎓 Learner Scores</a>
     <button class="logout-btn" onclick="logout()">🚪 Logout</button>
   </aside>
 
@@ -68,15 +133,15 @@
     <div class="dashboard-cards">
       <div class="dashboard-card total-avg-card" id="totalAvgCard">
         <h3>Overall Average</h3>
-        <div class="card-loading">Loading...</div>
+        <div class="card-loading" id="totalAvgLoading">Loading...</div>
       </div>
       <div class="dashboard-card best-card" id="bestSubjectCard">
         <h3>Best Performance</h3>
-        <div class="card-loading">Loading...</div>
+        <div class="card-loading" id="bestCardLoading">Loading...</div>
       </div>
       <div class="dashboard-card worst-card" id="worstSubjectCard">
         <h3>Needs Support</h3>
-        <div class="card-loading">Loading...</div>
+        <div class="card-loading" id="worstCardLoading">Loading...</div>
       </div>
     </div>
 
@@ -84,6 +149,7 @@
     <div class="quick-actions">
       <button onclick="location.href='./data-entry.html'" class="btn-action">➕ Add New Scores</button>
       <button onclick="location.href='./set-targets.html'" class="btn-action">🎯 Set Targets</button>
+      <button onclick="refreshDashboard()" class="btn-action">🔄 Refresh Dashboard</button>
       <button onclick="downloadPDF()" class="btn-action">📄 Export PDF</button>
       <button onclick="exportToExcel()" class="btn-action">📊 Export Excel</button>
     </div>
@@ -95,20 +161,29 @@
     </div>
 
     <!-- Recent Records -->
-    <!-- Recent Records -->
-<div class="recent-records">
-    <h3>Recent Scores</h3>
-    <div id="recentRecordsTable">
+    <div class="recent-records">
+      <h3>Recent Scores</h3>
+      <div id="recentRecordsTable">
         <div class="loading">Loading recent records...</div>
+      </div>
     </div>
-</div>
   </main>
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
   <script>
-    // Ensure mobile navigation works properly
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(registration => console.log('SW registered: ', registration))
+          .catch(error => console.log('SW registration failed: ', error));
+      });
+    }
+
+    // Initialize dashboard when page loads
     document.addEventListener('DOMContentLoaded', function() {
+      console.log('Dashboard initializing...');
+      
       // Mobile menu functionality
       const mobileMenuToggle = document.getElementById('mobileMenuToggle');
       const mobileSidebar = document.getElementById('mobileSidebar');
@@ -119,7 +194,6 @@
           mobileSidebar.classList.toggle('closed');
           mobileMenuToggle.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
           
-          // Add click outside to close functionality
           if (!mobileSidebar.classList.contains('closed')) {
             setTimeout(() => {
               document.addEventListener('click', closeMobileSidebarOnClickOutside);
@@ -155,15 +229,405 @@
           document.removeEventListener('click', closeMobileSidebarOnClickOutside);
         }
       }
+
+      // Update teacher name
+      updateTeacherName();
+
+      // Initialize dashboard with fallback support
+      initializeDashboard();
     });
 
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./service-worker.js')
-          .then(registration => console.log('SW registered: ', registration))
-          .catch(error => console.log('SW registration failed: ', error));
-      });
+    // Update teacher name display
+    function updateTeacherName() {
+      const teacherNameElement = document.getElementById('teacherName');
+      const teacherFullName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
+      
+      if (teacherNameElement) {
+        teacherNameElement.textContent = teacherFullName;
+      }
     }
+
+    // Initialize dashboard data and charts
+    function initializeDashboard() {
+      console.log('Loading dashboard data...');
+      
+      // Load dashboard statistics
+      if (window.updateDashboardStats) {
+        window.updateDashboardStats();
+      } else {
+        updateDashboardStatsFallback();
+      }
+      
+      // Load recent records
+      if (window.renderRecentRecords) {
+        window.renderRecentRecords();
+      } else {
+        renderRecentRecordsFallback();
+      }
+      
+      // Initialize progress chart
+      if (window.renderProgressChart) {
+        window.renderProgressChart();
+      } else {
+        renderProgressChartFallback();
+      }
+    }
+
+    // Refresh dashboard function
+    function refreshDashboard() {
+      console.log('Refreshing dashboard...');
+      initializeDashboard();
+    }
+
+    // Fallback function for dashboard stats
+    function updateDashboardStatsFallback() {
+      try {
+        const records = JSON.parse(localStorage.getItem('smartScoresRecords') || '[]');
+        const totalAvgCard = document.getElementById('totalAvgCard');
+        const bestCard = document.getElementById('bestSubjectCard');
+        const worstCard = document.getElementById('worstSubjectCard');
+        
+        if (records.length === 0) {
+          if (totalAvgCard) {
+            totalAvgCard.innerHTML = `
+              <h3>Overall Average</h3>
+              <div class="card-value">–</div>
+              <p class="card-subtitle">No data yet</p>
+            `;
+          }
+          if (bestCard) {
+            bestCard.innerHTML = `
+              <h3>Best Performance</h3>
+              <div class="card-value">–</div>
+              <p class="card-subtitle">No data yet</p>
+            `;
+          }
+          if (worstCard) {
+            worstCard.innerHTML = `
+              <h3>Needs Support</h3>
+              <div class="card-value">–</div>
+              <p class="card-subtitle">No data yet</p>
+            `;
+          }
+          return;
+        }
+        
+        // Calculate overall average
+        const totalAvg = records.reduce((sum, record) => sum + record.mean, 0) / records.length;
+        
+        // Find best and worst performing subjects
+        const subjectAverages = {};
+        records.forEach(record => {
+          const key = `${record.subject}|${record.grade}|${record.stream}`;
+          if (!subjectAverages[key]) {
+            subjectAverages[key] = { sum: 0, count: 0, subject: record.subject, grade: record.grade, stream: record.stream };
+          }
+          subjectAverages[key].sum += record.mean;
+          subjectAverages[key].count++;
+        });
+        
+        let best = null;
+        let worst = null;
+        Object.values(subjectAverages).forEach(subject => {
+          const avg = subject.sum / subject.count;
+          if (!best || avg > best.avg) {
+            best = { ...subject, avg };
+          }
+          if (!worst || avg < worst.avg) {
+            worst = { ...subject, avg };
+          }
+        });
+        
+        // Update cards
+        if (totalAvgCard) {
+          totalAvgCard.innerHTML = `
+            <h3>Overall Average</h3>
+            <div class="card-value" style="color: ${getColorForScore(totalAvg)};">${totalAvg.toFixed(1)}%</div>
+            <p class="card-subtitle">Based on ${records.length} records</p>
+          `;
+        }
+        
+        if (bestCard && best) {
+          bestCard.innerHTML = `
+            <h3>Best Performance</h3>
+            <div class="card-value" style="color: ${getColorForScore(best.avg)};">${best.avg.toFixed(1)}%</div>
+            <p class="card-subtitle">${best.subject}</p>
+            <small>Grade ${best.grade} • ${best.stream}</small>
+          `;
+        }
+        
+        if (worstCard && worst) {
+          worstCard.innerHTML = `
+            <h3>Needs Support</h3>
+            <div class="card-value" style="color: ${getColorForScore(worst.avg)};">${worst.avg.toFixed(1)}%</div>
+            <p class="card-subtitle">${worst.subject}</p>
+            <small>Grade ${worst.grade} • ${worst.stream}</small>
+          `;
+        }
+        
+      } catch (error) {
+        console.error('Error updating dashboard stats:', error);
+        showError('dashboard-cards', 'Error loading statistics');
+      }
+    }
+
+    // Fallback for recent records
+    function renderRecentRecordsFallback() {
+      try {
+        const container = document.getElementById('recentRecordsTable');
+        if (!container) return;
+        
+        const records = JSON.parse(localStorage.getItem('smartScoresRecords') || '[]');
+        
+        if (records.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <p>No records yet. Start by entering scores in the Data Entry page.</p>
+              <button onclick="location.href='./data-entry.html'" class="btn-action">Add First Record</button>
+            </div>
+          `;
+          return;
+        }
+        
+        const recentRecords = records
+          .sort((a, b) => new Date(b.timestamp || b.id) - new Date(a.timestamp || a.id))
+          .slice(0, 5);
+        
+        container.innerHTML = `
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Grade</th>
+                <th>Stream</th>
+                <th>Term</th>
+                <th>Exam</th>
+                <th>Mean Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${recentRecords.map(record => `
+                <tr>
+                  <td>${record.subject}</td>
+                  <td>${record.grade}</td>
+                  <td>${record.stream}</td>
+                  <td>${record.term}</td>
+                  <td>${record.examType}</td>
+                  <td style="font-weight: bold; color: ${getColorForScore(record.mean)}">
+                    ${record.mean.toFixed(1)}%
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      } catch (error) {
+        console.error('Error loading recent records:', error);
+        showError('recentRecordsTable', 'Error loading recent records');
+      }
+    }
+
+    // Fallback for progress chart
+    function renderProgressChartFallback() {
+      const canvas = document.getElementById('progressChart');
+      if (!canvas || !window.Chart) {
+        console.error('Chart.js not loaded');
+        showError('progressChart', 'Chart library not available');
+        return;
+      }
+      
+      try {
+        const records = JSON.parse(localStorage.getItem('smartScoresRecords') || '[]');
+        
+        if (records.length === 0) {
+          canvas.style.display = 'none';
+          const chartContainer = canvas.closest('.chart-container');
+          if (chartContainer) {
+            const message = document.createElement('div');
+            message.className = 'empty-state';
+            message.innerHTML = `<p>No data available for chart. Add some scores to see trends.</p>`;
+            chartContainer.appendChild(message);
+          }
+          return;
+        }
+        
+        // Group records by term and year
+        const termData = {};
+        records.forEach(record => {
+          const key = `${record.term} ${record.year}`;
+          if (!termData[key]) {
+            termData[key] = { sum: 0, count: 0 };
+          }
+          termData[key].sum += record.mean;
+          termData[key].count++;
+        });
+        
+        const labels = Object.keys(termData).sort();
+        const data = labels.map(key => {
+          const term = termData[key];
+          return Number((term.sum / term.count).toFixed(1));
+        });
+        
+        // Destroy existing chart instance
+        if (window.progressChartInstance) {
+          window.progressChartInstance.destroy();
+        }
+        
+        const ctx = canvas.getContext('2d');
+        window.progressChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Average Mean Score',
+              data: data,
+              borderColor: '#8B0000',
+              backgroundColor: 'rgba(139, 0, 0, 0.1)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4,
+              pointBackgroundColor: '#8B0000',
+              pointRadius: 6,
+              pointHoverRadius: 8
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                title: {
+                  display: true,
+                  text: 'Mean Score (%)'
+                }
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: 'Term & Year'
+                }
+              }
+            }
+          }
+        });
+        
+      } catch (error) {
+        console.error('Error rendering progress chart:', error);
+        showError('progressChart', 'Error loading chart data');
+      }
+    }
+
+    // Helper function for score colors
+    function getColorForScore(score) {
+      if (score === null || score === undefined) return '#666';
+      if (score >= 80) return '#10B981';
+      if (score >= 60) return '#3B82F6';
+      if (score >= 50) return '#F59E0B';
+      return '#EF4444';
+    }
+
+    // Error display function
+    function showError(containerId, message) {
+      const container = document.getElementById(containerId);
+      if (container) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div style="color: #ef4444; font-size: 2em;">⚠️</div>
+            <p>${message}</p>
+            <button onclick="refreshDashboard()" class="btn-action">Try Again</button>
+          </div>
+        `;
+      }
+    }
+
+    // Set up auto-refresh for dashboard
+    function setupDashboardAutoRefresh() {
+      // Refresh when page becomes visible
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+          setTimeout(initializeDashboard, 100);
+        }
+      });
+      
+      // Refresh when page gains focus
+      window.addEventListener('focus', function() {
+        setTimeout(initializeDashboard, 100);
+      });
+      
+      // Refresh every 30 seconds while on dashboard
+      setInterval(initializeDashboard, 30000);
+    }
+
+    // Global function handlers
+    function logout() {
+      if (window.logout) {
+        window.logout();
+      } else {
+        window.location.href = './login.html';
+      }
+    }
+
+    function toggleDarkMode() {
+      if (window.toggleDarkMode) {
+        window.toggleDarkMode();
+      } else {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('themeMode', newTheme);
+      }
+    }
+
+    function toggleMobileMenu() {
+      if (window.toggleMobileMenu) {
+        window.toggleMobileMenu();
+      }
+    }
+
+    function downloadPDF() {
+      if (window.downloadPDF) {
+        window.downloadPDF();
+      } else {
+        alert('PDF export not available. Please check app.js');
+      }
+    }
+
+    function exportToExcel() {
+      if (window.exportToExcel) {
+        window.exportToExcel();
+      } else {
+        alert('Excel export not available. Please check app.js');
+      }
+    }
+
+    // Make functions available globally
+    window.initializeDashboard = initializeDashboard;
+    window.refreshDashboard = refreshDashboard;
+    window.updateDashboardStatsFallback = updateDashboardStatsFallback;
+    window.renderRecentRecordsFallback = renderRecentRecordsFallback;
+    window.renderProgressChartFallback = renderProgressChartFallback;
+
+    // Start auto-refresh
+    setupDashboardAutoRefresh();
+
+    // Initial debug check
+    setTimeout(() => {
+      console.log('Dashboard initialized. Available functions:', {
+        updateDashboardStats: typeof window.updateDashboardStats,
+        renderRecentRecords: typeof window.renderRecentRecords,
+        renderProgressChart: typeof window.renderProgressChart
+      });
+    }, 1000);
   </script>
 </body>
 </html>
