@@ -10,8 +10,6 @@
   <script src="./auth.js" defer></script>
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./firebase-sync.js"></script>
-  <!-- Add Chart.js for visualizations -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* ===== AVERAGES SPECIFIC STYLES ===== */
     .quick-stats {
@@ -22,6 +20,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 20px;
+      justify-items: center;
     }
 
     .stat-item {
@@ -32,6 +31,8 @@
       border-top: 4px solid var(--primary);
       transition: all 0.3s ease;
       box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 250px;
     }
 
     .stat-item:hover {
@@ -95,6 +96,7 @@
       display: flex;
       gap: 10px;
       align-items: end;
+      flex-wrap: wrap;
     }
 
     /* Table Section */
@@ -107,43 +109,14 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
     }
 
     .table-actions {
       display: flex;
       gap: 10px;
-    }
-
-    /* Charts Section */
-    .charts-section {
-      margin: 30px 0;
-    }
-
-    .charts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 25px;
-      margin: 25px 0;
-    }
-
-    .chart-card {
-      background: var(--card);
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: var(--shadow);
-      height: 300px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .chart-card h3 {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    .chart-container {
-      flex: 1;
-      position: relative;
+      flex-wrap: wrap;
     }
 
     /* Loading and Empty States */
@@ -154,10 +127,15 @@
       text-align: center;
     }
 
+    /* Mobile-specific styles */
     @media (max-width: 768px) {
-      .stats-grid,
-      .charts-grid {
+      .stats-grid {
         grid-template-columns: 1fr;
+        justify-items: center;
+      }
+
+      .stat-item {
+        max-width: 100%;
       }
 
       .filter-controls {
@@ -181,8 +159,26 @@
         justify-content: center;
       }
       
-      .chart-card {
-        height: 250px;
+      .filter-actions {
+        flex-direction: column;
+      }
+      
+      .filter-actions .btn {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stat-item {
+        padding: 20px 15px;
+      }
+      
+      .stat-value {
+        font-size: 2em;
+      }
+      
+      .filter-section {
+        padding: 20px 15px;
       }
     }
   </style>
@@ -348,37 +344,6 @@
       </div>
     </section>
 
-    <!-- VISUALIZATION CHARTS -->
-    <section class="charts-section">
-      <h2>📊 Performance Visualization</h2>
-      <div class="charts-grid">
-        <div class="chart-card">
-          <h3>Subject Performance</h3>
-          <div class="chart-container">
-            <canvas id="subjectAveragesChart"></canvas>
-          </div>
-        </div>
-        <div class="chart-card">
-          <h3>Stream Comparison</h3>
-          <div class="chart-container">
-            <canvas id="streamComparisonChart"></canvas>
-          </div>
-        </div>
-        <div class="chart-card">
-          <h3>Grade Level Performance</h3>
-          <div class="chart-container">
-            <canvas id="gradeAveragesChart"></canvas>
-          </div>
-        </div>
-        <div class="chart-card">
-          <h3>Term Comparison</h3>
-          <div class="chart-container">
-            <canvas id="termComparisonChart"></canvas>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- RUBRIC KEY -->
     <section class="rubric-section">
       <h3>🎯 Performance Rubric Key</h3>
@@ -393,17 +358,6 @@
         <span class="rubric-badge be2">BE2 0-10</span>
       </div>
     </section>
-
-    <!-- DEBUG INFO -->
-    <section class="debug-section">
-      <h3>🔧 Debug Information</h3>
-      <p><strong>Records Found:</strong> <span id="debugRecords">0</span></p>
-      <p><strong>Last Updated:</strong> <span id="debugTime">--</span></p>
-      <p><strong>Screen Width:</strong> <span id="screenWidth">--</span></p>
-      <p><strong>Navigation State:</strong> <span id="navState">--</span></p>
-      <button onclick="refreshAverages()" class="btn btn-primary" style="margin-top: 10px; margin-right: 10px;">🔄 Refresh Averages</button>
-      <button onclick="testNavigation()" class="btn btn-secondary" style="margin-top: 10px;">🧪 Test Navigation</button>
-    </section>
   </div>
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
@@ -415,70 +369,62 @@
     // Simple DOM helper
     const el = id => document.getElementById(id);
 
-    // Chart instances
-    let subjectChart, streamChart, gradeChart, termChart;
-
     // ===== NAVIGATION MANAGEMENT =====
-  function toggleMobileMenu() {
-  const mobileSidebar = document.getElementById('mobileSidebar');
-  const toggleBtn = document.getElementById('mobileMenuToggle');
-  
-  if (mobileSidebar) {
-    mobileSidebar.classList.toggle('closed');
-    if (toggleBtn) {
-      toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
-    }
-    
-    // Add/remove click outside listener
-    if (!mobileSidebar.classList.contains('closed')) {
-      setTimeout(() => {
-        document.addEventListener('click', closeMobileSidebarOnClickOutside);
-      }, 100);
-    } else {
-      document.removeEventListener('click', closeMobileSidebarOnClickOutside);
-    }
-    
-    updateNavDebugInfo();
-  }
-}
-
-// Add this function to ai-insights.html
-function closeMobileSidebarOnClickOutside(event) {
-  const mobileSidebar = document.getElementById('mobileSidebar');
-  const toggleBtn = document.getElementById('mobileMenuToggle');
-  
-  if (!mobileSidebar || !toggleBtn) return;
-  
-  const isClickInsideSidebar = mobileSidebar.contains(event.target);
-  const isClickOnToggle = toggleBtn.contains(event.target);
-  
-  if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
-    mobileSidebar.classList.add('closed');
-    toggleBtn.textContent = '☰';
-    document.removeEventListener('click', closeMobileSidebarOnClickOutside);
-    updateNavDebugInfo();
-  }
-}
-
-    // Auto-close mobile sidebar when navigating
-   function setupMobileSidebarAutoClose() {
-  const mobileSidebarLinks = document.querySelectorAll('.mobile-sidebar a, .mobile-sidebar button');
-  mobileSidebarLinks.forEach(link => {
-    link.addEventListener('click', () => {
+    function toggleMobileMenu() {
       const mobileSidebar = document.getElementById('mobileSidebar');
       const toggleBtn = document.getElementById('mobileMenuToggle');
       
-      if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
-        mobileSidebar.classList.add('closed');
+      if (mobileSidebar) {
+        mobileSidebar.classList.toggle('closed');
         if (toggleBtn) {
-          toggleBtn.textContent = '☰';
+          toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
         }
-        document.removeEventListener('click', closeMobileSidebarOnClickOutside);
-        updateNavDebugInfo();
+        
+        // Add/remove click outside listener
+        if (!mobileSidebar.classList.contains('closed')) {
+          setTimeout(() => {
+            document.addEventListener('click', closeMobileSidebarOnClickOutside);
+          }, 100);
+        } else {
+          document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+        }
       }
-    });
-  });
-}
+    }
+
+    function closeMobileSidebarOnClickOutside(event) {
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      const toggleBtn = document.getElementById('mobileMenuToggle');
+      
+      if (!mobileSidebar || !toggleBtn) return;
+      
+      const isClickInsideSidebar = mobileSidebar.contains(event.target);
+      const isClickOnToggle = toggleBtn.contains(event.target);
+      
+      if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
+        mobileSidebar.classList.add('closed');
+        toggleBtn.textContent = '☰';
+        document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+      }
+    }
+
+    // Auto-close mobile sidebar when navigating
+    function setupMobileSidebarAutoClose() {
+      const mobileSidebarLinks = document.querySelectorAll('.mobile-sidebar a, .mobile-sidebar button');
+      mobileSidebarLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          const mobileSidebar = document.getElementById('mobileSidebar');
+          const toggleBtn = document.getElementById('mobileMenuToggle');
+          
+          if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
+            mobileSidebar.classList.add('closed');
+            if (toggleBtn) {
+              toggleBtn.textContent = '☰';
+            }
+            document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+          }
+        });
+      });
+    }
 
     // ===== THEME MANAGEMENT =====
     function toggleDarkMode() {
@@ -491,7 +437,6 @@ function closeMobileSidebarOnClickOutside(event) {
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('themeMode', newTheme);
       }
-      updateChartsTheme();
     }
 
     function loadTheme() {
@@ -543,10 +488,6 @@ function closeMobileSidebarOnClickOutside(event) {
       if (!checkAuth()) return;
       
       const records = loadRecords();
-      
-      // Update debug info
-      el('debugRecords').textContent = records.length;
-      el('debugTime').textContent = new Date().toLocaleTimeString();
 
       // If no records, show empty state
       if (records.length === 0) {
@@ -559,14 +500,12 @@ function closeMobileSidebarOnClickOutside(event) {
         console.log('✅ Using app.js cumulative averages function');
         window.renderCumulativeAverages();
         updateQuickStats(records);
-        renderCharts(records);
       } else {
         console.log('⚠️ Using fallback averages calculation - app.js functions not available');
         // Fallback calculation
         calculateOverallStats(records);
         renderAveragesTable(records);
         updateQuickStats(records);
-        renderCharts(records);
       }
     }
 
@@ -818,309 +757,6 @@ function closeMobileSidebarOnClickOutside(event) {
       showNotification('Averages refreshed!');
     }
 
-    function testNavigation() {
-      showNotification('Navigation test completed!');
-      updateNavDebugInfo();
-    }
-
-    // ===== CHART FUNCTIONS =====
-    function renderCharts(records) {
-      renderSubjectAveragesChart(records);
-      renderStreamComparisonChart(records);
-      renderGradeAveragesChart(records);
-      renderTermComparisonChart(records);
-    }
-
-    function renderSubjectAveragesChart(records) {
-      const ctx = document.getElementById('subjectAveragesChart').getContext('2d');
-      
-      // Calculate subject averages
-      const subjectAverages = {};
-      records.forEach(record => {
-        if (!subjectAverages[record.subject]) {
-          subjectAverages[record.subject] = { sum: 0, count: 0 };
-        }
-        subjectAverages[record.subject].sum += record.mean;
-        subjectAverages[record.subject].count++;
-      });
-      
-      const subjects = Object.keys(subjectAverages);
-      const averages = subjects.map(subject => 
-        (subjectAverages[subject].sum / subjectAverages[subject].count).toFixed(1)
-      );
-      
-      // Destroy previous chart if exists
-      if (subjectChart) subjectChart.destroy();
-      
-      // Create new chart
-      subjectChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: subjects,
-          datasets: [{
-            label: 'Average Score (%)',
-            data: averages,
-            backgroundColor: 'rgba(139, 0, 0, 0.7)',
-            borderColor: 'rgba(139, 0, 0, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 100,
-              ticks: {
-                callback: function(value) {
-                  return value + '%';
-                }
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              display: false
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return `Average: ${context.parsed.y}%`;
-                }
-              }
-            }
-          }
-        }
-      });
-    }
-
-    function renderStreamComparisonChart(records) {
-      const ctx = document.getElementById('streamComparisonChart').getContext('2d');
-      
-      // Calculate stream averages
-      const streamAverages = {};
-      records.forEach(record => {
-        if (!streamAverages[record.stream]) {
-          streamAverages[record.stream] = { sum: 0, count: 0 };
-        }
-        streamAverages[record.stream].sum += record.mean;
-        streamAverages[record.stream].count++;
-      });
-      
-      const streams = Object.keys(streamAverages);
-      const averages = streams.map(stream => 
-        (streamAverages[stream].sum / streamAverages[stream].count).toFixed(1)
-      );
-      
-      // Destroy previous chart if exists
-      if (streamChart) streamChart.destroy();
-      
-      // Create new chart
-      streamChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: streams,
-          datasets: [{
-            data: averages,
-            backgroundColor: [
-              'rgba(139, 0, 0, 0.7)',
-              'rgba(0, 100, 0, 0.7)',
-              'rgba(0, 0, 139, 0.7)',
-              'rgba(139, 69, 19, 0.7)',
-              'rgba(128, 0, 128, 0.7)',
-              'rgba(0, 128, 128, 0.7)'
-            ],
-            borderColor: [
-              'rgba(139, 0, 0, 1)',
-              'rgba(0, 100, 0, 1)',
-              'rgba(0, 0, 139, 1)',
-              'rgba(139, 69, 19, 1)',
-              'rgba(128, 0, 128, 1)',
-              'rgba(0, 128, 128, 1)'
-            ],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom'
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return `${context.label}: ${context.parsed}%`;
-                }
-              }
-            }
-          }
-        }
-      });
-    }
-
-    function renderGradeAveragesChart(records) {
-      const ctx = document.getElementById('gradeAveragesChart').getContext('2d');
-      
-      // Calculate grade averages
-      const gradeAverages = {};
-      records.forEach(record => {
-        if (!gradeAverages[record.grade]) {
-          gradeAverages[record.grade] = { sum: 0, count: 0 };
-        }
-        gradeAverages[record.grade].sum += record.mean;
-        gradeAverages[record.grade].count++;
-      });
-      
-      const grades = Object.keys(gradeAverages).sort();
-      const averages = grades.map(grade => 
-        (gradeAverages[grade].sum / gradeAverages[grade].count).toFixed(1)
-      );
-      
-      // Destroy previous chart if exists
-      if (gradeChart) gradeChart.destroy();
-      
-      // Create new chart
-      gradeChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: grades,
-          datasets: [{
-            label: 'Average Score (%)',
-            data: averages,
-            backgroundColor: 'rgba(139, 0, 0, 0.1)',
-            borderColor: 'rgba(139, 0, 0, 1)',
-            borderWidth: 2,
-            tension: 0.3,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 100,
-              ticks: {
-                callback: function(value) {
-                  return value + '%';
-                }
-              }
-            }
-          },
-          plugins: {
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return `Average: ${context.parsed.y}%`;
-                }
-              }
-            }
-          }
-        }
-      });
-    }
-
-    function renderTermComparisonChart(records) {
-      const ctx = document.getElementById('termComparisonChart').getContext('2d');
-      
-      // Calculate term averages
-      const termAverages = {};
-      records.forEach(record => {
-        if (!termAverages[record.term]) {
-          termAverages[record.term] = { sum: 0, count: 0 };
-        }
-        termAverages[record.term].sum += record.mean;
-        termAverages[record.term].count++;
-      });
-      
-      const terms = Object.keys(termAverages).sort();
-      const averages = terms.map(term => 
-        (termAverages[term].sum / termAverages[term].count).toFixed(1)
-      );
-      
-      // Destroy previous chart if exists
-      if (termChart) termChart.destroy();
-      
-      // Create new chart
-      termChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: terms,
-          datasets: [{
-            label: 'Average Score (%)',
-            data: averages,
-            backgroundColor: [
-              'rgba(139, 0, 0, 0.7)',
-              'rgba(0, 100, 0, 0.7)',
-              'rgba(0, 0, 139, 0.7)'
-            ],
-            borderColor: [
-              'rgba(139, 0, 0, 1)',
-              'rgba(0, 100, 0, 1)',
-              'rgba(0, 0, 139, 1)'
-            ],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 100,
-              ticks: {
-                callback: function(value) {
-                  return value + '%';
-                }
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              display: false
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return `Average: ${context.parsed.y}%`;
-                }
-              }
-            }
-          }
-        }
-      });
-    }
-
-    function updateChartsTheme() {
-      // Update chart colors based on theme
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-      const textColor = isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)';
-      
-      // Update all charts if they exist
-      const charts = [subjectChart, streamChart, gradeChart, termChart];
-      charts.forEach(chart => {
-        if (chart) {
-          if (chart.options.scales) {
-            if (chart.options.scales.x) {
-              chart.options.scales.x.grid.color = gridColor;
-              chart.options.scales.x.ticks.color = textColor;
-            }
-            if (chart.options.scales.y) {
-              chart.options.scales.y.grid.color = gridColor;
-              chart.options.scales.y.ticks.color = textColor;
-            }
-          }
-          chart.update();
-        }
-      });
-    }
-
     // ===== UTILITY FUNCTIONS =====
     function showEmptyState() {
       const tbody = document.querySelector('#averagesTable tbody');
@@ -1133,29 +769,6 @@ function closeMobileSidebarOnClickOutside(event) {
           </tr>
         `;
       }
-      
-      // Clear charts
-      const chartIds = [
-        'subjectAveragesChart',
-        'streamComparisonChart',
-        'gradeAveragesChart',
-        'termComparisonChart'
-      ];
-      
-      chartIds.forEach(id => {
-        const canvas = document.getElementById(id);
-        if (canvas) {
-          const ctx = canvas.getContext('2d');
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = 'var(--bg)';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = 'var(--secondary)';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.font = '16px Arial';
-          ctx.fillText('No data available', canvas.width / 2, canvas.height / 2);
-        }
-      });
     }
 
     function showNotification(message) {
@@ -1205,16 +818,6 @@ function closeMobileSidebarOnClickOutside(event) {
       
       // Run averages calculation
       calculateAverages();
-      updateNavDebugInfo();
-
-      // Set initial navigation state
-      setTimeout(() => {
-        if (window.innerWidth >= 1024) {
-          el('navState').textContent = 'Desktop Navigation Active';
-        } else {
-          el('navState').textContent = 'Mobile Navigation Ready';
-        }
-      }, 100);
     });
 
     // Make functions available globally
@@ -1222,7 +825,6 @@ function closeMobileSidebarOnClickOutside(event) {
     window.toggleDarkMode = toggleDarkMode;
     window.logout = logout;
     window.refreshAverages = refreshAverages;
-    window.testNavigation = testNavigation;
     window.applyAveragesFilters = applyAveragesFilters;
     window.resetAveragesFilters = resetAveragesFilters;
     window.sortAveragesTable = sortAveragesTable;
