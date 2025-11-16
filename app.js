@@ -2521,6 +2521,7 @@ const renderAll = async () => {
     
     // Page-specific rendering
     if (currentPage === 'index.html' || currentPage === '' || currentPage === 'index.html#') {
+        displayTermPeriods();
         updateDashboardStats();
         renderRecentRecords();
         renderProgressChart();
