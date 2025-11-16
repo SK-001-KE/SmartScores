@@ -4,20 +4,61 @@
    Focus: Data management, rendering, calculations
 ========================================================= */
 
-// --- In app.js ---
+// STORAGE KEYS
 const STORAGE_KEYS = {
     RECORDS: 'smartScoresRecords',
     TARGETS: 'smartScoresTargets', 
-    TEACHER: 'teacherFullName', // Use only this one
+    TEACHER: 'teacherFullName',
     THEME: 'themeMode'
 };
+
 // DOM Helper
 const el = id => document.getElementById(id);
 
 // Alert Helper
 const showAlert = (message, type = 'info') => {
-    alert(message);
+    // Enhanced alert system from app.js
+    const alertDiv = document.createElement('div');
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 600;
+        z-index: 10000;
+        max-width: 300px;
+        box-shadow: var(--shadow);
+        animation: slideIn 0.3s ease;
+    `;
+    
+    const colors = {
+        success: '#10B981',
+        error: '#EF4444', 
+        warning: '#F59E0B',
+        info: '#3B82F6'
+    };
+    
+    alertDiv.style.background = colors[type] || colors.info;
+    alertDiv.textContent = message;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 4000);
 };
+
+// Add CSS for the animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+`;
+document.head.appendChild(style);
 
 // ==================== STORAGE MANAGEMENT ====================
 const loadData = (key, defaultValue = []) => {
@@ -155,50 +196,7 @@ setInterval(updateSyncStatus, 5000);
 window.addEventListener('online', updateSyncStatus);
 window.addEventListener('offline', updateSyncStatus);
 
-// ==================== ENHANCED LEARNER SCORES WITH DEVIATION ====================
-
-const calculateDeviation = (term) => {
-    const scores = [term.opener, term.mid, term.end].filter(score => score !== null);
-    
-    if (scores.length < 2) return null;
-    
-    // Calculate deviation between last two available exams
-    const availableScores = [];
-    if (term.end !== null) availableScores.push(term.end);
-    if (term.mid !== null) availableScores.push(term.mid);
-    if (term.opener !== null) availableScores.push(term.opener);
-    
-    // Take the last two scores
-    const recentScores = availableScores.slice(0, 2);
-    if (recentScores.length === 2) {
-        return recentScores[0] - recentScores[1];
-    }
-    
-    return null;
-};
-
-const formatDeviation = (deviation) => {
-    if (deviation === null) return '–';
-    
-    const sign = deviation >= 0 ? '+' : '';
-    const className = deviation > 0 ? 'deviation-positive' : 
-                     deviation < 0 ? 'deviation-negative' : 'deviation-neutral';
-    
-    return `<span class="${className}">${sign}${deviation.toFixed(1)}</span>`;
-};
-
-const calculateProgress = (term1Avg, term3Avg) => {
-    if (term1Avg === null || term3Avg === null) return '–';
-    
-    const progress = term3Avg - term1Avg;
-    const className = progress > 2 ? 'progress-improving' : 
-                     progress < -2 ? 'progress-declining' : 'progress-stable';
-    const sign = progress >= 0 ? '+' : '';
-    const icon = progress > 2 ? '📈' : progress < -2 ? '📉' : '➡️';
-    
-    return `<span class="${className}">${icon} ${sign}${progress.toFixed(1)}</span>`;
-};
-// Add this function to app.js
+// ==================== RECENT RECORDS DASHBOARD FEATURE ====================
 const renderRecentRecords = () => {
     const container = document.getElementById('recentRecords');
     if (!container) return;
@@ -249,612 +247,13 @@ const renderRecentRecords = () => {
     `;
 };
 
-// Enhanced grouping function with deviation calculation
-const groupLearnerScores = (scores) => {
-    const learnerMap = {};
-    
-    scores.forEach(score => {
-        const key = `${score.admissionNo}-${score.year}`;
-        if (!learnerMap[key]) {
-            learnerMap[key] = {
-                admissionNo: score.admissionNo,
-                learnerName: score.learnerName,
-                grade: score.grade,
-                stream: score.stream,
-                year: score.year,
-                terms: {
-                    'Term 1': { opener: null, mid: null, end: null },
-                    'Term 2': { opener: null, mid: null, end: null },
-                    'Term 3': { opener: null, mid: null, end: null }
-                }
-            };
-        }
-        
-        // Assign scores to appropriate term and exam type
-        if (score.term in learnerMap[key].terms) {
-            if (score.examType.includes('Opener')) {
-                learnerMap[key].terms[score.term].opener = score.score;
-            } else if (score.examType.includes('Mid')) {
-                learnerMap[key].terms[score.term].mid = score.score;
-            } else if (score.examType.includes('End')) {
-                learnerMap[key].terms[score.term].end = score.score;
-            }
-        }
-    });
-    
-    return learnerMap;
-};
-
-// Enhanced table generation with deviation columns
-const generateLearnerTableHTML = (learnerData) => {
-    return Object.values(learnerData).map(learner => {
-        const term1 = learner.terms['Term 1'];
-        const term2 = learner.terms['Term 2'];
-        const term3 = learner.terms['Term 3'];
-        
-        const term1Avg = calculateTermAverage(term1);
-        const term2Avg = calculateTermAverage(term2);
-        const term3Avg = calculateTermAverage(term3);
-        
-        const term1Deviation = calculateDeviation(term1);
-        const term2Deviation = calculateDeviation(term2);
-        const term3Deviation = calculateDeviation(term3);
-        
-        const annualAvg = calculateAnnualAverage([term1Avg, term2Avg, term3Avg]);
-        const rubricBadge = formatRubricBadge(annualAvg);
-        const progress = calculateProgress(term1Avg, term3Avg);
-        
-        return `
-            <tr>
-                <td>${learner.admissionNo}</td>
-                <td><strong>${learner.learnerName}</strong></td>
-                <td>${learner.grade}</td>
-                <td>${learner.stream}</td>
-                
-                <!-- Term 1 -->
-                <td>${formatScore(term1.opener)}</td>
-                <td>${formatScore(term1.mid)}</td>
-                <td>${formatScore(term1.end)}</td>
-                <td style="font-weight: bold; color: ${getColorForScore(term1Avg)}">${formatScore(term1Avg)}</td>
-                <td>${formatDeviation(term1Deviation)}</td>
-                
-                <!-- Term 2 -->
-                <td>${formatScore(term2.opener)}</td>
-                <td>${formatScore(term2.mid)}</td>
-                <td>${formatScore(term2.end)}</td>
-                <td style="font-weight: bold; color: ${getColorForScore(term2Avg)}">${formatScore(term2Avg)}</td>
-                <td>${formatDeviation(term2Deviation)}</td>
-                
-                <!-- Term 3 -->
-                <td>${formatScore(term3.opener)}</td>
-                <td>${formatScore(term3.mid)}</td>
-                <td>${formatScore(term3.end)}</td>
-                <td style="font-weight: bold; color: ${getColorForScore(term3Avg)}">${formatScore(term3Avg)}</td>
-                <td>${formatDeviation(term3Deviation)}</td>
-                
-                <!-- Annual Summary -->
-                <td style="font-weight: bold; color: ${getColorForScore(annualAvg)}">${formatScore(annualAvg)}</td>
-                <td>${progress}</td>
-                <td>${rubricBadge}</td>
-            </tr>
-        `;
-    }).join('');
-};
-// Add this function to calculate term averages
-const calculateTermAverage = (term) => {
-    const scores = [term.opener, term.mid, term.end].filter(score => score !== null);
-    if (scores.length === 0) return null;
-    return scores.reduce((sum, score) => sum + score, 0) / scores.length;
-};
-
-// Add this function to calculate annual average
-const calculateAnnualAverage = (termAverages) => {
-    const validAverages = termAverages.filter(avg => avg !== null);
-    if (validAverages.length === 0) return null;
-    return validAverages.reduce((sum, avg) => sum + avg, 0) / validAverages.length;
-};
-
-// Add this function to format scores
-const formatScore = (score) => {
-    if (score === null || score === undefined) return '–';
-    return score.toFixed(1);
-};
-
-// Add this function to get color for score
+// Helper function for score colors
 const getColorForScore = (score) => {
     if (score === null) return '#666';
     if (score >= 80) return '#10B981';
     if (score >= 60) return '#3B82F6';
     if (score >= 50) return '#F59E0B';
     return '#EF4444';
-};
-const recentRecords = records
-        .sort((a, b) => new Date(b.timestamp || b.id) - new Date(a.timestamp || a.id))
-        .slice(0, 5);
-    
-    container.innerHTML = `
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Subject</th>
-                    <th>Grade</th>
-                    <th>Stream</th>
-                    <th>Term</th>
-                    <th>Exam</th>
-                    <th>Mean Score</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${recentRecords.map(record => `
-                    <tr>
-                        <td>${record.subject}</td>
-                        <td>${record.grade}</td>
-                        <td>${record.stream}</td>
-                        <td>${record.term}</td>
-                        <td>${record.examType}</td>
-                        <td style="font-weight: bold; color: ${getColorForScore(record.mean)}">
-                            ${record.mean.toFixed(1)}%
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
-};
-
-// Enhanced performance summary
-const updatePerformanceSummary = (learnerData) => {
-    const learners = Object.values(learnerData);
-    
-    if (learners.length === 0) {
-        document.getElementById('performanceSummary').style.display = 'none';
-        return;
-    }
-    
-    document.getElementById('performanceSummary').style.display = 'grid';
-    
-    // Calculate summary statistics
-    let totalAnnual = 0;
-    let passCount = 0;
-    let totalImprovement = 0;
-    let improvementCount = 0;
-    const termAverages = { term1: 0, term2: 0, term3: 0 };
-    let termCounts = { term1: 0, term2: 0, term3: 0 };
-    
-    learners.forEach(learner => {
-        const term1Avg = calculateTermAverage(learner.terms['Term 1']);
-        const term3Avg = calculateTermAverage(learner.terms['Term 3']);
-        const annualAvg = calculateAnnualAverage([term1Avg, term2Avg, term3Avg]);
-        
-        if (annualAvg !== null) {
-            totalAnnual += annualAvg;
-            if (annualAvg >= 50) passCount++;
-        }
-        
-        // Track term averages
-        [['Term 1', term1Avg], ['Term 2', term2Avg], ['Term 3', term3Avg]].forEach(([term, avg]) => {
-            if (avg !== null) {
-                termAverages[term.toLowerCase().replace(' ', '')] += avg;
-                termCounts[term.toLowerCase().replace(' ', '')]++;
-            }
-        });
-        
-        // Track improvement
-        if (term1Avg !== null && term3Avg !== null) {
-            totalImprovement += (term3Avg - term1Avg);
-            improvementCount++;
-        }
-    });
-    
-    const classAverage = totalAnnual / learners.length;
-    const passRate = (passCount / learners.length) * 100;
-    const avgImprovement = improvementCount > 0 ? totalImprovement / improvementCount : 0;
-    
-    // Calculate consistency (variance between terms)
-    const validTermAverages = Object.values(termAverages).filter((avg, index) => termCounts[Object.keys(termAverages)[index]] > 0);
-    const mean = validTermAverages.reduce((a, b) => a + b, 0) / validTermAverages.length;
-    const variance = validTermAverages.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / validTermAverages.length;
-    const consistencyScore = Math.max(0, 10 - Math.sqrt(variance) / 3);
-    
-    // Update summary cards
-    document.getElementById('summaryClassAverage').textContent = classAverage.toFixed(1) + '%';
-    document.getElementById('summaryLearnerCount').textContent = `${learners.length} learners`;
-    document.getElementById('summaryImprovement').textContent = (avgImprovement >= 0 ? '+' : '') + avgImprovement.toFixed(1) + '%';
-    document.getElementById('summaryPassRate').textContent = passRate.toFixed(1) + '%';
-    document.getElementById('summaryConsistency').textContent = consistencyScore.toFixed(1);
-};
-
-// Enhanced analytics dashboard
-const updateAnalyticsDashboard = async () => {
-    const scores = await loadLearnerScores();
-    const learnerData = groupLearnerScores(scores);
-    const learners = Object.values(learnerData);
-    
-    if (learners.length === 0) {
-        document.getElementById('classAverageCard').querySelector('.card-value').textContent = 'N/A';
-        document.getElementById('improvementCard').querySelector('.card-value').textContent = 'N/A';
-        document.getElementById('consistencyCard').querySelector('.card-value').textContent = 'N/A';
-        document.getElementById('topPerformerCard').querySelector('.card-value').textContent = 'N/A';
-        return;
-    }
-    
-    // Calculate analytics
-    let totalAnnual = 0;
-    let totalImprovement = 0;
-    let improvementCount = 0;
-    let topPerformer = { name: 'N/A', average: 0 };
-    const termAverages = { term1: 0, term2: 0, term3: 0 };
-    let termCounts = { term1: 0, term2: 0, term3: 0 };
-    
-    learners.forEach(learner => {
-        const term1Avg = calculateTermAverage(learner.terms['Term 1']);
-        const term2Avg = calculateTermAverage(learner.terms['Term 2']);
-        const term3Avg = calculateTermAverage(learner.terms['Term 3']);
-        const annualAvg = calculateAnnualAverage([term1Avg, term2Avg, term3Avg]);
-        
-        if (annualAvg !== null) {
-            totalAnnual += annualAvg;
-            
-            // Track top performer
-            if (annualAvg > topPerformer.average) {
-                topPerformer = { 
-                    name: learner.learnerName, 
-                    average: annualAvg 
-                };
-            }
-        }
-        
-        // Track term averages for consistency
-        [['term1', term1Avg], ['term2', term2Avg], ['term3', term3Avg]].forEach(([term, avg]) => {
-            if (avg !== null) {
-                termAverages[term] += avg;
-                termCounts[term]++;
-            }
-        });
-        
-        // Track improvement
-        if (term1Avg !== null && term3Avg !== null) {
-            totalImprovement += (term3Avg - term1Avg);
-            improvementCount++;
-        }
-    });
-    
-    const classAverage = totalAnnual / learners.length;
-    const avgImprovement = improvementCount > 0 ? totalImprovement / improvementCount : 0;
-    
-    // Calculate consistency
-    const validTermAverages = Object.entries(termAverages)
-        .filter(([term,]) => termCounts[term] > 0)
-        .map(([term, total]) => total / termCounts[term]);
-    
-    const mean = validTermAverages.reduce((a, b) => a + b, 0) / validTermAverages.length;
-    const variance = validTermAverages.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / validTermAverages.length;
-    const consistencyScore = Math.max(0, 10 - Math.sqrt(variance) / 3);
-    
-    // Update dashboard cards
-    document.getElementById('classAverageCard').querySelector('.card-value').textContent = classAverage.toFixed(1) + '%';
-    document.getElementById('improvementCard').querySelector('.card-value').textContent = (avgImprovement >= 0 ? '+' : '') + avgImprovement.toFixed(1) + '%';
-    document.getElementById('consistencyCard').querySelector('.card-value').textContent = consistencyScore.toFixed(1) + '/10';
-    document.getElementById('topPerformerCard').querySelector('.card-value').textContent = topPerformer.average.toFixed(1) + '%';
-    document.getElementById('topPerformerCard').querySelector('.card-subtitle').textContent = topPerformer.name;
-};
-
-// Enhanced rendering with performance summary
-const renderLearnerScores = async () => {
-    const tbody = el('learnerScoresBody');
-    const emptyState = el('emptyLearnerState');
-    
-    if (!tbody) return;
-    
-    const scores = await loadLearnerScores();
-    
-    // Apply filters
-    let filteredScores = scores;
-    const subjectFilter = el('filterSubject')?.value;
-    const gradeFilter = el('filterGrade')?.value;
-    const streamFilter = el('filterStream')?.value;
-    const yearFilter = el('filterYear')?.value;
-    
-    if (subjectFilter) {
-        filteredScores = filteredScores.filter(score => score.subject === subjectFilter);
-    }
-    if (gradeFilter) {
-        filteredScores = filteredScores.filter(score => score.grade === gradeFilter);
-    }
-    if (streamFilter) {
-        filteredScores = filteredScores.filter(score => score.stream === streamFilter);
-    }
-    if (yearFilter) {
-        filteredScores = filteredScores.filter(score => score.year.toString() === yearFilter);
-    }
-    
-    if (filteredScores.length === 0) {
-        tbody.innerHTML = '';
-        if (emptyState) emptyState.style.display = 'block';
-        updateLearnerRecordsCount(0);
-        document.getElementById('performanceSummary').style.display = 'none';
-        return;
-    }
-    
-    if (emptyState) emptyState.style.display = 'none';
-    
-    // Group and display filtered scores
-    const learnerData = groupLearnerScores(filteredScores);
-    tbody.innerHTML = generateLearnerTableHTML(learnerData);
-    updateLearnerRecordsCount(Object.keys(learnerData).length);
-    updatePerformanceSummary(learnerData);
-};
-
-// Enhanced export with deviation data
-const exportSubjectReportExcel = async (scores, subject, grade, stream, year) => {
-    if (scores.length === 0) {
-        showAlert('No data to export', 'error');
-        return;
-    }
-    
-    // Group data by learner
-    const learnerData = groupLearnerScores(scores);
-    const learners = Object.values(learnerData);
-    
-    // Prepare data for Excel with deviation columns
-    const excelData = learners.map(learner => {
-        const term1 = learner.terms['Term 1'];
-        const term2 = learner.terms['Term 2'];
-        const term3 = learner.terms['Term 3'];
-        
-        const term1Avg = calculateTermAverage(term1);
-        const term2Avg = calculateTermAverage(term2);
-        const term3Avg = calculateTermAverage(term3);
-        
-        const term1Deviation = calculateDeviation(term1);
-        const term2Deviation = calculateDeviation(term2);
-        const term3Deviation = calculateDeviation(term3);
-        
-        const annualAvg = calculateAnnualAverage([term1Avg, term2Avg, term3Avg]);
-        const rubric = annualAvg !== null ? getRubric(annualAvg) : { code: 'N/A', text: 'N/A' };
-        const progress = term1Avg !== null && term3Avg !== null ? term3Avg - term1Avg : null;
-        
-        return {
-            'Admission No': learner.admissionNo,
-            'Learner Name': learner.learnerName,
-            'Grade': learner.grade,
-            'Stream': learner.stream,
-            'Year': learner.year,
-            
-            // Term 1 Scores
-            'Term 1 Opener': term1.opener,
-            'Term 1 Mid Term': term1.mid,
-            'Term 1 End Term': term1.end,
-            'Term 1 Average': term1Avg,
-            'Term 1 Deviation': term1Deviation,
-            
-            // Term 2 Scores
-            'Term 2 Opener': term2.opener,
-            'Term 2 Mid Term': term2.mid,
-            'Term 2 End Term': term2.end,
-            'Term 2 Average': term2Avg,
-            'Term 2 Deviation': term2Deviation,
-            
-            // Term 3 Scores
-            'Term 3 Opener': term3.opener,
-            'Term 3 Mid Term': term3.mid,
-            'Term 3 End Term': term3.end,
-            'Term 3 Average': term3Avg,
-            'Term 3 Deviation': term3Deviation,
-            
-            // Annual Summary
-            'Annual Average': annualAvg,
-            'Progress (T1 to T3)': progress,
-            'Performance Rubric': rubric.code,
-            'Rubric Description': rubric.text,
-            'Teacher': learner.teacher || getTeacherName()
-        };
-    });
-    
-    // Calculate class statistics with deviation analysis
-    const classStats = calculateClassStatistics(learners);
-    
-    // Create workbook with multiple sheets
-    const workbook = XLSX.utils.book_new();
-    
-    // Main data sheet
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Learner Scores');
-    
-    // Summary sheet with deviation analysis
-    const summaryData = [
-        ['SMARTSCORES PERFORMANCE REPORT WITH PROGRESS TRACKING'],
-        [''],
-        ['Report Details:', '', '', '', 'Progress Analysis:', '', ''],
-        [`Subject: ${subject}`, '', '', '', `Average Improvement: ${classStats.avgImprovement.toFixed(1)}%`],
-        [`Grade: ${grade}`, '', '', '', `Consistent Improvers: ${classStats.consistentImprovers}`],
-        [`Stream: ${stream}`, '', '', '', `Declining Learners: ${classStats.decliningLearners}`],
-        [`Year: ${year}`, '', '', '', `Stable Performers: ${classStats.stablePerformers}`],
-        [`Teacher: ${getTeacherName()}`, '', '', '', `Best Progress: ${classStats.bestProgress}`],
-        [`Generated: ${new Date().toLocaleString()}`, '', '', '', `Needs Attention: ${classStats.needsAttention}`],
-        [''],
-        ['Deviation Analysis (Last Two Exams)'],
-        ['Term', 'Positive Deviation', 'Negative Deviation', 'Neutral', 'Avg Deviation'],
-        ['Term 1', classStats.deviationAnalysis.term1.positive, classStats.deviationAnalysis.term1.negative, classStats.deviationAnalysis.term1.neutral, classStats.deviationAnalysis.term1.average],
-        ['Term 2', classStats.deviationAnalysis.term2.positive, classStats.deviationAnalysis.term2.negative, classStats.deviationAnalysis.term2.neutral, classStats.deviationAnalysis.term2.average],
-        ['Term 3', classStats.deviationAnalysis.term3.positive, classStats.deviationAnalysis.term3.negative, classStats.deviationAnalysis.term3.neutral, classStats.deviationAnalysis.term3.average],
-        [''],
-        ['Performance Distribution'],
-        ['Rubric', 'Count', 'Percentage'],
-        ...classStats.rubricDistribution.map(r => [r.rubric, r.count, `${r.percentage}%`])
-    ];
-    
-    const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-    XLSX.utils.book_append_sheet(workbook, summarySheet, 'Progress Summary');
-    
-    // Generate filename
-    const safeSubject = subject.replace(/[^a-zA-Z0-9]/g, '_');
-    const safeTeacher = getTeacherName().replace(/[^a-zA-Z0-9]/g, '_');
-    const filename = `Progress_Report_${safeSubject}_Grade${grade}_${stream}_${year}_${safeTeacher}.xlsx`;
-    
-    XLSX.writeFile(workbook, filename);
-    showAlert(`Progress report exported successfully! ${learners.length} learners included.`, 'success');
-};
-
-// Enhanced class statistics with deviation analysis
-const calculateClassStatistics = (learners) => {
-    const stats = {
-        totalLearners: learners.length,
-        classAverage: 0,
-        avgImprovement: 0,
-        consistentImprovers: 0,
-        decliningLearners: 0,
-        stablePerformers: 0,
-        bestProgress: 'N/A',
-        needsAttention: 0,
-        deviationAnalysis: {
-            term1: { positive: 0, negative: 0, neutral: 0, average: 0 },
-            term2: { positive: 0, negative: 0, neutral: 0, average: 0 },
-            term3: { positive: 0, negative: 0, neutral: 0, average: 0 }
-        },
-        rubricDistribution: []
-    };
-    
-    if (learners.length === 0) return stats;
-    
-    let totalAnnual = 0;
-    let totalImprovement = 0;
-    let improvementCount = 0;
-    const rubricCount = {};
-    let bestProgressValue = -100;
-    let bestProgressName = 'N/A';
-    
-    // Track deviations per term
-    const termDeviations = { term1: [], term2: [], term3: [] };
-    
-    learners.forEach(learner => {
-        const term1 = learner.terms['Term 1'];
-        const term2 = learner.terms['Term 2'];
-        const term3 = learner.terms['Term 3'];
-        
-        const term1Avg = calculateTermAverage(term1);
-        const term2Avg = calculateTermAverage(term2);
-        const term3Avg = calculateTermAverage(term3);
-        const annualAvg = calculateAnnualAverage([term1Avg, term2Avg, term3Avg]);
-        
-        if (annualAvg !== null) {
-            totalAnnual += annualAvg;
-            
-            // Count rubrics
-            const rubric = getRubric(annualAvg).code;
-            rubricCount[rubric] = (rubricCount[rubric] || 0) + 1;
-        }
-        
-        // Track progress
-        if (term1Avg !== null && term3Avg !== null) {
-            const progress = term3Avg - term1Avg;
-            totalImprovement += progress;
-            improvementCount++;
-            
-            // Track progress categories
-            if (progress > 5) stats.consistentImprovers++;
-            else if (progress < -5) stats.decliningLearners++;
-            else stats.stablePerformers++;
-            
-            // Track best progress
-            if (progress > bestProgressValue) {
-                bestProgressValue = progress;
-                bestProgressName = learner.learnerName;
-            }
-            
-            // Track needs attention
-            if (term3Avg < 40) stats.needsAttention++;
-        }
-        
-        // Calculate and track deviations
-        [['term1', term1], ['term2', term2], ['term3', term3]].forEach(([term, termData]) => {
-            const deviation = calculateDeviation(termData);
-            if (deviation !== null) {
-                termDeviations[term].push(deviation);
-                
-                // Count deviation categories
-                if (deviation > 0) stats.deviationAnalysis[term].positive++;
-                else if (deviation < 0) stats.deviationAnalysis[term].negative++;
-                else stats.deviationAnalysis[term].neutral++;
-            }
-        });
-    });
-    
-    // Calculate averages
-    stats.classAverage = totalAnnual / learners.length;
-    stats.avgImprovement = improvementCount > 0 ? totalImprovement / improvementCount : 0;
-    stats.bestProgress = bestProgressName !== 'N/A' ? `${bestProgressName} (+${bestProgressValue.toFixed(1)}%)` : 'N/A';
-    
-    // Calculate average deviations
-    Object.keys(termDeviations).forEach(term => {
-        const deviations = termDeviations[term];
-        if (deviations.length > 0) {
-            stats.deviationAnalysis[term].average = deviations.reduce((a, b) => a + b, 0) / deviations.length;
-        }
-    });
-    
-    // Rubric distribution
-    stats.rubricDistribution = Object.entries(rubricCount).map(([rubric, count]) => ({
-        rubric,
-        count,
-        percentage: ((count / learners.length) * 100).toFixed(1)
-    }));
-    
-    return stats;
-};
-
-// ==================== DATA MIGRATION ====================
-const migrateExistingData = async () => {
-    if (typeof firebaseSync === 'undefined' || typeof firebaseAuth === 'undefined') return;
-    
-    const user = firebaseAuth.getCurrentUser();
-    if (!user || user.uid === 'local-user') return;
-    
-    // Check if we've already migrated
-    const migrationKey = `data_migrated_${user.uid}`;
-    if (localStorage.getItem(migrationKey)) return;
-    
-    console.log('🔄 Checking for existing data to migrate...');
-    
-    // Migrate records
-    const localRecords = localStorage.getItem('smartScoresRecords');
-    if (localRecords) {
-        const records = JSON.parse(localRecords);
-        if (records.length > 0) {
-            console.log(`📦 Migrating ${records.length} records to cloud...`);
-            await firebaseSync.saveRecords(records);
-        }
-    }
-    
-    // Migrate targets
-    const localTargets = localStorage.getItem('smartScoresTargets');
-    if (localTargets) {
-        const targets = JSON.parse(localTargets);
-        if (targets.length > 0) {
-            console.log(`🎯 Migrating ${targets.length} targets to cloud...`);
-            await firebaseSync.saveTargets(targets);
-        }
-    }
-    
-    // Mark as migrated
-    localStorage.setItem(migrationKey, 'true');
-    console.log('✅ Data migration completed');
-};
-
-// Call this after successful login
-// Add this to your auth success handlers
-
-// ==================== THEME MANAGEMENT ====================
-const loadTheme = () => {
-    const theme = localStorage.getItem(STORAGE_KEYS.THEME) || 'light';
-    document.documentElement.setAttribute('data-theme', theme);
-};
-
-window.toggleDarkMode = () => {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem(STORAGE_KEYS.THEME, newTheme);
 };
 
 // ==================== MOBILE NAVIGATION MANAGEMENT ====================
@@ -910,172 +309,103 @@ function setupMobileSidebarAutoClose() {
     }
 }
 
-// ==================== ENHANCED ERROR HANDLING ====================
-const showAlert = (message, type = 'info') => {
-    // Create a more sophisticated alert that shows sync status
-    const alertDiv = document.createElement('div');
-    alertDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        border-radius: 10px;
-        color: white;
-        font-weight: 600;
-        z-index: 10000;
-        max-width: 300px;
-        box-shadow: var(--shadow);
-        animation: slideIn 0.3s ease;
-    `;
-    
-    const colors = {
-        success: '#10B981',
-        error: '#EF4444', 
-        warning: '#F59E0B',
-        info: '#3B82F6'
-    };
-    
-    alertDiv.style.background = colors[type] || colors.info;
-    alertDiv.textContent = message;
-    
-    document.body.appendChild(alertDiv);
-    
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 4000);
+// ==================== THEME MANAGEMENT ====================
+const loadTheme = () => {
+    const theme = localStorage.getItem(STORAGE_KEYS.THEME) || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
 };
 
-// Add this CSS for the animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
+window.toggleDarkMode = () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem(STORAGE_KEYS.THEME, newTheme);
+};
+
+// ==================== SIDEBAR MANAGEMENT ====================
+window.toggleSidebar = function() {
+    const sidebar = document.getElementById('sidebarMenu');
+    if (sidebar) {
+        sidebar.classList.toggle('closed');
     }
-`;
-document.head.appendChild(style);
+};
+
 // ==================== DATA ENTRY ====================
-// Update the teacher name retrieval throughout app.js
-const getTeacherName = () => {
-    return localStorage.getItem(STORAGE_KEYS.TEACHER_FULL_NAME) || 
-           localStorage.getItem('teacherFullName') || 
-           'Guest Teacher';
-};
-
-const getTeacherFirstName = () => {
-    return localStorage.getItem(STORAGE_KEYS.TEACHER_FIRST_NAME) || 
-           localStorage.getItem('teacherFirstName') || 
-           'Teacher';
-};
-
-// Update the handleSaveRecord function to use the full name
-// ==================== DATA ENTRY HANDLER ====================
-const handleSaveRecord = async (event) => {
+const handleSaveRecord = (event) => {
     if (event) event.preventDefault();
-
-    console.log('🔄 Starting save process...');
-
-    const teacherName = getTeacherName();
-    console.log('👨‍🏫 Teacher name:', teacherName);
     
-    // Basic Validation
-    const subject = document.getElementById('subject')?.value?.trim();
-    const grade = document.getElementById('grade')?.value?.trim();
-    const meanScoreValue = document.getElementById('meanScore')?.value;
-
-    if (!teacherName || teacherName === 'Guest Teacher') {
-        showAlert('Please sign in or set your teacher name in the profile section.', 'error');
+    const teacherName = localStorage.getItem(STORAGE_KEYS.TEACHER);
+    if (!teacherName) {
+        showAlert('Please login first', 'error');
+        window.location.href = './login.html';
         return;
     }
     
-    if (!subject || !grade || !meanScoreValue) {
-        showAlert('Please fill in Subject, Grade, and Mean Score.', 'error');
-        return;
-    }
-
-    const mean = parseFloat(meanScoreValue);
-    if (isNaN(mean) || mean < 0 || mean > 100) {
-        showAlert('Mean Score must be a number between 0 and 100.', 'error');
-        return;
-    }
-
-    // Create Record Object
     const record = {
-        id: Date.now(),
-        timestamp: new Date().toISOString(),
-        teacher: teacherName, 
-        subject: subject,
-        grade: grade,
-        stream: document.getElementById('stream')?.value?.trim() || 'N/A', 
-        term: document.getElementById('term')?.value?.trim(),
-        examType: document.getElementById('examType')?.value?.trim(),
-        year: document.getElementById('year')?.value?.trim(),
-        mean: mean
+        teacher: teacherName,
+        subject: el('subject')?.value?.trim(),
+        grade: el('grade')?.value?.trim(),
+        stream: el('stream')?.value?.trim(),
+        term: el('term')?.value?.trim(),
+        examType: el('examType')?.value?.trim(),
+        year: el('year')?.value?.trim(),
+        mean: parseFloat(el('meanScore')?.value)
     };
-
-    console.log('📝 Record to save:', record);
-
-    try {
-        // Load, Check Duplicate, and Push
-        const existingRecords = loadRecords(); 
-        console.log('📊 Existing records count:', existingRecords.length);
-
-        // Simple check for duplicate entry 
-        const duplicate = existingRecords.find(r => 
-            r.teacher === record.teacher &&
-            r.subject === record.subject &&
-            r.grade === record.grade &&
-            r.stream === record.stream &&
-            r.term === record.term &&
-            r.examType === record.examType &&
-            r.year === record.year
-        );
-
-        if (duplicate) {
-            showAlert('A record with these exact details already exists!', 'error');
-            return;
-        }
-
-        existingRecords.push(record);
-
-        // Save and Refresh
-        const saveSuccess = saveRecords(existingRecords);
-        
-        if (saveSuccess) {
-            console.log('✅ Record saved successfully');
-            showAlert('Record saved successfully!', 'success');
-            
-            // Reset form and refill the year field
-            const dataForm = document.getElementById('dataEntryForm');
-            if (dataForm) {
-                dataForm.reset(); 
-                // Auto-fill year again after reset
-                const yearInput = document.getElementById('year');
-                if (yearInput) {
-                    yearInput.value = new Date().getFullYear();
-                }
-            }
-
-            // CRITICAL: Refresh all views
-            await renderAll();
-           // Force refresh of recorded-scores page if we're there
-    if (window.location.pathname.includes('recorded-scores.html')) {
-        await renderRecords();
+    
+    if (!record.subject || !record.grade || !record.stream || !record.term || !record.examType || !record.year || isNaN(record.mean)) {
+        showAlert('Please fill all fields with valid data', 'error');
+        return;
     }
-            
-        } else {
-            throw new Error('Failed to save records');
+    
+    if (record.mean < 0 || record.mean > 100) {
+        showAlert('Mean score must be between 0 and 100', 'error');
+        return;
+    }
+    
+    const yearNum = parseInt(record.year);
+    if (isNaN(yearNum) || yearNum < 2000 || yearNum > 2100) {
+        showAlert('Year must be between 2000 and 2100', 'error');
+        return;
+    }
+    
+    const existingRecords = loadRecords();
+    const duplicate = existingRecords.find(r => 
+        r.teacher === record.teacher &&
+        r.subject === record.subject &&
+        r.grade === record.grade &&
+        r.stream === record.stream &&
+        r.term === record.term &&
+        r.examType === record.examType &&
+        r.year === record.year
+    );
+    
+    if (duplicate) {
+        showAlert('A record with these details already exists!', 'error');
+        return;
+    }
+    
+    existingRecords.push({
+        ...record,
+        id: Date.now(),
+        timestamp: new Date().toISOString()
+    });
+    
+    if (saveRecords(existingRecords)) {
+        showAlert('Record saved successfully!', 'success');
+        if (el('dataEntryForm')) {
+            el('dataEntryForm').reset();
+            autoFillYear();
         }
-    } catch (error) {
-        console.error('❌ Error saving record:', error);
-        showAlert('Error saving record: ' + error.message, 'error');
+        renderAll();
     }
 };
-          // ✅ CORRECT - Properly closed
-if (dataForm) {
-    dataForm.reset(); 
-    if (window.autoFillYear) window.autoFillYear();
-}
+
+const autoFillYear = () => {
+    const yearInput = el('year');
+    if (yearInput && !yearInput.value.trim()) {
+        yearInput.value = new Date().getFullYear();
+    }
+};
 
 // Add these missing functions to app.js
 
@@ -1143,7 +473,7 @@ const calculateAttentionNeeded = (records, targets) => {
     });
     
     records.forEach(record => {
-        const key = `${record.subject}|${target.grade}|${record.stream}|${record.term}|${record.examType}`;
+        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
         const target = targetMap[key];
         
         // Critical if significantly below target or very low score
@@ -1304,8 +634,9 @@ const generateAIRecommendations = (records, targets) => {
     
     return recommendations;
 };
+
 // ==================== TARGET MANAGEMENT ====================
-const handleSaveTarget = async (event) => { // ADDED ASYNC
+const handleSaveTarget = (event) => {
     if (event) event.preventDefault();
     
     const target = {
@@ -1317,9 +648,20 @@ const handleSaveTarget = async (event) => { // ADDED ASYNC
         score: parseFloat(el('targetScore')?.value)
     };
     
-    // ... (keep all your existing validation code) ...
+    const requiredFields = ['subject', 'grade', 'stream', 'term', 'examType'];
+    const missingFields = requiredFields.filter(field => !target[field]);
     
-    const existingTargets = await loadTargets(); // CHANGED TO AWAIT
+    if (missingFields.length > 0 || isNaN(target.score)) {
+        showAlert('Please fill all fields with valid data', 'error');
+        return;
+    }
+    
+    if (target.score < 0 || target.score > 100) {
+        showAlert('Target score must be between 0 and 100', 'error');
+        return;
+    }
+    
+    const existingTargets = loadTargets();
     const duplicate = existingTargets.find(t =>
         t.subject === target.subject &&
         t.grade === target.grade &&
@@ -1339,14 +681,15 @@ const handleSaveTarget = async (event) => { // ADDED ASYNC
         timestamp: new Date().toISOString()
     });
     
-    if (await saveTargets(existingTargets)) { // CHANGED TO AWAIT
+    if (saveTargets(existingTargets)) {
         showAlert('Target saved successfully!', 'success');
         if (el('targetsForm')) {
             el('targetsForm').reset();
         }
-        await renderTargets(); // CHANGED TO AWAIT
+        renderTargets();
     }
 };
+
 window.deleteTarget = (index) => {
     if (confirm('Are you sure you want to delete this target?')) {
         const targets = loadTargets();
@@ -1361,14 +704,14 @@ window.deleteTarget = (index) => {
 };
 
 // ==================== RECORD MANAGEMENT ====================
-window.deleteRecord = async (index) => { // ADDED ASYNC
+window.deleteRecord = (index) => {
     if (confirm('Are you sure you want to delete this record?')) {
-        const records = await loadRecords(); // CHANGED TO AWAIT
+        const records = loadRecords();
         if (index >= 0 && index < records.length) {
             records.splice(index, 1);
-            if (await saveRecords(records)) { // CHANGED TO AWAIT
+            if (saveRecords(records)) {
                 showAlert('Record deleted successfully', 'success');
-                await renderAll(); // CHANGED TO AWAIT
+                renderAll();
             }
         }
     }
@@ -1531,12 +874,12 @@ window.exportAverages = () => {
 };
 
 // ==================== RENDERING FUNCTIONS ====================
-const renderRecords = async () => { // ADDED ASYNC
+const renderRecords = () => {
     const tbody = document.querySelector('#recordsTable tbody') || el('recordsBody');
     if (!tbody) return;
     
-    const records = await loadRecords(); // CHANGED TO AWAIT
-    const targets = await loadTargets(); // CHANGED TO AWAIT
+    const records = loadRecords();
+    const targets = loadTargets();
     
     if (records.length === 0) {
         tbody.innerHTML = `
@@ -2151,7 +1494,7 @@ window.downloadPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const teacherName = getTeacherName();  || 'Teacher';
+    const teacherName = localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Teacher';
     const records = loadRecords();
     
     let y = 20;
@@ -2332,25 +1675,25 @@ window.exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Scores');
-   
-const summaryData = [
-    ['SmartScores Export Summary'],
-    ['Generated', new Date().toLocaleString()],
-    ['Teacher', getTeacherName() || 'Unknown'],
-    ['Total Records', records.length],
-    [''],
-    ['Rubric Key'],
-    ...RUBRIC_MAP.map(r => [r.code, `${r.min}-${r.max}`])
-];
+    
+    const summaryData = [
+        ['SmartScores Export Summary'],
+        ['Generated', new Date().toLocaleString()],
+        ['Teacher', localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Unknown'],
+        ['Total Records', records.length],
+        [''],
+        ['Rubric Key'],
+        ...RUBRIC_MAP.map(r => [r.code, `${r.min}-${r.max}`])
+    ];
     
     const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
-
-const teacherName = getTeacherName() || 'Teacher';
-const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
-XLSX.writeFile(workbook, `SmartScores_Export_${safeName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
-
-showAlert('Excel file exported successfully!', 'success');
+    XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+    
+    const teacherName = localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Teacher';
+    const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
+    XLSX.writeFile(workbook, `SmartScores_Export_${safeName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    
+    showAlert('Excel file exported successfully!', 'success');
 };
 
 window.exportBackup = () => {
@@ -2392,17 +1735,14 @@ window.clearAllData = () => {
 };
 
 // ==================== MAIN RENDER FUNCTION ====================
-
-const renderAll = async () => {
+const renderAll = () => {
     const currentPage = window.location.pathname.split('/').pop();
     
-    // Always render records first
-    await renderRecords();
+    renderRecords();
     
-    // Page-specific rendering
     if (currentPage === 'index.html' || currentPage === '' || currentPage === 'index.html#') {
         updateDashboardStats();
-        renderRecentRecords(); // Now this function exists
+        renderRecentRecords(); // New feature from app.js
         renderProgressChart();
     } else if (currentPage === 'set-targets.html') {
         renderTargets();
@@ -2413,15 +1753,15 @@ const renderAll = async () => {
     } else if (currentPage === 'trends.html') {
         renderTrendAnalysis();
     } else if (currentPage === 'data-entry.html') {
-        const teacherDisplay = document.getElementById('currentTeacher');
+        const teacherDisplay = el('currentTeacher');
         if (teacherDisplay) {
-            teacherDisplay.textContent = getTeacherName() || 'Not logged in';
+            teacherDisplay.textContent = localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Not logged in';
         }
         
         const records = loadRecords();
-        const totalRecords = document.getElementById('totalRecords');
-        const termRecords = document.getElementById('termRecords');
-        const yearRecords = document.getElementById('yearRecords');
+        const totalRecords = el('totalRecords');
+        const termRecords = el('termRecords');
+        const yearRecords = el('yearRecords');
         
         if (totalRecords) totalRecords.textContent = records.length;
         
@@ -2436,55 +1776,14 @@ const renderAll = async () => {
             const yearCount = records.filter(r => parseInt(r.year) === currentYear).length;
             yearRecords.textContent = yearCount;
         }
-    } else if (currentPage === 'recorded-scores.html') {
-        // Ensure the recorded scores table is properly rendered
-        await renderRecords();
     }
 };
-// ==================== GLOBAL RENDERING ORCHESTRATOR (MISSING FUNCTION) ====================
-// This function is called on page load and after every data modification 
-// to ensure all necessary components are updated across the application.
-window.renderAll = async () => {
-    // 1. Render the main Recorded Scores table (for recorded-scores.html)
-    if (el('recordsBody')) {
-        await renderRecords(); 
-    }
-    
-    // 2. Render the Set Targets table (for set-targets.html)
-    if (el('targetsTable')) {
-        renderTargets();
-    }
 
-    // 3. Render the Learner Scores table (for learner-scores.html)
-    if (el('learnerScoresBody')) {
-        await renderLearnerScores();
-    }
-    
-    // 4. Update the Dashboard Analytics (calls updateAnalyticsDashboard which handles many dashboard cards)
-    // Check for a key dashboard element (e.g., 'classAverageCard')
-    if (el('classAverageCard')) { 
-        await updateAnalyticsDashboard(); 
-    }
-    
-    // 5. Update the overall record counts and stats
-    if (window.updateRecordCounts) {
-        window.updateRecordCounts();
-    }
-};
-// ==================== TEACHER UTILITY ====================
-const getTeacherName = () => {
-    return localStorage.getItem(STORAGE_KEYS.TEACHER_FULL_NAME) || 
-           localStorage.getItem('teacherFullName') || 
-           localStorage.getItem(STORAGE_KEYS.TEACHER) || 
-           'Guest Teacher';
-};
+// ==================== GLOBAL RENDERING ORCHESTRATOR ====================
+window.renderAll = renderAll;
 
 // ==================== INITIALIZATION ====================
-document.addEventListener('DOMContentLoaded', async () => {
-   // NEW: Run the session check on every page load immediately
-    if (window.auth && window.auth.checkSessionTimeout) {
-        window.auth.checkSessionTimeout();
-    }
+document.addEventListener('DOMContentLoaded', () => {
     loadTheme();
     autoFillYear();
     
@@ -2511,12 +1810,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         targetSearch.addEventListener('input', filterTargets);
     }
     
-    await renderAll();
+    renderAll();
     
-    // New (Consistent and Complete):
-const teacherFullName = localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Guest Teacher';
-
-// Query for all known teacher name elements across all pages
-document.querySelectorAll('#teacherName, #currentTeacher, .teacher-name').forEach(element => {
-    element.textContent = teacherFullName;
+    const teacherNameElement = el('teacherName');
+    if (teacherNameElement) {
+        teacherNameElement.textContent = localStorage.getItem(STORAGE_KEYS.TEACHER) || 'Guest Teacher';
+    }
 });
