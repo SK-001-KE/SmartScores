@@ -921,30 +921,52 @@ const getTeacherFirstName = () => {
 };
 
 // Update the handleSaveRecord function to use the full name
+// ==================== DATA ENTRY HANDLER ====================
 const handleSaveRecord = async (event) => {
     if (event) event.preventDefault();
+
+    const teacherName = getTeacherName();
     
-    const teacherName = getTeacherName(); // Use the new function
+    // --- 1. Basic Validation (Fields must exist) ---
+    const subject = el('subject')?.value?.trim();
+    const grade = el('grade')?.value?.trim();
+    const meanScoreValue = el('meanScore')?.value;
+
     if (!teacherName || teacherName === 'Guest Teacher') {
-        showAlert('Please login first', 'error');
-        window.location.href = './login.html';
+        showAlert('Please sign in or set your teacher name.', 'error');
         return;
     }
     
+    if (!subject || !grade || !meanScoreValue) {
+        showAlert('Please fill in Subject, Grade, and Mean Score.', 'error');
+        return;
+    }
+
+    const mean = parseFloat(meanScoreValue);
+    if (isNaN(mean) || mean < 0 || mean > 100) {
+        showAlert('Mean Score must be a number between 0 and 100.', 'error');
+        return;
+    }
+
+    // --- 2. Create Record Object ---
     const record = {
-        teacher: teacherName, // This will now be "First Last" format
-        subject: el('subject')?.value?.trim(),
-        grade: el('grade')?.value?.trim(),
-        stream: el('stream')?.value?.trim(),
+        id: Date.now(), // Unique ID
+        timestamp: new Date().toISOString(),
+        teacher: teacherName, 
+        subject: subject,
+        grade: grade,
+        stream: el('stream')?.value?.trim() || 'N/A', 
         term: el('term')?.value?.trim(),
         examType: el('examType')?.value?.trim(),
         year: el('year')?.value?.trim(),
-        mean: parseFloat(el('meanScore')?.value)
+        mean: mean
     };
-    
-    // ... (keep all your existing validation code) ...
-    
-    const existingRecords = await loadRecords(); // CHANGED TO AWAIT
+
+    // --- 3. Load, Check Duplicate, and Push ---
+    // The ASYNC keyword is critical here to allow await
+    const existingRecords = await loadRecords(); 
+
+    // Simple check for duplicate entry 
     const duplicate = existingRecords.find(r => 
         r.teacher === record.teacher &&
         r.subject === record.subject &&
@@ -954,25 +976,28 @@ const handleSaveRecord = async (event) => {
         r.examType === record.examType &&
         r.year === record.year
     );
-    
+
     if (duplicate) {
-        showAlert('A record with these details already exists!', 'error');
+        showAlert('A record with these exact details already exists!', 'error');
         return;
     }
-    
-    existingRecords.push({
-        ...record,
-        id: Date.now(),
-        timestamp: new Date().toISOString()
-    });
-    
-    if (await saveRecords(existingRecords)) { // CHANGED TO AWAIT
+
+    existingRecords.push(record);
+
+    // --- 4. Save and Refresh ---
+    // Awaiting the saveRecords ensures data is written before rendering
+    if (await saveRecords(existingRecords)) {
         showAlert('Record saved successfully!', 'success');
-        if (el('dataEntryForm')) {
-            el('dataEntryForm').reset();
-            autoFillYear();
+        
+        // Reset form and refill the year field
+        const dataForm = el('dataEntryForm');
+        if (dataForm) {
+             dataForm.reset(); 
+             if(window.autoFillYear) window.autoFillYear();
         }
-        await renderAll(); // CHANGED TO AWAIT
+
+        // CRITICAL STEP: Refresh all views (including recorded-scores and dashboard)
+        await renderAll(); 
     }
 };
 const autoFillYear = () => {
