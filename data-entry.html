@@ -178,7 +178,7 @@
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
-  <script>
+<script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('./service-worker.js')
@@ -187,8 +187,9 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Enhanced mobile menu functionality
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('=== PAGE LOADED ===');
+  
   // Mobile menu functionality
   const mobileMenuToggle = document.getElementById('mobileMenuToggle');
   const mobileSidebar = document.getElementById('mobileSidebar');
@@ -206,7 +207,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     
-    // Close sidebar when clicking on links
     const mobileLinks = mobileSidebar.querySelectorAll('a, button');
     mobileLinks.forEach(link => {
       link.addEventListener('click', function() {
@@ -218,7 +218,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Close mobile sidebar when clicking outside
   function closeMobileSidebarOnClickOutside(event) {
     const mobileSidebar = document.getElementById('mobileSidebar');
     const mobileMenuToggle = document.getElementById('mobileMenuToggle');
@@ -238,33 +237,35 @@ document.addEventListener('DOMContentLoaded', function() {
   // Get teacher name
   const teacherNameElement = document.getElementById('teacherName');
   const currentTeacherElement = document.getElementById('currentTeacher');
-  
   const teacherFullName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
   
-  if (teacherNameElement) {
-    teacherNameElement.textContent = teacherFullName;
-  }
-  if (currentTeacherElement) {
-    currentTeacherElement.textContent = teacherFullName;
-  }
+  if (teacherNameElement) teacherNameElement.textContent = teacherFullName;
+  if (currentTeacherElement) currentTeacherElement.textContent = teacherFullName;
 
   // Auto-fill year
   autoFillYear();
 
-  // FORM SUBMISSION - WITH RETRY MECHANISM
+  // FORM SUBMISSION
   const dataEntryForm = document.getElementById('dataEntryForm');
   if (dataEntryForm) {
     dataEntryForm.addEventListener('submit', function(event) {
       event.preventDefault();
-      handleFormSubmission(event);
+      console.log('Form submitted - checking for handleSaveRecord...');
+      console.log('handleSaveRecord available:', typeof window.handleSaveRecord);
+      
+      if (window.handleSaveRecord) {
+        console.log('Calling window.handleSaveRecord...');
+        window.handleSaveRecord(event);
+      } else {
+        console.error('handleSaveRecord NOT available, using fallback');
+        handleSaveRecordFallback(event);
+      }
     });
   }
 
-  // Update stats
   updateDataEntryStats();
 });
 
-// Auto-fill year function
 function autoFillYear() {
   const yearInput = document.getElementById('year');
   if (yearInput && !yearInput.value.trim()) {
@@ -272,7 +273,6 @@ function autoFillYear() {
   }
 }
 
-// Update statistics function
 function updateDataEntryStats() {
   try {
     const records = JSON.parse(localStorage.getItem('smartScoresRecords') || '[]');
@@ -281,55 +281,24 @@ function updateDataEntryStats() {
     const yearRecords = document.getElementById('yearRecords');
     
     if (totalRecords) totalRecords.textContent = records.length;
-    
-    if (termRecords) {
-      const currentTerm = 'Term 1';
-      const termCount = records.filter(r => r.term === currentTerm).length;
-      termRecords.textContent = termCount;
-    }
-    
-    if (yearRecords) {
-      const currentYear = new Date().getFullYear();
-      const yearCount = records.filter(r => parseInt(r.year) === currentYear).length;
-      yearRecords.textContent = yearCount;
-    }
+    if (termRecords) termRecords.textContent = records.filter(r => r.term === 'Term 1').length;
+    if (yearRecords) yearRecords.textContent = records.filter(r => parseInt(r.year) === new Date().getFullYear()).length;
   } catch (error) {
     console.error('Error updating stats:', error);
   }
 }
 
-// FORM SUBMISSION HANDLER WITH RETRY LOGIC
-function handleFormSubmission(event) {
-  console.log('Form submission started...');
-  
-  // Try to use the app.js function first
-  if (window.handleSaveRecord) {
-    console.log('Using app.js handleSaveRecord function');
-    window.handleSaveRecord(event);
-    return;
-  }
-  
-  // If app.js function is not available, use fallback
-  console.log('App.js function not available, using fallback save function');
-  handleSaveRecordFallback(event);
-}
-
-// FALLBACK SAVE FUNCTION - Same logic as app.js
 function handleSaveRecordFallback(event) {
-  if (event) event.preventDefault();
-
-  console.log('🔄 Starting fallback save process...');
-
-  const teacherName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
-  console.log('👨‍🏫 Teacher name:', teacherName);
+  event.preventDefault();
+  console.log('Using fallback save function...');
   
-  // Basic Validation
+  const teacherName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
   const subject = document.getElementById('subject')?.value?.trim();
   const grade = document.getElementById('grade')?.value?.trim();
   const meanScoreValue = document.getElementById('meanScore')?.value;
 
   if (!teacherName || teacherName === 'Guest Teacher') {
-    alert('Please sign in or set your teacher name in the profile section.');
+    alert('Please set your teacher name first.');
     return;
   }
   
@@ -344,7 +313,6 @@ function handleSaveRecordFallback(event) {
     return;
   }
 
-  // Create Record Object
   const record = {
     id: Date.now(),
     timestamp: new Date().toISOString(),
@@ -358,14 +326,9 @@ function handleSaveRecordFallback(event) {
     mean: mean
   };
 
-  console.log('📝 Record to save:', record);
-
   try {
-    // Load, Check Duplicate, and Push
     const existingRecords = JSON.parse(localStorage.getItem('smartScoresRecords') || '[]');
-    console.log('📊 Existing records count:', existingRecords.length);
-
-    // Simple check for duplicate entry 
+    
     const duplicate = existingRecords.find(r => 
       r.teacher === record.teacher &&
       r.subject === record.subject &&
@@ -382,42 +345,20 @@ function handleSaveRecordFallback(event) {
     }
 
     existingRecords.push(record);
-
-    // Save and Refresh
     localStorage.setItem('smartScoresRecords', JSON.stringify(existingRecords));
     
-    console.log('✅ Record saved successfully');
     alert('Record saved successfully!');
     
-    // Reset form and refill the year field
     const dataForm = document.getElementById('dataEntryForm');
     if (dataForm) {
       dataForm.reset(); 
-      // Auto-fill year again after reset
-      const yearInput = document.getElementById('year');
-      if (yearInput) {
-        yearInput.value = new Date().getFullYear();
-      }
+      autoFillYear();
     }
 
-    // Update statistics
     updateDataEntryStats();
-    
-    // Try to refresh other pages if their functions are available
-    setTimeout(() => {
-      if (window.renderRecords) {
-        window.renderRecords();
-      }
-      if (window.updateDashboardStats) {
-        window.updateDashboardStats();
-      }
-      if (window.renderRecentRecords) {
-        window.renderRecentRecords();
-      }
-    }, 100);
       
   } catch (error) {
-    console.error('❌ Error saving record:', error);
+    console.error('Error saving record:', error);
     alert('Error saving record: ' + error.message);
   }
 }
@@ -427,17 +368,14 @@ window.autoFillYear = autoFillYear;
 window.updateDataEntryStats = updateDataEntryStats;
 window.handleSaveRecordFallback = handleSaveRecordFallback;
 
-// Logout function
 function logout() {
   if (window.logout) {
     window.logout();
   } else {
-    console.log('Logout function not available');
     window.location.href = './login.html';
   }
 }
 
-// Toggle dark mode
 function toggleDarkMode() {
   if (window.toggleDarkMode) {
     window.toggleDarkMode();
@@ -448,15 +386,28 @@ function toggleDarkMode() {
     localStorage.setItem('themeMode', newTheme);
   }
 }
+</script>
 
-// Check if app.js functions are loaded (for debugging)
+<!-- DEBUG SCRIPT AT THE VERY END -->
+<script>
+console.log('=== DEBUG: Available Functions ===');
+console.log('handleSaveRecord:', typeof window.handleSaveRecord);
+console.log('renderRecords:', typeof window.renderRecords);
+console.log('updateDashboardStats:', typeof window.updateDashboardStats);
+
 setTimeout(() => {
-  console.log('Available global functions:', {
-    handleSaveRecord: typeof window.handleSaveRecord,
-    renderRecords: typeof window.renderRecords,
-    updateDashboardStats: typeof window.updateDashboardStats
-  });
-}, 1000);
+  const appFunctions = Object.keys(window).filter(key => 
+    typeof window[key] === 'function' && 
+    (key.includes('render') || 
+     key.includes('save') || 
+     key.includes('update') ||
+     key.includes('handle'))
+  );
+  console.log('App.js functions found:', appFunctions);
+  
+  // Also check if app.js loaded at all
+  console.log('app.js functions count:', appFunctions.length);
+}, 2000);
 </script>
 </body>
 </html>
