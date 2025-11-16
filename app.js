@@ -10,7 +10,10 @@ const STORAGE_KEYS = {
     TEACHER_FULL_NAME: 'teacherFullName',
     TEACHER_FIRST_NAME: 'teacherFirstName', 
     TEACHER_LAST_NAME: 'teacherLastName',
-    THEME: 'themeMode'
+    THEME: 'themeMode',
+    
+    // ADDED: This key is needed to retrieve the full name for the 'teacherName' display element
+    TEACHER: 'teacherFullName' 
 };
 
 // DOM Helper
