@@ -2341,6 +2341,37 @@ const renderAll = async () => {
         }
     }
 };
+// ==================== GLOBAL RENDERING ORCHESTRATOR (MISSING FUNCTION) ====================
+// This function is called on page load and after every data modification 
+// to ensure all necessary components are updated across the application.
+window.renderAll = async () => {
+    // 1. Render the main Recorded Scores table (for recorded-scores.html)
+    if (el('recordsBody')) {
+        await renderRecords(); 
+    }
+    
+    // 2. Render the Set Targets table (for set-targets.html)
+    if (el('targetsTable')) {
+        renderTargets();
+    }
+
+    // 3. Render the Learner Scores table (for learner-scores.html)
+    if (el('learnerScoresBody')) {
+        await renderLearnerScores();
+    }
+    
+    // 4. Update the Dashboard Analytics (calls updateAnalyticsDashboard which handles many dashboard cards)
+    // Check for a key dashboard element (e.g., 'classAverageCard')
+    if (el('classAverageCard')) { 
+        await updateAnalyticsDashboard(); 
+    }
+    
+    // 5. Update the overall record counts and stats
+    if (window.updateRecordCounts) {
+        window.updateRecordCounts();
+    }
+};
+
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async () => {
    // NEW: Run the session check on every page load immediately
