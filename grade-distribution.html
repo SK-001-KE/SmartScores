@@ -11,6 +11,56 @@
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./firebase-sync.js"></script>
   <style>
+    /* Fix hamburger button overlap */
+.top-nav {
+    position: relative;
+}
+
+.nav-brand {
+    margin-left: 50px; /* Add space for hamburger button */
+}
+
+.mobile-menu-toggle {
+    position: fixed;
+    left: 15px;
+    top: 15px;
+    z-index: 1001;
+}
+
+/* Make grade cards uniform */
+.grade-card {
+    min-height: 250px; /* Set consistent minimum height */
+    display: flex;
+    flex-direction: column;
+}
+
+.grade-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.grade-pair {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    min-height: 60px; /* Consistent height for grade pairs */
+}
+
+/* Ensure all cards have the same internal structure */
+.card-excellent,
+.card-good, 
+.card-average,
+.card-poor {
+    border-top: 4px solid;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
     /* Additional styles specific to grade distribution */
     .distribution-inputs {
       background: var(--card);
@@ -652,6 +702,7 @@
 
     // ===== THEME MANAGEMENT =====
     function toggleDarkMode() {
+      // Use the global function from app.js if available
       if (window.toggleDarkMode) {
         window.toggleDarkMode();
       } else {
@@ -660,6 +711,7 @@
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('themeMode', newTheme);
+        console.log('Theme toggled to:', newTheme);
       }
     }
 
@@ -670,11 +722,15 @@
 
     // ===== AUTH MANAGEMENT =====
     function logout() {
+      // Use the global function from auth.js if available
       if (window.logout) {
         window.logout();
       } else {
-        console.log('Logout function not available');
-        // Fallback redirect
+        console.log('Logout function not available, using fallback');
+        // Fallback implementation
+        localStorage.removeItem('teacherFullName');
+        localStorage.removeItem('teacherFirstName');
+        localStorage.removeItem('teacherLastName');
         window.location.href = './login.html';
       }
     }
@@ -690,14 +746,7 @@
 
     // ===== UTILITY FUNCTIONS =====
     function getTeacherName() {
-      // Use app.js function if available, otherwise fallback
-      if (window.getTeacherName) {
-        return window.getTeacherName();
-      } else {
-        return localStorage.getItem('teacherFullName') || 
-               localStorage.getItem('teacherFirstName') + ' ' + localStorage.getItem('teacherLastName') || 
-               'Guest Teacher';
-      }
+      return localStorage.getItem('teacherFullName') || 'Guest Teacher';
     }
 
     function showAlert(message, type = 'info') {
@@ -705,6 +754,7 @@
       if (window.showAlert) {
         window.showAlert(message, type);
       } else {
+        // Fallback alert
         alert(message);
       }
     }
@@ -740,7 +790,9 @@
     function handleSaveDistribution(event) {
       if (event) event.preventDefault();
       
-      // Check auth using app.js function
+      console.log('Save button clicked!'); // Debug log
+      
+      // Check auth
       const teacherName = getTeacherName();
       if (!teacherName || teacherName === 'Guest Teacher') {
         showAlert('Please login first', 'error');
@@ -984,7 +1036,7 @@
           ((aggregatedDistribution[key] / totalLearners) * 100).toFixed(1) : 0;
       });
       
-      // Create grade cards
+      // Create grade cards with uniform height
       container.innerHTML = `
         <div class="grade-card card-excellent">
           <h3>Excellent Performance</h3>
@@ -1186,18 +1238,21 @@
       // Setup mobile navigation
       setupMobileSidebarAutoClose();
       
-      // Update teacher name using consistent storage keys
+      // Update teacher name
       const teacherNameElements = document.querySelectorAll('.teacher-name, #currentTeacher');
-      const teacherFullName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
+      const teacherFullName = getTeacherName();
       
       teacherNameElements.forEach(element => {
         element.textContent = teacherFullName;
       });
       
-      // Setup form submission
+      // Setup form submission - FIXED: Proper event listener
       const distributionForm = el('distributionForm');
       if (distributionForm) {
         distributionForm.addEventListener('submit', handleSaveDistribution);
+        console.log('Form event listener attached'); // Debug log
+      } else {
+        console.error('Distribution form not found!');
       }
       
       // Setup input listeners for real-time calculations
@@ -1226,6 +1281,7 @@
     window.exportDistributionReport = exportDistributionReport;
     window.clearAllDistributions = clearAllDistributions;
     window.refreshDistributionData = refreshDistributionData;
-  </script>
+    window.handleSaveDistribution = handleSaveDistribution; // Important: Export this globally
+</script>
 </body>
 </html>
