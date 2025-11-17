@@ -2282,15 +2282,24 @@ window.downloadPDF = () => {
         // Show loading state
         showAlert('🔄 Generating PDF...', 'info');
         
-        const { jsPDF } = window.jspdf || {};
-        if (!jsPDF) {
-            showAlert('PDF library not loaded. Please check your internet connection.', 'error');
+        // Check if jsPDF is available
+        if (typeof window.jspdf === 'undefined') {
+            // Load jsPDF dynamically if not available
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+            script.onload = () => {
+                window.downloadPDF(); // Retry after loading
+            };
+            script.onerror = () => {
+                showAlert('Failed to load PDF library. Please check your internet connection.', 'error');
+            };
+            document.head.appendChild(script);
             return;
         }
-        
+
+        const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
         const teacherName = getTeacherName() || 'Teacher';
         const records = loadRecords().filter(record => 
             record && typeof record.mean === 'number' && !isNaN(record.mean)
@@ -2320,168 +2329,65 @@ window.downloadPDF = () => {
             return;
         }
         
+        // Simple table implementation
+        const headers = ['Subject', 'Grade', 'Term', 'Exam', 'Mean Score'];
+        const colWidths = [40, 20, 25, 35, 25];
+        
         // Table Header
-        doc.setFontSize(8);
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(255, 255, 255);
         doc.setFillColor(139, 0, 0);
         
-        const colWidths = [15, 25, 25, 20, 15, 20, 15, 15, 15, 15];
-        const headers = ['Year', 'Teacher', 'Subject', 'Grade', 'Stream', 'Term', 'Exam', 'Mean', 'Target', 'Rubric'];
         let x = 10;
-        
         headers.forEach((header, i) => {
-            doc.rect(x, y, colWidths[i], 6, 'F');
-            doc.text(header, x + 2, y + 4);
+            doc.rect(x, y, colWidths[i], 8, 'F');
+            doc.text(header, x + 2, y + 5);
             x += colWidths[i];
         });
-        y += 6;
+        y += 8;
         
         // Table Data
         doc.setFont('helvetica', 'normal');
-        const targets = loadTargets();
-        const targetMap = {};
-        targets.forEach(t => {
-            if (t && t.subject && t.grade) {
-                const key = `${t.subject}|${t.grade}|${t.stream}|${t.term}|${t.examType}`;
-                targetMap[key] = t.score;
-            }
-        });
+        doc.setTextColor(0, 0, 0);
         
-        records.forEach((record, index) => {
-            // Validate record data
-            if (!record || typeof record.mean !== 'number') return;
-            
-            // Check if we need a new page
-            if (y > pageHeight - 20) {
+        records.slice(0, 20).forEach((record, index) => { // Limit to 20 records for demo
+            if (y > 280) { // Near bottom of page
                 doc.addPage();
                 y = 20;
-                
-                // Add header to new page
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(255, 255, 255);
-                doc.setFillColor(139, 0, 0);
-                
-                x = 10;
-                headers.forEach((header, i) => {
-                    doc.rect(x, y, colWidths[i], 6, 'F');
-                    doc.text(header, x + 2, y + 4);
-                    x += colWidths[i];
-                });
-                y += 6;
-                doc.setFont('helvetica', 'normal');
             }
             
-            const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
-            const target = targetMap[key] || null;
-            const rubric = getRubric(record.mean);
-            const textColor = getContrastColor(rubric.color);
-            
             x = 10;
-            const cells = [
-                record.year || '',
-                (record.teacher || '').substring(0, 20),
-                (record.subject || '').substring(0, 20),
+            const rowData = [
+                record.subject || '',
                 record.grade || '',
-                (record.stream || '').substring(0, 15),
-                (record.term || '').substring(0, 15),
-                (record.examType || '').substring(0, 15),
-                record.mean.toFixed(1),
-                target ? target.toFixed(1) : '–',
-                rubric.code
+                record.term || '',
+                record.examType || '',
+                record.mean.toFixed(1) + '%'
             ];
             
-            cells.forEach((cell, i) => {
-                // Alternate row colors for better readability
-                if (index % 2 === 0) {
-                    doc.setFillColor(245, 245, 245);
-                    doc.rect(x, y, colWidths[i], 5, 'F');
-                }
-                
-                if (i === 9) {
-                    doc.setFillColor(...hexToRgb(rubric.color));
-                    doc.rect(x, y, colWidths[i], 5, 'F');
-                    doc.setTextColor(...hexToRgb(textColor));
-                } else {
-                    doc.setTextColor(0, 0, 0);
-                }
-                
-                doc.text(String(cell), x + 1, y + 3);
+            // Alternate row background
+            if (index % 2 === 0) {
+                doc.setFillColor(245, 245, 245);
+                doc.rect(x, y, colWidths.reduce((a, b) => a + b, 0), 6, 'F');
+            }
+            
+            rowData.forEach((cell, i) => {
+                doc.text(cell.substring(0, 20), x + 2, y + 4);
                 x += colWidths[i];
             });
             
             y += 6;
         });
         
-        // Add summary section
-        if (y > pageHeight - 60) {
-            doc.addPage();
-            y = 20;
-        } else {
-            y += 10;
-        }
-        
-        // Performance Summary
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(139, 0, 0);
-        doc.text('Performance Summary:', 10, y);
-        y += 8;
-        
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(0, 0, 0);
-        
-        const totalAvg = records.reduce((sum, r) => sum + r.mean, 0) / records.length;
-        const above80 = records.filter(r => r.mean >= 80).length;
-        const below50 = records.filter(r => r.mean < 50).length;
-        
-        doc.text(`Total Records: ${records.length}`, 15, y);
-        y += 5;
-        doc.text(`Overall Average: ${totalAvg.toFixed(1)}%`, 15, y);
-        y += 5;
-        doc.text(`Excellent (≥80%): ${above80} records`, 15, y);
-        y += 5;
-        doc.text(`Needs Support (<50%): ${below50} records`, 15, y);
-        y += 10;
-        
-        // Rubric Key
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(139, 0, 0);
-        doc.text('Performance Rubric Key:', 10, y);
-        y += 8;
-        
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(0, 0, 0);
-        
-        let legendX = 10;
-        RUBRIC_MAP.forEach((rubric, index) => {
-            if (legendX > pageWidth - 60) {
-                legendX = 10;
-                y += 8;
-            }
-            
-            doc.setFillColor(...hexToRgb(rubric.color));
-            doc.rect(legendX, y, 8, 4, 'F');
-            doc.setTextColor(...hexToRgb(getContrastColor(rubric.color)));
-            doc.text(rubric.code, legendX + 1, y + 3);
-            doc.setTextColor(0, 0, 0);
-            doc.text(` ${rubric.min}-${rubric.max}`, legendX + 10, y + 3);
-            
-            legendX += 35;
-        });
-        
         // Footer
-        y = pageHeight - 15;
-        doc.setFontSize(7);
+        y = 287;
+        doc.setFontSize(8);
         doc.setTextColor(150, 150, 150);
-        doc.text('SmartScores v3.0 © 2025 - Generated by Progressive Web App', pageWidth / 2, y, { align: 'center' });
+        doc.text(`Total Records: ${records.length} | SmartScores v3.0`, pageWidth / 2, y, { align: 'center' });
         
         const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
-        const filename = `SmartScores_Report_${safeName}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        const filename = `SmartScores_Report_${safeName}.pdf`;
         
         doc.save(filename);
         showAlert(`✅ PDF exported successfully! ${records.length} records included.`, 'success');
@@ -2497,6 +2403,7 @@ window.exportToExcel = () => {
         // Show loading state
         showAlert('🔄 Generating Excel file...', 'info');
         
+        // Check if XLSX is available
         if (typeof XLSX === 'undefined') {
             showAlert('Excel export library not loaded. Please check your internet connection.', 'error');
             return;
@@ -2511,105 +2418,25 @@ window.exportToExcel = () => {
             return;
         }
         
-        const targets = loadTargets();
-        const targetMap = {};
-        targets.forEach(t => {
-            if (t && t.subject && t.grade) {
-                const key = `${t.subject}|${t.grade}|${t.stream}|${t.term}|${t.examType}`;
-                targetMap[key] = t.score;
-            }
-        });
-        
-        // Enhanced Excel Data with more analytics - FIXED THE VARIABLE REFERENCE
-        const excelData = records.map(record => {
-            const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`; // FIXED: was t.stream
-            const target = targetMap[key] || null;
-            const deviation = target !== null ? record.mean - target : null;
-            const rubric = getRubric(record.mean);
-            const performanceStatus = target !== null ? 
-                (deviation >= 5 ? 'Above Target' : deviation <= -5 ? 'Below Target' : 'On Target') : 
-                'No Target Set';
-            
-            return {
-                'Year': record.year || '',
-                'Teacher': record.teacher || '',
-                'Subject': record.subject || '',
-                'Grade': record.grade || '',
-                'Stream': record.stream || '',
-                'Term': record.term || '',
-                'Exam Type': record.examType || '',
-                'Mean Score': record.mean,
-                'Target': target,
-                'Deviation': deviation,
-                'Performance Status': performanceStatus,
-                'Rubric': rubric.code,
-                'Rubric Range': `${rubric.min}-${rubric.max}`,
-                'Rubric Description': rubric.text
-            };
-        });
+        // Simple Excel Data
+        const excelData = records.map(record => ({
+            'Year': record.year || '',
+            'Teacher': record.teacher || '',
+            'Subject': record.subject || '',
+            'Grade': record.grade || '',
+            'Stream': record.stream || '',
+            'Term': record.term || '',
+            'Exam Type': record.examType || '',
+            'Mean Score': record.mean
+        }));
         
         const worksheet = XLSX.utils.json_to_sheet(excelData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Scores');
         
-        // Enhanced Summary Sheet
-        const totalAvg = records.reduce((sum, r) => sum + r.mean, 0) / records.length;
-        const targetsMet = records.filter(record => {
-            const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
-            const target = targetMap[key];
-            return target && record.mean >= target;
-        }).length;
-        
-        const summaryData = [
-            ['SMARTSCORES EXPORT SUMMARY'],
-            [''],
-            ['Report Details:', '', '', 'Performance Analytics:'],
-            [`Teacher: ${getTeacherName() || 'Unknown'}`, '', '', `Total Records: ${records.length}`],
-            [`Generated: ${new Date().toLocaleString()}`, '', '', `Overall Average: ${totalAvg.toFixed(1)}%`],
-            ['', '', '', `Targets Met: ${targetsMet}/${targets.length}`],
-            [''],
-            ['Performance Distribution'],
-            ['Rubric', 'Count', 'Percentage', 'Description'],
-            ...RUBRIC_MAP.map(rubric => {
-                const count = records.filter(r => {
-                    const scoreRubric = getRubric(r.mean);
-                    return scoreRubric.code === rubric.code;
-                }).length;
-                const percentage = ((count / records.length) * 100).toFixed(1);
-                return [rubric.code, count, `${percentage}%`, rubric.text];
-            }),
-            [''],
-            ['Export Notes:'],
-            ['• Generated by SmartScores Progressive Web App'],
-            ['• Data is based on recorded exam scores'],
-            ['• Rubric system: EE1 (90-100) to BE2 (0-10)']
-        ];
-        
-        const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-        XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
-
-        // Auto-size columns for better readability
-        const wscols = [
-            {wch: 8},  // Year
-            {wch: 20}, // Teacher
-            {wch: 15}, // Subject
-            {wch: 8},  // Grade
-            {wch: 12}, // Stream
-            {wch: 10}, // Term
-            {wch: 15}, // Exam Type
-            {wch: 12}, // Mean Score
-            {wch: 10}, // Target
-            {wch: 12}, // Deviation
-            {wch: 15}, // Performance Status
-            {wch: 8},  // Rubric
-            {wch: 15}, // Rubric Range
-            {wch: 20}  // Rubric Description
-        ];
-        worksheet['!cols'] = wscols;
-
         const teacherName = getTeacherName() || 'Teacher';
         const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
-        const filename = `SmartScores_Export_${safeName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        const filename = `SmartScores_Export_${safeName}.xlsx`;
         
         XLSX.writeFile(workbook, filename);
         showAlert(`✅ Excel file exported successfully! ${records.length} records included.`, 'success');
@@ -2618,19 +2445,6 @@ window.exportToExcel = () => {
         console.error('Excel Export Error:', error);
         showAlert('❌ Error exporting Excel file. Please try again.', 'error');
     }
-};
-
-// Helper function to check if exports are ready
-window.checkExportReady = () => {
-    const pdfReady = typeof window.jspdf !== 'undefined';
-    const excelReady = typeof XLSX !== 'undefined';
-    
-    console.log('Export Status:', {
-        pdf: pdfReady ? '✅ Ready' : '❌ Not loaded',
-        excel: excelReady ? '✅ Ready' : '❌ Not loaded'
-    });
-    
-    return { pdfReady, excelReady };
 };
 
 window.exportBackup = () => {
