@@ -6,10 +6,11 @@
   <title>SmartScores - AI Insights</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="./style.css">
-  <script src="./app.js" defer></script>
-  <script src="./auth.js" defer></script>
-  <script type="module" src="./firebase-config.js"></script>
-  <script type="module" src="./firebase-sync.js"></script>
+  <!-- In ai-insights.html head section, change script loading order -->
+<script src="./app.js"></script> <!-- Remove defer -->
+<script src="./auth.js" defer></script>
+<script type="module" src="./firebase-config.js"></script>
+<script type="module" src="./firebase-sync.js"></script>
   <style>
     /* ===== AI INSIGHTS SPECIFIC STYLES ===== */
     .summary-cards {
@@ -250,6 +251,45 @@
         </div>
       </div>
     </section>
+    <!-- ALERT SECTIONS -->
+<section class="alerts-section critical-section">
+  <div class="section-header">
+    <h2>⚠️ Critical Alerts</h2>
+    <span class="alert-badge" id="criticalBadge">0 critical</span>
+  </div>
+  <div id="criticalAlerts" class="alert-list">
+    <div class="empty-alert">
+      <div class="empty-icon">✅</div>
+      <p>No critical alerts! All subjects are performing well.</p>
+    </div>
+  </div>
+</section>
+
+<section class="alerts-section positive-section">
+  <div class="section-header">
+    <h2>🎉 Outstanding Performance</h2>
+    <span class="alert-badge positive" id="positiveBadge">0 outstanding</span>
+  </div>
+  <div id="positiveAlerts" class="alert-list">
+    <div class="empty-alert">
+      <div class="empty-icon">📊</div>
+      <p>No outstanding performance alerts yet.</p>
+    </div>
+  </div>
+</section>
+
+<section class="alerts-section info-section">
+  <div class="section-header">
+    <h2>📈 On Track</h2>
+    <span class="alert-badge info" id="onTrackBadge">0 on track</span>
+  </div>
+  <div id="onTrackAlerts" class="alert-list">
+    <div class="empty-alert">
+      <div class="empty-icon">🎯</div>
+      <p>No subjects currently tracked against targets.</p>
+    </div>
+  </div>
+</section>
 
     <!-- AI RECOMMENDATIONS -->
     <section class="recommendations-section">
@@ -273,14 +313,14 @@
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
-  <script>
-    // ==================== AI INSIGHTS WITH UPDATED NAVIGATION ====================
-    console.log('🚀 AI Insights with Updated Navigation loaded!');
+ <script>
+    // ==================== AI INSIGHTS IMPROVED VERSION ====================
+    console.log('🚀 AI Insights loaded!');
 
     // Simple DOM helper
     const el = id => document.getElementById(id);
 
-    // ===== NAVIGATION MANAGEMENT =====
+    // ===== NAVIGATION & THEME FUNCTIONS =====
     function toggleMobileMenu() {
       const mobileSidebar = document.getElementById('mobileSidebar');
       const toggleBtn = document.getElementById('mobileMenuToggle');
@@ -290,54 +330,9 @@
         if (toggleBtn) {
           toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
         }
-        
-        // Add/remove click outside listener
-        if (!mobileSidebar.classList.contains('closed')) {
-          setTimeout(() => {
-            document.addEventListener('click', closeMobileSidebarOnClickOutside);
-          }, 100);
-        } else {
-          document.removeEventListener('click', closeMobileSidebarOnClickOutside);
-        }
       }
     }
 
-    function closeMobileSidebarOnClickOutside(event) {
-      const mobileSidebar = document.getElementById('mobileSidebar');
-      const toggleBtn = document.getElementById('mobileMenuToggle');
-      
-      if (!mobileSidebar || !toggleBtn) return;
-      
-      const isClickInsideSidebar = mobileSidebar.contains(event.target);
-      const isClickOnToggle = toggleBtn.contains(event.target);
-      
-      if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
-        mobileSidebar.classList.add('closed');
-        toggleBtn.textContent = '☰';
-        document.removeEventListener('click', closeMobileSidebarOnClickOutside);
-      }
-    }
-
-    // Auto-close mobile sidebar when navigating
-    function setupMobileSidebarAutoClose() {
-      const mobileSidebarLinks = document.querySelectorAll('.mobile-sidebar a, .mobile-sidebar button');
-      mobileSidebarLinks.forEach(link => {
-        link.addEventListener('click', () => {
-          const mobileSidebar = document.getElementById('mobileSidebar');
-          const toggleBtn = document.getElementById('mobileMenuToggle');
-          
-          if (mobileSidebar && !mobileSidebar.classList.contains('closed')) {
-            mobileSidebar.classList.add('closed');
-            if (toggleBtn) {
-              toggleBtn.textContent = '☰';
-            }
-            document.removeEventListener('click', closeMobileSidebarOnClickOutside);
-          }
-        });
-      });
-    }
-
-    // ===== THEME MANAGEMENT =====
     function toggleDarkMode() {
       const currentTheme = document.documentElement.getAttribute('data-theme');
       const newTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -345,174 +340,156 @@
       localStorage.setItem('themeMode', newTheme);
     }
 
-    function loadTheme() {
-      const theme = localStorage.getItem('themeMode') || 'light';
-      document.documentElement.setAttribute('data-theme', theme);
-    }
-
-    // ===== AUTH MANAGEMENT =====
     function logout() {
       if (window.logout) {
         window.logout();
       } else {
-        console.log('Logout function not available');
-        // Fallback redirect
         window.location.href = './login.html';
       }
     }
 
-    function checkAuth() {
-      const teacher = localStorage.getItem('teacherFullName');
-      if (!teacher) {
-        window.location.href = './login.html';
-        return false;
-      }
-      return true;
-    }
-
-    // ===== DATA MANAGEMENT =====
-    // Use the functions from app.js instead of redefining them
-    function loadRecords() {
-      if (window.loadRecords) {
-        return window.loadRecords();
-      } else {
-        // Fallback
-        try {
-          const data = localStorage.getItem('smartScoresRecords');
-          return data ? JSON.parse(data) : [];
-        } catch (error) {
-          console.error('Error loading records:', error);
-          return [];
-        }
-      }
-    }
-
-    function loadTargets() {
-      if (window.loadTargets) {
-        return window.loadTargets();
-      } else {
-        // Fallback
-        try {
-          const data = localStorage.getItem('smartScoresTargets');
-          return data ? JSON.parse(data) : [];
-        } catch (error) {
-          console.error('Error loading targets:', error);
-          return [];
-        }
-      }
-    }
-
-    // ===== AI INSIGHTS LOGIC =====
+    // ===== AI INSIGHTS MAIN FUNCTION =====
     function analyzePerformance() {
       console.log('🔍 Analyzing performance...');
       
-      if (!checkAuth()) return;
-      
-      const records = loadRecords();
-      const targets = loadTargets();
-
-      // If no records, show empty state
-      if (records.length === 0) {
-        showEmptyState();
+      // Check if user is authenticated
+      const teacher = localStorage.getItem('teacherFullName');
+      if (!teacher) {
+        console.log('User not authenticated');
         return;
       }
-
-      // Use the AI insights functions from app.js
+      
+      // Try to use app.js functions first
       if (window.updateAIInsights) {
         console.log('✅ Using app.js AI insights functions');
         window.updateAIInsights();
       } else {
-        console.log('⚠️ Using fallback analysis - app.js functions not available');
-        // Fallback if app.js functions aren't available
-        fallbackAnalysis(records, targets);
+        console.log('⚠️ Using fallback analysis');
+        performFallbackAnalysis();
       }
     }
 
-    function fallbackAnalysis(records, targets) {
-      // Simple fallback analysis
-      const outstanding = records.filter(record => record.mean >= 80);
-      const needsAttention = records.filter(record => record.mean < 50);
-      
-      el('outstandingCount').textContent = outstanding.length;
-      el('outstandingText').textContent = outstanding.length + ' subjects';
-      el('needsAttention').textContent = needsAttention.length;
-      el('attentionCount').textContent = needsAttention.length + ' alerts';
-      
-      // Calculate overall average
-      const overallAvg = records.reduce((sum, record) => sum + record.mean, 0) / records.length;
-      el('overallAverage').textContent = overallAvg.toFixed(1) + '%';
-      el('recordCount').textContent = records.length + ' records';
-
-      // Simple target calculation
-      let targetsMet = 0;
-      targets.forEach(target => {
-        const matchingRecords = records.filter(record => 
-          record.subject === target.subject && 
-          record.grade === target.grade &&
-          record.mean >= target.score
-        );
-        if (matchingRecords.length > 0) targetsMet++;
-      });
-      
-      el('targetsMet').textContent = targetsMet;
-      el('targetsCount').textContent = targets.length + ' subjects';
-
-      // Update recommendations with fallback data
-      updateFallbackRecommendations(records, targets);
+    function performFallbackAnalysis() {
+      try {
+        // Load data directly from localStorage
+        const recordsData = localStorage.getItem('smartScoresRecords');
+        const targetsData = localStorage.getItem('smartScoresTargets');
+        
+        const records = recordsData ? JSON.parse(recordsData) : [];
+        const targets = targetsData ? JSON.parse(targetsData) : [];
+        
+        console.log(`📊 Found ${records.length} records and ${targets.length} targets`);
+        
+        if (records.length === 0) {
+          showEmptyState();
+          showNoDataMessage();
+          return;
+        }
+        
+        // Calculate basic statistics
+        const overallAvg = records.reduce((sum, record) => sum + record.mean, 0) / records.length;
+        const outstanding = records.filter(record => record.mean >= 80);
+        const needsAttention = records.filter(record => record.mean < 50);
+        
+        // Update summary cards
+        el('overallAverage').textContent = overallAvg.toFixed(1) + '%';
+        el('recordCount').textContent = records.length + ' records';
+        el('outstandingCount').textContent = outstanding.length;
+        el('outstandingText').textContent = outstanding.length + ' subjects';
+        el('needsAttention').textContent = needsAttention.length;
+        el('attentionCount').textContent = needsAttention.length + ' alerts';
+        
+        // Calculate targets met
+        let targetsMet = 0;
+        targets.forEach(target => {
+          const hasMatchingRecord = records.some(record => 
+            record.subject === target.subject && 
+            record.grade === target.grade &&
+            record.mean >= target.score
+          );
+          if (hasMatchingRecord) targetsMet++;
+        });
+        
+        el('targetsMet').textContent = targetsMet;
+        el('targetsCount').textContent = targets.length + ' subjects';
+        
+        // Generate recommendations
+        generateRecommendations(records, targets);
+        
+        // Update alerts
+        updateAlerts(records, targets);
+        
+      } catch (error) {
+        console.error('Error in analysis:', error);
+        showErrorMessage();
+      }
     }
 
-    function updateFallbackRecommendations(records, targets) {
+    function generateRecommendations(records, targets) {
       const recommendations = [];
       
-      // Check for low performing subjects
-      const critical = records.filter(record => record.mean < 40);
-      if (critical.length > 0) {
+      // Check for low performance
+      const lowPerformers = records.filter(record => record.mean < 40);
+      if (lowPerformers.length > 0) {
         recommendations.push({
           title: 'Address Low Performance',
-          message: `${critical.length} subjects are performing below 40%. Consider targeted interventions.`
+          message: `${lowPerformers.length} subjects are below 40%. Consider targeted interventions.`,
+          subjects: lowPerformers.map(r => r.subject).join(', ')
         });
       }
       
       // Check for outstanding performance
-      const positive = records.filter(record => record.mean >= 80);
-      if (positive.length > 0) {
+      const highPerformers = records.filter(record => record.mean >= 80);
+      if (highPerformers.length > 0) {
         recommendations.push({
-          title: 'Leverage High Performers',
-          message: `${positive.length} subjects are excelling. Consider sharing best practices.`
+          title: 'Leverage High Performers', 
+          message: `${highPerformers.length} subjects are excelling. Consider sharing best practices.`,
+          subjects: highPerformers.map(r => r.subject).join(', ')
         });
       }
       
-      // Check for targets not met
-      let belowTargetCount = 0;
-      targets.forEach(target => {
-        const matchingRecords = records.filter(record => 
-          record.subject === target.subject && 
-          record.grade === target.grade &&
-          record.mean < target.score
-        );
-        if (matchingRecords.length > 0) belowTargetCount++;
-      });
-      
-      if (belowTargetCount > 0) {
+      // Check target performance
+      if (targets.length > 0) {
+        let belowTargetCount = 0;
+        targets.forEach(target => {
+          const matchingRecords = records.filter(record => 
+            record.subject === target.subject && 
+            record.grade === target.grade
+          );
+          const bestScore = matchingRecords.length > 0 ? 
+            Math.max(...matchingRecords.map(r => r.mean)) : 0;
+          
+          if (bestScore < target.score) belowTargetCount++;
+        });
+        
+        if (belowTargetCount > 0) {
+          recommendations.push({
+            title: 'Targets Not Met',
+            message: `${belowTargetCount} subjects are below target scores. Review teaching strategies.`
+          });
+        }
+      } else {
         recommendations.push({
-          title: 'Targets Not Met',
-          message: `${belowTargetCount} subjects are below their target scores. Review teaching strategies.`
+          title: 'Set Performance Targets',
+          message: 'Set targets to get more specific recommendations and track progress effectively.'
         });
       }
-
-      updateRecommendations(recommendations);
+      
+      // Update UI
+      updateRecommendationsUI(recommendations);
     }
 
-    function updateRecommendations(recommendations) {
+    function updateRecommendationsUI(recommendations) {
       const container = el('aiRecommendations');
+      const badge = el('recommendationBadge');
       
-      el('recommendationBadge').textContent = recommendations.length + ' recommendations';
+      badge.textContent = recommendations.length + ' recommendations';
       
       if (recommendations.length === 0) {
         container.innerHTML = `
           <div class="empty-recommendation">
             <div class="empty-icon">🤖</div>
-            <p>Add more data and set targets to get AI recommendations.</p>
+            <p>All systems optimal! Continue monitoring performance.</p>
           </div>
         `;
         return;
@@ -524,7 +501,53 @@
           <div class="recommendation-content">
             <h4>${rec.title}</h4>
             <p>${rec.message}</p>
+            ${rec.subjects ? `<p><strong>Subjects:</strong> ${rec.subjects}</p>` : ''}
           </div>
+        </div>
+      `).join('');
+    }
+
+    function updateAlerts(records, targets) {
+      // Update critical alerts
+      const critical = records.filter(record => record.mean < 40);
+      updateAlertSection('criticalAlerts', critical, 'critical', 
+        'No critical alerts! All subjects are performing well.');
+      el('criticalBadge').textContent = critical.length + ' critical';
+      
+      // Update positive alerts  
+      const positive = records.filter(record => record.mean >= 80);
+      updateAlertSection('positiveAlerts', positive, 'positive',
+        'No outstanding performance alerts yet.');
+      el('positiveBadge').textContent = positive.length + ' outstanding';
+      
+      // Update on-track alerts (simplified)
+      const onTrack = records.filter(record => record.mean >= 50 && record.mean < 80);
+      updateAlertSection('onTrackAlerts', onTrack, 'info',
+        'No subjects currently in the on-track range.');
+      el('onTrackBadge').textContent = onTrack.length + ' on track';
+    }
+
+    function updateAlertSection(containerId, records, type, emptyMessage) {
+      const container = el(containerId);
+      
+      if (records.length === 0) {
+        container.innerHTML = `
+          <div class="empty-alert">
+            <div class="empty-icon">${type === 'critical' ? '✅' : '📊'}</div>
+            <p>${emptyMessage}</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = records.map(record => `
+        <div class="alert-item ${type}">
+          <div class="alert-icon">${type === 'critical' ? '⚠️' : '🎉'}</div>
+          <div class="alert-content">
+            <h4>${record.subject} - ${type === 'critical' ? 'Needs Attention' : 'Outstanding!'}</h4>
+            <p>Grade ${record.grade}, ${record.stream} - ${record.mean.toFixed(1)}%</p>
+          </div>
+          <span class="alert-tag">${type === 'critical' ? 'Critical' : 'Excellent'}</span>
         </div>
       `).join('');
     }
@@ -540,6 +563,27 @@
       el('outstandingText').textContent = '0 subjects';
     }
 
+    function showNoDataMessage() {
+      const container = el('aiRecommendations');
+      container.innerHTML = `
+        <div class="empty-recommendation">
+          <div class="empty-icon">📊</div>
+          <p>No data available yet. Start by entering scores in the Data Entry page.</p>
+          <a href="./data-entry.html" class="btn btn-primary" style="margin-top: 15px;">Go to Data Entry</a>
+        </div>
+      `;
+    }
+
+    function showErrorMessage() {
+      const container = el('aiRecommendations');
+      container.innerHTML = `
+        <div class="empty-recommendation">
+          <div class="empty-icon">❌</div>
+          <p>Error loading data. Please refresh the page or check console for details.</p>
+        </div>
+      `;
+    }
+
     function refreshInsights() {
       console.log('🔄 Refreshing insights...');
       analyzePerformance();
@@ -547,52 +591,47 @@
     }
 
     function showNotification(message) {
-      if (window.showAlert) {
-        window.showAlert(message, 'success');
-      } else {
-        // Fallback notification
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-          position: fixed;
-          top: 100px;
-          right: 20px;
-          background: var(--primary);
-          color: white;
-          padding: 12px 20px;
-          border-radius: 8px;
-          z-index: 1000;
-          font-weight: 600;
-          box-shadow: var(--shadow);
-        `;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-          notification.remove();
-        }, 3000);
-      }
+      // Simple notification
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: var(--primary);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 1000;
+        font-weight: 600;
+        box-shadow: var(--shadow);
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
     }
 
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('🎯 AI Insights with Updated Navigation initialized!');
+      console.log('🎯 AI Insights initialized!');
       
       // Load theme
-      loadTheme();
+      const theme = localStorage.getItem('themeMode') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
       
-      // Setup mobile navigation
-      setupMobileSidebarAutoClose();
-      
-      // Update teacher name using consistent storage keys
+      // Update teacher name
       const teacherNameElements = document.querySelectorAll('.teacher-name, #currentTeacher');
       const teacherFullName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
-      
       teacherNameElements.forEach(element => {
         element.textContent = teacherFullName;
       });
       
-      // Run analysis
-      analyzePerformance();
+      // Run analysis after a short delay to ensure DOM is ready
+      setTimeout(() => {
+        analyzePerformance();
+      }, 100);
     });
 
     // Make functions available globally
@@ -600,6 +639,7 @@
     window.toggleDarkMode = toggleDarkMode;
     window.logout = logout;
     window.refreshInsights = refreshInsights;
-  </script>
+    window.analyzePerformance = analyzePerformance;
+</script>
 </body>
 </html>
