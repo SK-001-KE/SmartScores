@@ -2690,6 +2690,9 @@ window.formatRubricBadge = formatRubricBadge;
 window.updateSyncStatus = updateSyncStatus;
 window.migrateExistingData = migrateExistingData;
 
+// Add this to app.js to ensure the cumulative averages function is available
+window.renderCumulativeAverages = renderCumulativeAverages;
+
 // Debug: Log available functions
 console.log('✅ app.js loaded - Global functions exported:', Object.keys(window).filter(key => 
     typeof window[key] === 'function' && 
