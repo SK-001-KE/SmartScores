@@ -422,40 +422,63 @@ const renderRecentRecords = () => {
         `;
         return;
     }
-    
-    const recentRecords = records
-        .sort((a, b) => new Date(b.timestamp || b.id) - new Date(a.timestamp || a.id))
-        .slice(0, 5);
-    
-    container.innerHTML = `
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Subject</th>
-                    <th>Grade</th>
-                    <th>Stream</th>
-                    <th>Term</th>
-                    <th>Exam</th>
-                    <th>Mean Score</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${recentRecords.map(record => `
+   // Update the renderRecentRecordsFallback function in index.html
+function renderRecentRecordsFallback() {
+    try {
+        const container = document.getElementById('recentRecordsTable');
+        if (!container) return;
+        
+        const records = JSON.parse(localStorage.getItem('smartScoresRecords') || '[]');
+        
+        if (records.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <p>No records yet. Start by entering scores in the Data Entry page.</p>
+                    <button onclick="location.href='./data-entry.html'" class="btn-action">Add First Record</button>
+                </div>
+            `;
+            return;
+        }
+        
+        const recentRecords = records
+            .sort((a, b) => new Date(b.timestamp || b.id) - new Date(a.timestamp || a.id))
+            .slice(0, 5);
+        
+        container.innerHTML = `
+            <table class="data-table">
+                <thead>
                     <tr>
-                        <td>${record.subject}</td>
-                        <td>${record.grade}</td>
-                        <td>${record.stream}</td>
-                        <td>${record.term}</td>
-                        <td>${record.examType}</td>
-                        <td style="font-weight: bold; color: ${getColorForScore(record.mean)}">
-                            ${record.mean.toFixed(1)}%
-                        </td>
+                        <th>Subject</th>
+                        <th>Grade</th>
+                        <th>Stream</th>
+                        <th>Term</th>
+                        <th>Exam</th>
+                        <th>Mean Score</th>
                     </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
-};
+                </thead>
+                <tbody>
+                    ${recentRecords.map(record => `
+                        <tr>
+                            <td>${record.subject}</td>
+                            <td>${record.grade}</td>
+                            <td>${record.stream}</td>
+                            <td>${record.term}</td>
+                            <td>${record.examType}</td>
+                            <td style="font-weight: bold; color: ${getColorForScore(record.mean)}">
+                                ${record.mean.toFixed(1)}%
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (error) {
+        console.error('Error loading recent records:', error);
+        showError('recentRecordsTable', 'Error loading recent records');
+    }
+}
+    
+  
 
 // Enhanced grouping function with deviation calculation
 const groupLearnerScores = (scores) => {
