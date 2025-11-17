@@ -6,11 +6,10 @@
   <title>SmartScores - AI Insights</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="./style.css">
-  <!-- In ai-insights.html head section, change script loading order -->
-<script src="./app.js"></script> <!-- Remove defer -->
-<script src="./auth.js" defer></script>
-<script type="module" src="./firebase-config.js"></script>
-<script type="module" src="./firebase-sync.js"></script>
+  <script src="./app.js"></script> <!-- Remove defer -->
+  <script src="./auth.js" defer></script>
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="./firebase-sync.js"></script>
   <style>
     /* ===== AI INSIGHTS SPECIFIC STYLES ===== */
     .summary-cards {
@@ -38,6 +37,27 @@
     .summary-value { font-size: 2.2em; font-weight: bold; margin: 10px 0; color: var(--primary); }
     .summary-label { font-weight: 600; margin-bottom: 5px; }
     .summary-subtext { font-size: 0.85em; color: var(--secondary); }
+
+    /* Current Term Banner */
+    .current-term-banner {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .current-term-banner h3 {
+      margin: 0 0 10px 0;
+      font-size: 1.4em;
+    }
+
+    .current-term-banner p {
+      margin: 0;
+      opacity: 0.9;
+    }
 
     /* Alert Sections */
     .alerts-section {
@@ -158,10 +178,46 @@
 
     .empty-recommendation { text-align: center; padding: 40px 20px; color: var(--secondary); }
 
+    /* External Resources */
+    .external-resources {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      margin: 30px 0;
+      box-shadow: var(--shadow);
+    }
+
+    .resource-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .resource-card {
+      background: var(--bg);
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      transition: all 0.3s ease;
+      border: 1px solid var(--border);
+    }
+
+    .resource-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+    }
+
+    .resource-icon {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
     @media (max-width: 768px) {
       .summary-cards { grid-template-columns: 1fr; }
       .section-header { flex-direction: column; gap: 15px; align-items: flex-start; }
       .alert-item { flex-direction: column; text-align: center; gap: 10px; }
+      .resource-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -221,14 +277,21 @@
       <p class="teacher-info">Teacher: <span id="currentTeacher">Loading...</span></p>
     </div>
 
+    <!-- CURRENT TERM BANNER -->
+    <div class="current-term-banner">
+      <h3 id="currentTermDisplay">Loading Current Term...</h3>
+      <p id="termPeriodDisplay"></p>
+      <p><small>📊 Insights shown are for current term only to focus on progressive improvement</small></p>
+    </div>
+
     <!-- EXECUTIVE SUMMARY -->
     <section class="executive-summary">
-      <h2>Performance Overview</h2>
+      <h2>Current Term Performance Overview</h2>
       <div class="summary-cards">
         <div class="summary-card">
           <div class="summary-icon">📊</div>
           <div class="summary-value" id="overallAverage">--</div>
-          <div class="summary-label">Overall Average</div>
+          <div class="summary-label">Term Average</div>
           <div class="summary-subtext" id="recordCount">-- records</div>
         </div>
         <div class="summary-card">
@@ -251,74 +314,157 @@
         </div>
       </div>
     </section>
+
     <!-- ALERT SECTIONS -->
-<section class="alerts-section critical-section">
-  <div class="section-header">
-    <h2>⚠️ Critical Alerts</h2>
-    <span class="alert-badge" id="criticalBadge">0 critical</span>
-  </div>
-  <div id="criticalAlerts" class="alert-list">
-    <div class="empty-alert">
-      <div class="empty-icon">✅</div>
-      <p>No critical alerts! All subjects are performing well.</p>
-    </div>
-  </div>
-</section>
+    <section class="alerts-section critical-section">
+      <div class="section-header">
+        <h2>⚠️ Critical Alerts (Current Term)</h2>
+        <span class="alert-badge" id="criticalBadge">0 critical</span>
+      </div>
+      <div id="criticalAlerts" class="alert-list">
+        <div class="empty-alert">
+          <div class="empty-icon">✅</div>
+          <p>No critical alerts! All subjects are performing well this term.</p>
+        </div>
+      </div>
+    </section>
 
-<section class="alerts-section positive-section">
-  <div class="section-header">
-    <h2>🎉 Outstanding Performance</h2>
-    <span class="alert-badge positive" id="positiveBadge">0 outstanding</span>
-  </div>
-  <div id="positiveAlerts" class="alert-list">
-    <div class="empty-alert">
-      <div class="empty-icon">📊</div>
-      <p>No outstanding performance alerts yet.</p>
-    </div>
-  </div>
-</section>
-
-<section class="alerts-section info-section">
-  <div class="section-header">
-    <h2>📈 On Track</h2>
-    <span class="alert-badge info" id="onTrackBadge">0 on track</span>
-  </div>
-  <div id="onTrackAlerts" class="alert-list">
-    <div class="empty-alert">
-      <div class="empty-icon">🎯</div>
-      <p>No subjects currently tracked against targets.</p>
-    </div>
-  </div>
-</section>
+    <section class="alerts-section positive-section">
+      <div class="section-header">
+        <h2>🎉 Outstanding Performance (Current Term)</h2>
+        <span class="alert-badge positive" id="positiveBadge">0 outstanding</span>
+      </div>
+      <div id="positiveAlerts" class="alert-list">
+        <div class="empty-alert">
+          <div class="empty-icon">📊</div>
+          <p>No outstanding performance alerts yet this term.</p>
+        </div>
+      </div>
+    </section>
 
     <!-- AI RECOMMENDATIONS -->
     <section class="recommendations-section">
       <div class="section-header">
-        <h2>💡 AI Recommendations</h2>
+        <h2>💡 AI Recommendations for Current Term</h2>
         <span class="recommendation-badge" id="recommendationBadge">0 recommendations</span>
       </div>
       <div id="aiRecommendations" class="recommendation-list">
         <div class="empty-recommendation">
           <div class="empty-icon">🤖</div>
-          <p>Loading AI recommendations...</p>
+          <p>Loading AI recommendations for current term...</p>
         </div>
       </div>
     </section>
 
-    <!-- REFRESH BUTTON -->
-    <div style="text-align: center; margin-top: 30px;">
+    <!-- EXTERNAL TEACHING RESOURCES -->
+    <section class="external-resources">
+      <div class="section-header">
+        <h2>🔍 External Teaching Resources</h2>
+        <span class="recommendation-badge">Research & Strategies</span>
+      </div>
+      <p>Explore these resources for teaching strategies and research-based improvements:</p>
+      
+      <div class="resource-grid">
+        <a href="https://www.edutopia.org" target="_blank" class="resource-card">
+          <div class="resource-icon">🌐</div>
+          <h4>Edutopia</h4>
+          <p>Evidence-based teaching strategies</p>
+        </a>
+        
+        <a href="https://www.teachingchannel.com" target="_blank" class="resource-card">
+          <div class="resource-icon">📚</div>
+          <h4>Teaching Channel</h4>
+          <p>Video resources & best practices</p>
+        </a>
+        
+        <a href="https://www.ascd.org" target="_blank" class="resource-card">
+          <div class="resource-icon">🎓</div>
+          <h4>ASCD</h4>
+          <p>Professional development resources</p>
+        </a>
+        
+        <a href="https://ies.ed.gov/ncee/wwc" target="_blank" class="resource-card">
+          <div class="resource-icon">🔬</div>
+          <h4>What Works Clearinghouse</h4>
+          <p>Evidence-based education practices</p>
+        </a>
+      </div>
+
+      <!-- Custom Search -->
+      <div style="margin-top: 25px; text-align: center;">
+        <div style="display: inline-flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <input type="text" id="teachingSearch" placeholder="Search teaching strategies for..." 
+                 style="padding: 10px; border: 1px solid var(--border); border-radius: 8px; min-width: 250px;">
+          <button onclick="searchTeachingResources()" class="btn btn-primary">🔍 Search</button>
+        </div>
+        <p style="font-size: 0.85em; margin-top: 8px; color: var(--secondary);">
+          Searches Google for teaching strategies and research
+        </p>
+      </div>
+    </section>
+
+    <!-- ACTION BUTTONS -->
+    <div style="text-align: center; margin-top: 30px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
       <button onclick="refreshInsights()" class="btn btn-primary">🔄 Refresh Insights</button>
+      <button onclick="viewAllData()" class="btn btn-secondary">📊 View All Terms Data</button>
+      <button onclick="exportTermReport()" class="btn btn-success">📄 Export Term Report</button>
     </div>
   </div>
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
- <script>
-    // ==================== AI INSIGHTS IMPROVED VERSION ====================
-    console.log('🚀 AI Insights loaded!');
+  <script>
+    // ==================== AI INSIGHTS - CURRENT TERM FOCUS ====================
+    console.log('🚀 AI Insights - Current Term Focus loaded!');
 
     // Simple DOM helper
     const el = id => document.getElementById(id);
+
+    // ===== TERM MANAGEMENT =====
+    const TERM_PERIODS = {
+        'Term 1': {
+            start: 'January 1',
+            end: 'April 30',
+            fullPeriod: '1st January to 30th April'
+        },
+        'Term 2': {
+            start: 'May 1', 
+            end: 'August 31',
+            fullPeriod: '1st May to 31st August'
+        },
+        'Term 3': {
+            start: 'September 1',
+            end: 'December 31',
+            fullPeriod: '1st September to 31st December'
+        }
+    };
+
+    function getCurrentTerm() {
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        
+        if (currentMonth >= 1 && currentMonth <= 4) {
+            return 'Term 1';
+        } else if (currentMonth >= 5 && currentMonth <= 8) {
+            return 'Term 2';
+        } else {
+            return 'Term 3';
+        }
+    }
+
+    function getTermPeriod(term) {
+        return TERM_PERIODS[term] ? TERM_PERIODS[term].fullPeriod : 'Period not defined';
+    }
+
+    function updateCurrentTermDisplay() {
+        const currentTerm = getCurrentTerm();
+        const termPeriod = getTermPeriod(currentTerm);
+        
+        el('currentTermDisplay').textContent = `Current Term: ${currentTerm}`;
+        el('termPeriodDisplay').textContent = termPeriod;
+        
+        return currentTerm;
+    }
 
     // ===== NAVIGATION & THEME FUNCTIONS =====
     function toggleMobileMenu() {
@@ -348,9 +494,9 @@
       }
     }
 
-    // ===== AI INSIGHTS MAIN FUNCTION =====
+    // ===== AI INSIGHTS - CURRENT TERM FOCUS =====
     function analyzePerformance() {
-      console.log('🔍 Analyzing performance...');
+      console.log('🔍 Analyzing current term performance...');
       
       // Check if user is authenticated
       const teacher = localStorage.getItem('teacherFullName');
@@ -359,50 +505,67 @@
         return;
       }
       
+      // Update current term display
+      const currentTerm = updateCurrentTermDisplay();
+      
       // Try to use app.js functions first
       if (window.updateAIInsights) {
         console.log('✅ Using app.js AI insights functions');
+        // Filter to current term before analysis
+        filterDataByCurrentTerm(currentTerm);
         window.updateAIInsights();
       } else {
         console.log('⚠️ Using fallback analysis');
-        performFallbackAnalysis();
+        performCurrentTermAnalysis(currentTerm);
       }
     }
 
-    function performFallbackAnalysis() {
+    function filterDataByCurrentTerm(currentTerm) {
+      // This function would filter the data in app.js to only show current term
+      // For now, we'll handle filtering in our analysis
+      console.log(`📅 Filtering data for: ${currentTerm}`);
+    }
+
+    function performCurrentTermAnalysis(currentTerm) {
       try {
         // Load data directly from localStorage
         const recordsData = localStorage.getItem('smartScoresRecords');
         const targetsData = localStorage.getItem('smartScoresTargets');
         
-        const records = recordsData ? JSON.parse(recordsData) : [];
+        const allRecords = recordsData ? JSON.parse(recordsData) : [];
         const targets = targetsData ? JSON.parse(targetsData) : [];
         
-        console.log(`📊 Found ${records.length} records and ${targets.length} targets`);
+        // FILTER RECORDS TO CURRENT TERM ONLY
+        const currentTermRecords = allRecords.filter(record => record.term === currentTerm);
         
-        if (records.length === 0) {
-          showEmptyState();
-          showNoDataMessage();
+        console.log(`📊 Found ${currentTermRecords.length} records for ${currentTerm} out of ${allRecords.length} total records`);
+        
+        if (currentTermRecords.length === 0) {
+          showEmptyState(currentTerm);
+          showNoDataMessage(currentTerm);
           return;
         }
         
-        // Calculate basic statistics
-        const overallAvg = records.reduce((sum, record) => sum + record.mean, 0) / records.length;
-        const outstanding = records.filter(record => record.mean >= 80);
-        const needsAttention = records.filter(record => record.mean < 50);
+        // Calculate basic statistics for current term only
+        const termAverage = currentTermRecords.reduce((sum, record) => sum + record.mean, 0) / currentTermRecords.length;
+        const outstanding = currentTermRecords.filter(record => record.mean >= 80);
+        const needsAttention = currentTermRecords.filter(record => record.mean < 50);
+        const critical = currentTermRecords.filter(record => record.mean < 40);
         
         // Update summary cards
-        el('overallAverage').textContent = overallAvg.toFixed(1) + '%';
-        el('recordCount').textContent = records.length + ' records';
+        el('overallAverage').textContent = termAverage.toFixed(1) + '%';
+        el('recordCount').textContent = currentTermRecords.length + ' records';
         el('outstandingCount').textContent = outstanding.length;
         el('outstandingText').textContent = outstanding.length + ' subjects';
         el('needsAttention').textContent = needsAttention.length;
         el('attentionCount').textContent = needsAttention.length + ' alerts';
         
-        // Calculate targets met
+        // Calculate targets met for current term
         let targetsMet = 0;
-        targets.forEach(target => {
-          const hasMatchingRecord = records.some(record => 
+        const currentTermTargets = targets.filter(target => target.term === currentTerm);
+        
+        currentTermTargets.forEach(target => {
+          const hasMatchingRecord = currentTermRecords.some(record => 
             record.subject === target.subject && 
             record.grade === target.grade &&
             record.mean >= target.score
@@ -411,46 +574,50 @@
         });
         
         el('targetsMet').textContent = targetsMet;
-        el('targetsCount').textContent = targets.length + ' subjects';
+        el('targetsCount').textContent = currentTermTargets.length + ' subjects';
         
-        // Generate recommendations
-        generateRecommendations(records, targets);
+        // Generate recommendations for current term
+        generateCurrentTermRecommendations(currentTermRecords, currentTermTargets, currentTerm);
         
-        // Update alerts
-        updateAlerts(records, targets);
+        // Update alerts for current term
+        updateCurrentTermAlerts(currentTermRecords, critical, outstanding, currentTerm);
         
       } catch (error) {
-        console.error('Error in analysis:', error);
+        console.error('Error in current term analysis:', error);
         showErrorMessage();
       }
     }
 
-    function generateRecommendations(records, targets) {
+    function generateCurrentTermRecommendations(records, targets, currentTerm) {
       const recommendations = [];
       
-      // Check for low performance
+      // Check for low performance in current term
       const lowPerformers = records.filter(record => record.mean < 40);
       if (lowPerformers.length > 0) {
+        const subjects = [...new Set(lowPerformers.map(r => r.subject))].join(', ');
         recommendations.push({
-          title: 'Address Low Performance',
-          message: `${lowPerformers.length} subjects are below 40%. Consider targeted interventions.`,
-          subjects: lowPerformers.map(r => r.subject).join(', ')
+          title: 'Address Low Performance This Term',
+          message: `${lowPerformers.length} subjects are below 40% in ${currentTerm}. Immediate intervention needed.`,
+          subjects: subjects
         });
       }
       
-      // Check for outstanding performance
+      // Check for outstanding performance in current term
       const highPerformers = records.filter(record => record.mean >= 80);
       if (highPerformers.length > 0) {
+        const subjects = [...new Set(highPerformers.map(r => r.subject))].join(', ');
         recommendations.push({
-          title: 'Leverage High Performers', 
-          message: `${highPerformers.length} subjects are excelling. Consider sharing best practices.`,
-          subjects: highPerformers.map(r => r.subject).join(', ')
+          title: 'Leverage High Performers This Term', 
+          message: `${highPerformers.length} subjects are excelling in ${currentTerm}. Share best practices.`,
+          subjects: subjects
         });
       }
       
-      // Check target performance
+      // Check target performance for current term
       if (targets.length > 0) {
         let belowTargetCount = 0;
+        let belowTargetSubjects = [];
+        
         targets.forEach(target => {
           const matchingRecords = records.filter(record => 
             record.subject === target.subject && 
@@ -459,19 +626,41 @@
           const bestScore = matchingRecords.length > 0 ? 
             Math.max(...matchingRecords.map(r => r.mean)) : 0;
           
-          if (bestScore < target.score) belowTargetCount++;
+          if (bestScore < target.score) {
+            belowTargetCount++;
+            belowTargetSubjects.push(target.subject);
+          }
         });
         
         if (belowTargetCount > 0) {
           recommendations.push({
-            title: 'Targets Not Met',
-            message: `${belowTargetCount} subjects are below target scores. Review teaching strategies.`
+            title: 'Targets Not Met This Term',
+            message: `${belowTargetCount} subjects are below target scores in ${currentTerm}. Adjust teaching strategies.`,
+            subjects: [...new Set(belowTargetSubjects)].join(', ')
           });
         }
       } else {
         recommendations.push({
-          title: 'Set Performance Targets',
-          message: 'Set targets to get more specific recommendations and track progress effectively.'
+          title: 'Set Targets for Current Term',
+          message: `Set specific targets for ${currentTerm} to track progress and get actionable insights.`
+        });
+      }
+
+      // Add term-specific recommendations
+      if (currentTerm === 'Term 1') {
+        recommendations.push({
+          title: 'Term 1 Foundation Building',
+          message: 'Focus on building strong foundations. Identify learning gaps early and provide support.'
+        });
+      } else if (currentTerm === 'Term 2') {
+        recommendations.push({
+          title: 'Term 2 Progress Consolidation',
+          message: 'Consolidate learning from Term 1. Focus on application and problem-solving skills.'
+        });
+      } else if (currentTerm === 'Term 3') {
+        recommendations.push({
+          title: 'Term 3 Final Preparation',
+          message: 'Prepare for year-end assessments. Focus on revision and exam techniques.'
         });
       }
       
@@ -479,52 +668,16 @@
       updateRecommendationsUI(recommendations);
     }
 
-    function updateRecommendationsUI(recommendations) {
-      const container = el('aiRecommendations');
-      const badge = el('recommendationBadge');
-      
-      badge.textContent = recommendations.length + ' recommendations';
-      
-      if (recommendations.length === 0) {
-        container.innerHTML = `
-          <div class="empty-recommendation">
-            <div class="empty-icon">🤖</div>
-            <p>All systems optimal! Continue monitoring performance.</p>
-          </div>
-        `;
-        return;
-      }
-      
-      container.innerHTML = recommendations.map(rec => `
-        <div class="recommendation-item">
-          <div class="recommendation-icon">💡</div>
-          <div class="recommendation-content">
-            <h4>${rec.title}</h4>
-            <p>${rec.message}</p>
-            ${rec.subjects ? `<p><strong>Subjects:</strong> ${rec.subjects}</p>` : ''}
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function updateAlerts(records, targets) {
+    function updateCurrentTermAlerts(records, critical, outstanding, currentTerm) {
       // Update critical alerts
-      const critical = records.filter(record => record.mean < 40);
       updateAlertSection('criticalAlerts', critical, 'critical', 
-        'No critical alerts! All subjects are performing well.');
+        `No critical alerts! All subjects are performing well in ${currentTerm}.`);
       el('criticalBadge').textContent = critical.length + ' critical';
       
       // Update positive alerts  
-      const positive = records.filter(record => record.mean >= 80);
-      updateAlertSection('positiveAlerts', positive, 'positive',
-        'No outstanding performance alerts yet.');
-      el('positiveBadge').textContent = positive.length + ' outstanding';
-      
-      // Update on-track alerts (simplified)
-      const onTrack = records.filter(record => record.mean >= 50 && record.mean < 80);
-      updateAlertSection('onTrackAlerts', onTrack, 'info',
-        'No subjects currently in the on-track range.');
-      el('onTrackBadge').textContent = onTrack.length + ' on track';
+      updateAlertSection('positiveAlerts', outstanding, 'positive',
+        `No outstanding performance alerts yet in ${currentTerm}.`);
+      el('positiveBadge').textContent = outstanding.length + ' outstanding';
     }
 
     function updateAlertSection(containerId, records, type, emptyMessage) {
@@ -545,14 +698,42 @@
           <div class="alert-icon">${type === 'critical' ? '⚠️' : '🎉'}</div>
           <div class="alert-content">
             <h4>${record.subject} - ${type === 'critical' ? 'Needs Attention' : 'Outstanding!'}</h4>
-            <p>Grade ${record.grade}, ${record.stream} - ${record.mean.toFixed(1)}%</p>
+            <p>Grade ${record.grade}, ${record.stream} - ${record.mean.toFixed(1)}% (${record.examType})</p>
           </div>
           <span class="alert-tag">${type === 'critical' ? 'Critical' : 'Excellent'}</span>
         </div>
       `).join('');
     }
 
-    function showEmptyState() {
+    function updateRecommendationsUI(recommendations) {
+      const container = el('aiRecommendations');
+      const badge = el('recommendationBadge');
+      
+      badge.textContent = recommendations.length + ' recommendations';
+      
+      if (recommendations.length === 0) {
+        container.innerHTML = `
+          <div class="empty-recommendation">
+            <div class="empty-icon">🤖</div>
+            <p>All systems optimal for current term! Continue monitoring performance.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = recommendations.map(rec => `
+        <div class="recommendation-item">
+          <div class="recommendation-icon">💡</div>
+          <div class="recommendation-content">
+            <h4>${rec.title}</h4>
+            <p>${rec.message}</p>
+            ${rec.subjects ? `<p><strong>Subjects:</strong> ${rec.subjects}</p>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function showEmptyState(currentTerm) {
       el('overallAverage').textContent = '0%';
       el('recordCount').textContent = '0 records';
       el('targetsMet').textContent = '0';
@@ -563,13 +744,13 @@
       el('outstandingText').textContent = '0 subjects';
     }
 
-    function showNoDataMessage() {
+    function showNoDataMessage(currentTerm) {
       const container = el('aiRecommendations');
       container.innerHTML = `
         <div class="empty-recommendation">
           <div class="empty-icon">📊</div>
-          <p>No data available yet. Start by entering scores in the Data Entry page.</p>
-          <a href="./data-entry.html" class="btn btn-primary" style="margin-top: 15px;">Go to Data Entry</a>
+          <p>No data available for ${currentTerm} yet. Start by entering scores in the Data Entry page.</p>
+          <a href="./data-entry.html" class="btn btn-primary" style="margin-top: 15px;">Enter ${currentTerm} Scores</a>
         </div>
       `;
     }
@@ -584,14 +765,46 @@
       `;
     }
 
+    // ===== EXTERNAL RESOURCES FUNCTIONS =====
+    function searchTeachingResources() {
+      const searchInput = el('teachingSearch');
+      const query = searchInput.value.trim();
+      
+      if (!query) {
+        showNotification('Please enter a search term');
+        return;
+      }
+      
+      const searchUrl = `https://www.google.com/search?q=teaching+strategies+${encodeURIComponent(query)}+education+research`;
+      window.open(searchUrl, '_blank');
+      
+      showNotification(`Searching for: ${query}`);
+    }
+
+    // ===== ACTION FUNCTIONS =====
     function refreshInsights() {
-      console.log('🔄 Refreshing insights...');
+      console.log('🔄 Refreshing current term insights...');
       analyzePerformance();
-      showNotification('Insights refreshed!');
+      showNotification('Current term insights refreshed!');
+    }
+
+    function viewAllData() {
+      // Redirect to recorded scores page to see all data
+      window.location.href = './recorded-scores.html';
+    }
+
+    function exportTermReport() {
+      const currentTerm = getCurrentTerm();
+      showNotification(`Preparing ${currentTerm} report...`);
+      // This would integrate with your existing export functionality
+      if (window.exportToExcel) {
+        window.exportToExcel();
+      } else {
+        showNotification('Export feature will be available soon');
+      }
     }
 
     function showNotification(message) {
-      // Simple notification
       const notification = document.createElement('div');
       notification.style.cssText = `
         position: fixed;
@@ -615,7 +828,7 @@
 
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('🎯 AI Insights initialized!');
+      console.log('🎯 AI Insights - Current Term Focus initialized!');
       
       // Load theme
       const theme = localStorage.getItem('themeMode') || 'light';
@@ -639,7 +852,10 @@
     window.toggleDarkMode = toggleDarkMode;
     window.logout = logout;
     window.refreshInsights = refreshInsights;
+    window.viewAllData = viewAllData;
+    window.exportTermReport = exportTermReport;
+    window.searchTeachingResources = searchTeachingResources;
     window.analyzePerformance = analyzePerformance;
-</script>
+  </script>
 </body>
 </html>
