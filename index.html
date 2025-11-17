@@ -12,9 +12,6 @@
   <script src="./auth.js" defer></script>
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./firebase-sync.js"></script>
-  <!-- Add these for export functionality -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   
   <style>
     .card-loading {
@@ -104,10 +101,10 @@
     </div>
     
     <div class="nav-user">
-  <span id="teacherName" class="teacher-name">Teacher</span>
-  <!-- Logout button will be hidden on mobile via CSS -->
-  <button onclick="logout()" class="btn btn-danger btn-small mobile-logout">🚪 Logout</button>
-</div>
+      <span id="teacherName" class="teacher-name">Teacher</span>
+      <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
+    </div>
+  </nav>
 
   <!-- MOBILE MENU TOGGLE -->
   <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
