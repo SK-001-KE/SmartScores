@@ -12,7 +12,7 @@
   <script src="./auth.js" defer></script>
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./firebase-sync.js"></script>
-  <style>
+ <style>
     .progress-overview {
       margin: 25px 0;
     }
@@ -131,24 +131,44 @@
       align-items: center;
     }
 
-    /* Mobile Responsive Cards */
+    /* Mobile Responsive Cards - IMPROVED */
     .dashboard-cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
       margin: 20px 0;
     }
 
     .dashboard-card {
       background: var(--card);
-      padding: 25px;
+      padding: 20px;
       border-radius: 12px;
       box-shadow: var(--shadow);
       text-align: center;
-      min-height: 120px;
+      min-height: 110px;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      break-inside: avoid;
+    }
+
+    .dashboard-card h3 {
+      font-size: 0.9em;
+      margin: 0 0 8px 0;
+      color: var(--secondary);
+    }
+
+    .dashboard-card .card-value {
+      font-size: 1.8em;
+      font-weight: bold;
+      margin: 5px 0;
+      color: var(--primary);
+    }
+
+    .dashboard-card .card-subtitle {
+      font-size: 0.8em;
+      color: var(--secondary);
+      margin: 0;
     }
 
     .charts-grid {
@@ -166,16 +186,26 @@
       height: 300px;
       display: flex;
       flex-direction: column;
+      break-inside: avoid;
+    }
+
+    .chart-card h3 {
+      font-size: 1.1em;
+      margin: 0 0 15px 0;
+      text-align: center;
     }
 
     .chart-container {
       flex: 1;
       position: relative;
+      min-height: 200px;
     }
 
+    /* Improved mobile responsiveness */
     @media (max-width: 768px) {
       .filter-controls {
         grid-template-columns: 1fr;
+        gap: 15px;
       }
 
       .section-header {
@@ -186,23 +216,54 @@
 
       .dashboard-cards {
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+        gap: 12px;
+      }
+
+      .dashboard-card {
+        padding: 15px;
+        min-height: 100px;
+      }
+
+      .dashboard-card h3 {
+        font-size: 0.85em;
+      }
+
+      .dashboard-card .card-value {
+        font-size: 1.5em;
       }
 
       .charts-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
       }
 
       .chart-card {
-        height: 250px;
+        height: 280px;
+        padding: 15px;
+      }
+
+      .chart-card h3 {
+        font-size: 1em;
       }
 
       .filter-actions {
         flex-direction: column;
+        width: 100%;
       }
 
       .filter-actions .btn {
         width: 100%;
+        margin-top: 5px;
+      }
+
+      .insight-item {
+        padding: 15px;
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .insight-icon {
+        margin-bottom: 10px;
       }
     }
 
@@ -212,11 +273,47 @@
       }
       
       .dashboard-card {
-        min-height: 100px;
-        padding: 20px;
+        min-height: 90px;
+        padding: 15px 10px;
+      }
+
+      .chart-card {
+        height: 250px;
+      }
+
+      .chart-container {
+        min-height: 180px;
+      }
+
+      .table-container {
+        overflow-x: auto;
+      }
+
+      table {
+        font-size: 0.85em;
+      }
+
+      .filter-section {
+        padding: 20px 15px;
       }
     }
-  </style>
+
+    /* Extra small devices */
+    @media (max-width: 360px) {
+      .dashboard-card .card-value {
+        font-size: 1.3em;
+      }
+      
+      .chart-card {
+        height: 220px;
+        padding: 12px;
+      }
+      
+      .chart-card h3 {
+        font-size: 0.9em;
+      }
+    }
+</style>
 </head>
 <body>
   <!-- TOP NAVIGATION BAR -->
@@ -432,7 +529,7 @@
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
-  <script>
+ <script>
     // ==================== TRENDS WITH UPDATED NAVIGATION ====================
     console.log('📊 Trends with Updated Navigation loaded!');
 
@@ -540,17 +637,12 @@
 
     // ===== DATA MANAGEMENT =====
     function loadRecords() {
-      if (window.loadRecords) {
-        return window.loadRecords();
-      } else {
-        // Fallback
-        try {
-          const data = localStorage.getItem('smartScoresRecords');
-          return data ? JSON.parse(data) : [];
-        } catch (error) {
-          console.error('Error loading records:', error);
-          return [];
-        }
+      try {
+        const data = localStorage.getItem('smartScoresRecords');
+        return data ? JSON.parse(data) : [];
+      } catch (error) {
+        console.error('Error loading records:', error);
+        return [];
       }
     }
 
@@ -561,6 +653,7 @@
       if (!checkAuth()) return;
       
       const records = loadRecords();
+      console.log('Records loaded:', records.length);
 
       // If no records, show empty state
       if (records.length === 0) {
@@ -568,21 +661,11 @@
         return;
       }
 
-      // Try to use app.js function first
-      if (window.renderTrendAnalysis) {
-        console.log('✅ Using app.js trend analysis function');
-        window.renderTrendAnalysis();
-        updateTrendOverview(records);
-        renderTrendVisualizations(records);
-        updateTrendInsights(records);
-      } else {
-        console.log('⚠️ Using fallback trend analysis - app.js functions not available');
-        // Fallback calculation
-        updateTrendOverview(records);
-        renderTrendsTable(records);
-        renderTrendVisualizations(records);
-        updateTrendInsights(records);
-      }
+      // Use the main trend analysis function
+      renderTrendsTable(records);
+      updateTrendOverview(records);
+      renderTrendVisualizations(records);
+      updateTrendInsights(records);
     }
 
     function updateTrendOverview(records) {
@@ -594,17 +677,80 @@
         return;
       }
 
-      // Simple trend analysis - in a real app, this would be more sophisticated
-      const improving = Math.floor(records.length * 0.3);
-      const stable = Math.floor(records.length * 0.4);
-      const declining = Math.floor(records.length * 0.2);
-      const insufficient = records.length - improving - stable - declining;
+      // Calculate actual trends from data
+      const trends = calculateTrendsFromRecords(records);
+      
+      document.getElementById('improvingCount').textContent = trends.improving;
+      document.getElementById('stableCount').textContent = trends.stable;
+      document.getElementById('decliningCount').textContent = trends.declining;
+      document.getElementById('insufficientData').textContent = trends.insufficient;
+      document.getElementById('trendsCount').textContent = `${trends.total} trends analyzed`;
+    }
 
-      document.getElementById('improvingCount').textContent = improving;
-      document.getElementById('stableCount').textContent = stable;
-      document.getElementById('decliningCount').textContent = declining;
-      document.getElementById('insufficientData').textContent = insufficient;
-      document.getElementById('trendsCount').textContent = `${records.length} records analyzed`;
+    function calculateTrendsFromRecords(records) {
+      const groups = {};
+      
+      // Group records by subject, grade, stream, term
+      records.forEach(record => {
+        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}`;
+        if (!groups[key]) {
+          groups[key] = {
+            subject: record.subject,
+            grade: record.grade,
+            stream: record.stream,
+            term: record.term,
+            exams: {}
+          };
+        }
+        
+        const examType = record.examType || '';
+        groups[key].exams[examType] = record.mean;
+      });
+
+      let improving = 0;
+      let stable = 0;
+      let declining = 0;
+      let insufficient = 0;
+
+      Object.values(groups).forEach(group => {
+        const { exams } = group;
+        const opener = exams['Opener Exam'];
+        const mid = exams['Mid Term Exam'];
+        const end = exams['End Term Exam'];
+        
+        const examCount = [opener, mid, end].filter(score => score !== undefined).length;
+        
+        if (examCount < 2) {
+          insufficient++;
+          return;
+        }
+        
+        let trendValue = 0;
+        
+        if (opener !== undefined && end !== undefined) {
+          trendValue = end - opener;
+        } else if (opener !== undefined && mid !== undefined) {
+          trendValue = mid - opener;
+        } else if (mid !== undefined && end !== undefined) {
+          trendValue = end - mid;
+        }
+        
+        if (trendValue > 2) {
+          improving++;
+        } else if (trendValue < -2) {
+          declining++;
+        } else {
+          stable++;
+        }
+      });
+
+      return {
+        improving,
+        stable,
+        declining,
+        insufficient,
+        total: improving + stable + declining
+      };
     }
 
     function renderTrendsTable(records) {
@@ -652,13 +798,13 @@
         } else if (opener !== undefined && mid !== undefined) {
           trendValue = mid - opener;
           trend = `${trendValue >= 0 ? '+' : ''}${trendValue.toFixed(1)}%`;
-          status = trendValue > 0 ? 'Improving' : 'Declining';
-          statusColor = trendValue > 0 ? '#10b981' : '#ef4444';
+          status = trendValue > 2 ? 'Improving' : trendValue < -2 ? 'Declining' : 'Stable';
+          statusColor = trendValue > 2 ? '#10b981' : trendValue < -2 ? '#ef4444' : '#f59e0b';
         } else if (mid !== undefined && end !== undefined) {
           trendValue = end - mid;
           trend = `${trendValue >= 0 ? '+' : ''}${trendValue.toFixed(1)}%`;
-          status = trendValue > 0 ? 'Improving' : 'Declining';
-          statusColor = trendValue > 0 ? '#10b981' : '#ef4444';
+          status = trendValue > 2 ? 'Improving' : trendValue < -2 ? 'Declining' : 'Stable';
+          statusColor = trendValue > 2 ? '#10b981' : trendValue < -2 ? '#ef4444' : '#f59e0b';
         }
         
         trends.push({
@@ -687,13 +833,13 @@
           <td style="text-align: center; font-weight: bold;">${trend.end}%</td>
           <td style="font-weight: bold; color: ${trend.statusColor};">${trend.trend}</td>
           <td>
-            <span class="rubric-badge" style="background: ${trend.statusColor};">${trend.status}</span>
+            <span class="rubric-badge" style="background: ${trend.statusColor}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">${trend.status}</span>
           </td>
         </tr>
       `).join('') : `
         <tr>
           <td colspan="9" class="text-center" style="padding: 40px; color: var(--secondary);">
-            Not enough data for trend analysis (need 2+ exams per group).
+            ${trends.length === 0 ? 'Not enough data for trend analysis (need 2+ exams per group).' : 'No trends match your filters.'}
           </td>
         </tr>
       `;
@@ -701,9 +847,9 @@
 
     // ===== FILTERS AND SORTING =====
     function applyCurrentFilters(trends) {
-      const trendFilter = el('trendFilter').value;
-      const subjectFilter = el('subjectFilter').value;
-      const gradeFilter = el('trendGradeFilter').value;
+      const trendFilter = el('trendFilter')?.value || '';
+      const subjectFilter = el('subjectFilter')?.value || '';
+      const gradeFilter = el('trendGradeFilter')?.value || '';
       
       return trends.filter(trend => {
         return (!trendFilter || 
@@ -716,27 +862,27 @@
     }
 
     function applyTrendFilters() {
-      showNotification('Trend filters applied!');
       initializeTrendAnalysis();
+      showNotification('Trend filters applied!', 'success');
     }
 
     function resetTrendFilters() {
-      el('trendFilter').value = '';
-      el('subjectFilter').value = '';
-      el('trendGradeFilter').value = '';
-      showNotification('Trend filters reset!');
+      if (el('trendFilter')) el('trendFilter').value = '';
+      if (el('subjectFilter')) el('subjectFilter').value = '';
+      if (el('trendGradeFilter')) el('trendGradeFilter').value = '';
+      showNotification('Trend filters reset!', 'info');
       initializeTrendAnalysis();
     }
 
     function sortTrendsTable(column) {
-      showNotification(`Sorting trends table by column ${column}`);
+      showNotification(`Sorting trends table by column ${column}`, 'info');
       // Sorting logic would be implemented here
     }
 
     function refreshTrends() {
       console.log('🔄 Refreshing trends...');
       initializeTrendAnalysis();
-      showNotification('Trends refreshed!');
+      showNotification('Trends refreshed!', 'success');
     }
 
     // ===== CHART FUNCTIONS =====
@@ -771,19 +917,32 @@
     function renderProgressTimelineChart(records) {
       const ctx = document.getElementById('progressTimelineChart').getContext('2d');
       
-      // Sample data - replace with actual trend analysis
-      const labels = ['Term 1', 'Term 2', 'Term 3'];
-      const data = [65, 72, 68];
+      // Calculate actual data from records
+      const termData = {};
+      records.forEach(record => {
+        const key = `${record.term} ${record.year}`;
+        if (!termData[key]) {
+          termData[key] = { sum: 0, count: 0 };
+        }
+        termData[key].sum += record.mean;
+        termData[key].count++;
+      });
+      
+      const labels = Object.keys(termData).sort();
+      const data = labels.map(key => {
+        const term = termData[key];
+        return Number((term.sum / term.count).toFixed(1));
+      });
       
       if (progressTimelineChart) progressTimelineChart.destroy();
       
       progressTimelineChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: labels,
+          labels: labels.length > 0 ? labels : ['Term 1', 'Term 2', 'Term 3'],
           datasets: [{
             label: 'Average Score',
-            data: data,
+            data: data.length > 0 ? data : [65, 72, 68],
             borderColor: 'var(--primary)',
             backgroundColor: 'rgba(139, 0, 0, 0.1)',
             borderWidth: 3,
@@ -807,20 +966,21 @@
     function renderSubjectProgressChart(records) {
       const ctx = document.getElementById('subjectProgressChart').getContext('2d');
       
-      // Sample data
-      const subjects = ['Math', 'English', 'Science', 'Social Studies'];
-      const progress = [12, 8, -5, 15];
+      // Calculate actual progress from records
+      const subjectProgress = calculateSubjectProgress(records);
+      const subjects = Object.keys(subjectProgress);
+      const progress = Object.values(subjectProgress);
       
       if (subjectProgressChart) subjectProgressChart.destroy();
       
       subjectProgressChart = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: subjects,
+          labels: subjects.length > 0 ? subjects : ['Math', 'English', 'Science'],
           datasets: [{
             label: 'Progress (%)',
-            data: progress,
-            backgroundColor: progress.map(p => p > 0 ? 'var(--success)' : 'var(--danger)')
+            data: progress.length > 0 ? progress : [12, 8, -5],
+            backgroundColor: progress.map(p => p > 0 ? '#10b981' : p < 0 ? '#ef4444' : '#f59e0b')
           }]
         },
         options: {
@@ -828,37 +988,82 @@
           maintainAspectRatio: false,
           scales: {
             y: {
-              beginAtZero: true
+              beginAtZero: false
             }
           }
         }
       });
     }
 
+    function calculateSubjectProgress(records) {
+      const subjectData = {};
+      
+      records.forEach(record => {
+        if (!subjectData[record.subject]) {
+          subjectData[record.subject] = [];
+        }
+        subjectData[record.subject].push({
+          mean: record.mean,
+          term: record.term,
+          examType: record.examType
+        });
+      });
+      
+      const progress = {};
+      
+      Object.keys(subjectData).forEach(subject => {
+        const scores = subjectData[subject];
+        const term1Scores = scores.filter(s => s.term === 'Term 1' && s.examType === 'End Term Exam');
+        const term3Scores = scores.filter(s => s.term === 'Term 3' && s.examType === 'End Term Exam');
+        
+        if (term1Scores.length > 0 && term3Scores.length > 0) {
+          const term1Avg = term1Scores.reduce((sum, s) => sum + s.mean, 0) / term1Scores.length;
+          const term3Avg = term3Scores.reduce((sum, s) => sum + s.mean, 0) / term3Scores.length;
+          progress[subject] = parseFloat((term3Avg - term1Avg).toFixed(1));
+        }
+      });
+      
+      return progress;
+    }
+
     function renderStreamTrendsChart(records) {
       const ctx = document.getElementById('streamTrendsChart').getContext('2d');
       
-      // Sample data
-      const streams = ['Stream A', 'Stream B', 'Stream C'];
-      const term1 = [65, 70, 68];
-      const term2 = [72, 75, 70];
-      const term3 = [68, 78, 72];
+      // Calculate actual stream data
+      const streamData = calculateStreamTrends(records);
+      const streams = Object.keys(streamData);
       
       if (streamTrendsChart) streamTrendsChart.destroy();
+      
+      const datasets = streams.map((stream, index) => {
+        const data = ['Term 1', 'Term 2', 'Term 3'].map(term => 
+          streamData[stream][term] || null
+        );
+        
+        return {
+          label: stream,
+          data: data,
+          borderColor: `hsl(${index * 120}, 70%, 50%)`,
+          backgroundColor: `hsla(${index * 120}, 70%, 50%, 0.1)`,
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true
+        };
+      });
       
       streamTrendsChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: ['Term 1', 'Term 2', 'Term 3'],
-          datasets: streams.map((stream, index) => ({
-            label: stream,
-            data: [term1[index], term2[index], term3[index]],
-            borderColor: `hsl(${index * 120}, 70%, 50%)`,
-            backgroundColor: `hsla(${index * 120}, 70%, 50%, 0.1)`,
+          datasets: datasets.length > 0 ? datasets : [{
+            label: 'Sample Data',
+            data: [65, 72, 68],
+            borderColor: 'var(--primary)',
+            backgroundColor: 'rgba(139, 0, 0, 0.1)',
             borderWidth: 2,
             tension: 0.3,
             fill: true
-          }))
+          }]
         },
         options: {
           responsive: true,
@@ -873,26 +1078,53 @@
       });
     }
 
+    function calculateStreamTrends(records) {
+      const streamData = {};
+      
+      records.forEach(record => {
+        if (!streamData[record.stream]) {
+          streamData[record.stream] = { 'Term 1': [], 'Term 2': [], 'Term 3': [] };
+        }
+        if (streamData[record.stream][record.term]) {
+          streamData[record.stream][record.term].push(record.mean);
+        }
+      });
+      
+      const result = {};
+      Object.keys(streamData).forEach(stream => {
+        result[stream] = {};
+        ['Term 1', 'Term 2', 'Term 3'].forEach(term => {
+          const scores = streamData[stream][term];
+          if (scores.length > 0) {
+            result[stream][term] = scores.reduce((a, b) => a + b, 0) / scores.length;
+          }
+        });
+      });
+      
+      return result;
+    }
+
     function renderImprovementHeatmap(records) {
       const ctx = document.getElementById('improvementHeatmap').getContext('2d');
       
-      // Sample data
-      const subjects = ['Math', 'English', 'Science', 'Social', 'CRE', 'Agriculture'];
-      const improvement = [12, 8, -5, 15, 3, -2];
+      // Calculate actual improvement data
+      const improvementData = calculateSubjectProgress(records);
+      const subjects = Object.keys(improvementData);
+      const improvement = Object.values(improvementData);
       
       if (improvementHeatmapChart) improvementHeatmapChart.destroy();
       
       improvementHeatmapChart = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: subjects,
+          labels: subjects.length > 0 ? subjects : ['Math', 'English', 'Science'],
           datasets: [{
             label: 'Improvement',
-            data: improvement,
+            data: improvement.length > 0 ? improvement : [12, 8, -5],
             backgroundColor: improvement.map(val => 
-              val > 10 ? 'var(--success)' : 
-              val > 0 ? 'var(--info)' : 
-              val > -5 ? 'var(--warning)' : 'var(--danger)'
+              val > 10 ? '#10b981' : 
+              val > 0 ? '#3b82f6' : 
+              val > -5 ? '#f59e0b' : '#ef4444'
             )
           }]
         },
@@ -902,7 +1134,7 @@
           indexAxis: 'y',
           scales: {
             x: {
-              beginAtZero: true
+              beginAtZero: false
             }
           }
         }
@@ -951,19 +1183,21 @@
         return;
       }
 
+      const trends = calculateTrendsFromRecords(records);
+      
       insightsContainer.innerHTML = `
         <div class="insight-item">
           <div class="insight-icon">📈</div>
           <div class="insight-content">
             <h4>Performance Trends</h4>
-            <p>Based on ${records.length} records, you can track performance patterns across terms and subjects.</p>
+            <p>Based on ${records.length} records, ${trends.improving} subjects are showing improvement, ${trends.stable} are stable, and ${trends.declining} need attention.</p>
           </div>
         </div>
         <div class="insight-item">
           <div class="insight-icon">💡</div>
           <div class="insight-content">
             <h4>Track Progress</h4>
-            <p>Monitor improvement trends to identify areas needing attention and celebrate growth.</p>
+            <p>Monitor improvement trends to identify areas needing attention and celebrate growth in performing subjects.</p>
           </div>
         </div>
       `;
@@ -981,33 +1215,36 @@
           </tr>
         `;
       }
+      
+      // Also update overview cards
+      document.getElementById('improvingCount').textContent = '0';
+      document.getElementById('stableCount').textContent = '0';
+      document.getElementById('decliningCount').textContent = '0';
+      document.getElementById('insufficientData').textContent = '0';
     }
 
-    function showNotification(message) {
-      if (window.showAlert) {
-        window.showAlert(message, 'success');
-      } else {
-        // Fallback notification
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-          position: fixed;
-          top: 100px;
-          right: 20px;
-          background: var(--primary);
-          color: white;
-          padding: 12px 20px;
-          border-radius: 8px;
-          z-index: 1000;
-          font-weight: 600;
-          box-shadow: var(--shadow);
-        `;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-          notification.remove();
-        }, 3000);
-      }
+    function showNotification(message, type = 'info') {
+      // Create a simple notification
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 1000;
+        font-weight: 600;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-width: 300px;
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
     }
 
     // ===== INITIALIZATION =====
@@ -1028,8 +1265,10 @@
         element.textContent = teacherFullName;
       });
       
-      // Run trend analysis
-      initializeTrendAnalysis();
+      // Run trend analysis after a short delay to ensure DOM is ready
+      setTimeout(() => {
+        initializeTrendAnalysis();
+      }, 100);
     });
 
     // Make functions available globally
