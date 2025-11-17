@@ -12,9 +12,7 @@
   <script src="./auth.js" defer></script>
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./firebase-sync.js"></script>
-  <!-- Add these script tags for export functionality -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
   <style>
     .card-loading {
         text-align: center;
@@ -103,10 +101,10 @@
     </div>
     
     <div class="nav-user">
-  <span id="teacherName" class="teacher-name">Teacher</span>
-  <!-- Logout button will be hidden on mobile via CSS -->
-  <button onclick="logout()" class="btn btn-danger btn-small mobile-logout">🚪 Logout</button>
-</div>
+      <span id="teacherName" class="teacher-name">Teacher</span>
+      <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
+    </div>
+  </nav>
 
   <!-- MOBILE MENU TOGGLE -->
   <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
@@ -151,13 +149,13 @@
     </div>
 
     <!-- Quick Actions -->
-<div class="quick-actions">
-  <button onclick="location.href='./data-entry.html'" class="btn-action">➕ Add New Scores</button>
-  <button onclick="location.href='./set-targets.html'" class="btn-action">🎯 Set Targets</button>
-  <button onclick="refreshDashboard()" class="btn-action">🔄 Refresh Dashboard</button>
-  <button onclick="downloadPDF()" class="btn-action">📄 Export PDF</button>
-  <button onclick="exportToExcel()" class="btn-action">📊 Export Excel</button>
-</div>
+    <div class="quick-actions">
+      <button onclick="location.href='./data-entry.html'" class="btn-action">➕ Add New Scores</button>
+      <button onclick="location.href='./set-targets.html'" class="btn-action">🎯 Set Targets</button>
+      <button onclick="refreshDashboard()" class="btn-action">🔄 Refresh Dashboard</button>
+      <button onclick="downloadPDF()" class="btn-action">📄 Export PDF</button>
+      <button onclick="exportToExcel()" class="btn-action">📊 Export Excel</button>
+    </div>
 
     <!-- Performance Trend Chart -->
     <div class="chart-container">
