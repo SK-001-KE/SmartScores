@@ -1035,6 +1035,31 @@ tbody tr:hover {
     padding: 10px 14px;
     font-size: 1em;
   }
+   /* Add to the existing floating-top-btn styles */
+.floating-top-btn {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: var(--primary);
+    color: var(--button-text);
+    border: none;
+    cursor: pointer;
+    z-index: 1000;
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+}
+
+.floating-top-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Ensure dark mode applies properly */
+[data-theme="dark"] .floating-top-btn {
+    background: var(--primary-light);
 }
 /* =========================================================
    LOGIN & AUTH SPECIFIC
