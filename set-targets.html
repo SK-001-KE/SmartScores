@@ -11,124 +11,350 @@
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./firebase-sync.js"></script>
   <style>
-    /* ===== TARGETS SPECIFIC STYLES ===== */
-    .form-section {
-      margin: 25px 0;
+    /* ===== MODERN TARGETS PAGE STYLES ===== */
+    :root {
+      --card-radius: 16px;
+      --card-padding: 24px;
+      --section-spacing: 32px;
+      --element-spacing: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .targets-section {
-      margin: 30px 0;
+    .content {
+      padding: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
-    .quick-stats {
-      margin: 25px 0;
+    .page-header {
+      margin-bottom: var(--section-spacing);
+      text-align: center;
     }
 
+    .page-header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--primary), #c53030);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .page-header p {
+      color: var(--secondary);
+      font-size: 1.1rem;
+    }
+
+    /* Modern Card Design */
+    .modern-card {
+      background: var(--card);
+      border-radius: var(--card-radius);
+      padding: var(--card-padding);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border);
+      transition: var(--transition);
+      margin-bottom: var(--section-spacing);
+    }
+
+    .modern-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .modern-card h2 {
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Stats Grid */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: var(--section-spacing);
     }
 
-    .stat-item {
+    .stat-card {
       background: var(--card);
-      padding: 25px;
-      border-radius: 12px;
+      border-radius: var(--card-radius);
+      padding: var(--card-padding);
       text-align: center;
-      border-top: 4px solid var(--primary);
-      transition: all 0.3s ease;
-      box-shadow: var(--shadow);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
     }
 
-    .stat-item:hover {
-      transform: translateY(-3px);
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
     }
 
     .stat-value {
-      font-size: 2.5em;
-      font-weight: bold;
-      margin: 10px 0;
+      font-size: 3rem;
+      font-weight: 700;
+      margin: 16px 0;
       color: var(--primary);
+      line-height: 1;
     }
 
     .stat-label {
       font-weight: 600;
-      margin-bottom: 5px;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-size: 1.1rem;
     }
 
     .stat-subtext {
-      font-size: 0.85em;
+      font-size: 0.9rem;
       color: var(--secondary);
     }
 
     .highest-target-info {
-      margin-top: 10px;
-      padding: 10px;
-      background: rgba(139, 0, 0, 0.1);
+      margin-top: 12px;
+      padding: 12px;
+      background: rgba(139, 0, 0, 0.08);
       border-radius: 8px;
-      font-size: 0.9em;
+      font-size: 0.9rem;
+      border-left: 3px solid var(--primary);
     }
 
-    /* Filter Section */
-    .filter-section {
+    /* Modern Form Design */
+    .modern-form {
       background: var(--card);
-      padding: 25px;
-      border-radius: 12px;
-      margin: 25px 0;
-      box-shadow: var(--shadow);
+      border-radius: var(--card-radius);
+      padding: var(--card-padding);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border);
     }
 
-    .filter-controls {
+    .form-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
-      align-items: end;
+      margin-bottom: 20px;
     }
 
-    .filter-group {
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .modern-form input,
+    .modern-form select {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background-color: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .modern-form input:focus,
+    .modern-form select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
+    }
+
+    .form-actions {
       display: flex;
-      flex-direction: column;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .form-info {
+      margin-top: 24px;
+      padding: 20px;
+      background: rgba(139, 0, 0, 0.05);
+      border-radius: 12px;
+      border-left: 4px solid var(--primary);
+    }
+
+    .form-info p {
+      margin: 8px 0;
+      font-size: 0.95rem;
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
       gap: 8px;
     }
 
-    .filter-group label {
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 5px;
-    }
-
-    .filter-group select {
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    .filter-actions {
-      display: flex;
-      gap: 10px;
-      align-items: end;
-    }
-
-    /* Table Section */
+    /* Modern Table Design */
     .table-section {
-      margin: 30px 0;
+      margin: var(--section-spacing) 0;
     }
 
     .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
     }
 
     .table-actions {
       display: flex;
-      gap: 10px;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
     }
 
-    /* Loading and Empty States */
+    .table-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 20px 0;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 300px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 12px 16px 12px 44px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text);
+      transition: var(--transition);
+    }
+
+    .search-box::before {
+      content: '🔍';
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--secondary);
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
+    }
+
+    .search-hint {
+      font-size: 0.85rem;
+      color: var(--secondary);
+      margin-top: 8px;
+    }
+
+    /* Modern Button Styles */
+    .btn-modern {
+      padding: 14px 24px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+      font-size: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-modern::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn-modern:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 0, 0, 0.3);
+    }
+
+    .btn-modern:hover::before {
+      left: 100%;
+    }
+
+    .btn-modern-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    }
+
+    .btn-modern-secondary {
+      background: linear-gradient(135deg, #4a5568, #718096);
+    }
+
+    .btn-modern-danger {
+      background: linear-gradient(135deg, #e53e3e, #c53030);
+    }
+
+    .btn-modern-small {
+      padding: 10px 16px;
+      font-size: 0.9rem;
+    }
+
+    /* Empty State */
+    .empty-state-modern {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text);
+    }
+
+    .empty-icon-modern {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      opacity: 0.7;
+    }
+
+    .empty-state-modern h3 {
+      margin-bottom: 12px;
+      font-size: 1.5rem;
+    }
+
+    .empty-state-modern p {
+      margin-bottom: 24px;
+      color: var(--secondary);
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Loading State */
     .loading-cell {
       padding: 40px 20px;
       color: var(--secondary);
@@ -136,18 +362,23 @@
       text-align: center;
     }
 
+    /* Responsive Design */
     @media (max-width: 768px) {
+      .content {
+        padding: 16px;
+      }
+
       .stats-grid {
         grid-template-columns: 1fr;
       }
 
-      .filter-controls {
+      .form-row {
         grid-template-columns: 1fr;
       }
 
       .section-header {
         flex-direction: column;
-        gap: 15px;
+        gap: 16px;
         align-items: flex-start;
       }
 
@@ -156,14 +387,26 @@
         width: 100%;
       }
 
-      .btn-small {
+      .table-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .search-box {
+        min-width: auto;
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+
+      .btn-modern {
         width: 100%;
-        text-align: center;
         justify-content: center;
       }
-      
+
       .stat-value {
-        font-size: 2em;
+        font-size: 2.5rem;
       }
     }
   </style>
@@ -213,45 +456,38 @@
 
   <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
 
-  <header>
-    <h1>SmartScores</h1>
-    <p>Set Performance Targets</p>
-  </header>
-
-  <div class="content content-with-sidebar">
-    <div class="form-header">
-      <h2>Targets Management</h2>
+  <div class="content">
+    <div class="page-header">
+      <h1>Set Performance Targets</h1>
+      <p>Define and track academic goals for your subjects</p>
       <p class="teacher-info">Teacher: <span id="currentTeacher">Loading...</span></p>
     </div>
 
     <!-- QUICK STATS -->
-    <section class="quick-stats">
-      <h2>Targets Summary - <span id="currentTermDisplay">Current Term</span></h2>
-      <div class="stats-grid">
-        <div class="stat-item">
-          <div class="stat-value" id="totalTargets">0</div>
-          <div class="stat-label">Total Targets This Term</div>
-          <div class="stat-subtext" id="termPeriod">Term Period</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="averageTarget">0%</div>
-          <div class="stat-label">Average Target This Term</div>
-          <div class="stat-subtext">Across all subjects</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="highestTarget">0%</div>
-          <div class="stat-label">Highest Target This Term</div>
-          <div class="highest-target-info" id="highestTargetInfo">
-            No targets set
-          </div>
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="totalTargets">0</div>
+        <div class="stat-label">Total Targets This Term</div>
+        <div class="stat-subtext" id="termPeriod">Term Period</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="averageTarget">0%</div>
+        <div class="stat-label">Average Target This Term</div>
+        <div class="stat-subtext">Across all subjects</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="highestTarget">0%</div>
+        <div class="stat-label">Highest Target This Term</div>
+        <div class="highest-target-info" id="highestTargetInfo">
+          No targets set
         </div>
       </div>
     </section>
 
     <!-- SET TARGET FORM -->
-    <section class="form-section">
+    <section class="modern-card">
       <h2>🎯 Set New Target</h2>
-      <form id="targetsForm" class="form-box">
+      <form id="targetsForm" class="modern-form">
         <div class="form-row">
           <div class="form-group">
             <label>Subject *</label>
@@ -333,8 +569,8 @@
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary full">💾 Save Target</button>
-          <button type="reset" class="btn btn-secondary">🔄 Clear Form</button>
+          <button type="submit" class="btn-modern btn-modern-primary full">💾 Save Target</button>
+          <button type="reset" class="btn-modern btn-modern-secondary">🔄 Clear Form</button>
         </div>
 
         <div class="form-info">
@@ -346,18 +582,18 @@
     </section>
 
     <!-- TARGETS TABLE -->
-    <section class="targets-section">
+    <section class="modern-card">
       <div class="section-header">
-        <h2>Current Targets</h2>
+        <h2>📋 Current Targets</h2>
         <div class="table-actions">
-          <button onclick="exportTargets()" class="btn btn-secondary">📄 Export Targets</button>
-          <button onclick="clearAllTargets()" class="btn btn-danger">🗑️ Clear All Targets</button>
+          <button onclick="exportTargets()" class="btn-modern btn-modern-secondary">📄 Export Targets</button>
+          <button onclick="clearAllTargets()" class="btn-modern btn-modern-danger">🗑️ Clear All Targets</button>
         </div>
       </div>
 
       <div class="table-controls">
         <div class="search-box">
-          <input type="text" id="targetSearch" placeholder="🔍 Search targets..." oninput="filterTargets()">
+          <input type="text" id="targetSearch" placeholder="Search targets..." oninput="filterTargets()">
           <span class="search-hint">Search by subject, grade, stream, term</span>
         </div>
       </div>
@@ -384,11 +620,11 @@
         </table>
       </div>
 
-      <div id="emptyTargets" class="empty-state" style="display: none;">
-        <div class="empty-icon">🎯</div>
+      <div id="emptyTargets" class="empty-state-modern" style="display: none;">
+        <div class="empty-icon-modern">🎯</div>
         <h3>No targets set yet</h3>
         <p>Set your first target using the form above to start tracking performance against goals.</p>
-        <button onclick="document.getElementById('targetsForm').scrollIntoView()" class="btn btn-primary">➕ Set First Target</button>
+        <button onclick="document.getElementById('targetsForm').scrollIntoView({behavior: 'smooth'})" class="btn-modern btn-modern-primary">➕ Set First Target</button>
       </div>
     </section>
   </div>
@@ -396,8 +632,8 @@
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
   <script>
-    // ==================== TARGETS WITH UPDATED NAVIGATION ====================
-    console.log('🎯 Targets with Updated Navigation loaded!');
+    // ==================== TARGETS PAGE FUNCTIONALITY ====================
+    console.log('🎯 Targets page loaded!');
 
     // Simple DOM helper
     const el = id => document.getElementById(id);
@@ -419,11 +655,6 @@
         case 'Term 3': return 'September - December';
         default: return '';
       }
-    }
-
-    function isTermActive(term) {
-      const currentTerm = getCurrentTerm();
-      return term === currentTerm;
     }
 
     function getCurrentYear() {
@@ -489,6 +720,7 @@
 
     // ===== THEME MANAGEMENT =====
     function toggleDarkMode() {
+      // Use the function from app.js if available
       if (window.toggleDarkMode) {
         window.toggleDarkMode();
       } else {
@@ -507,6 +739,7 @@
 
     // ===== AUTH MANAGEMENT =====
     function logout() {
+      // Use the function from auth.js if available
       if (window.logout) {
         window.logout();
       } else {
@@ -530,7 +763,8 @@
       if (event) event.preventDefault();
       
       // Use app.js function to check auth and get teacher name
-      const teacherName = getTeacherName();
+      const teacherName = window.getTeacherName ? window.getTeacherName() : localStorage.getItem('teacherFullName') || 'Guest Teacher';
+      
       if (!teacherName || teacherName === 'Guest Teacher') {
         showAlert('Please login first', 'error');
         window.location.href = './login.html';
@@ -568,7 +802,7 @@
       }
       
       // Use app.js functions for data management
-      const existingTargets = loadTargets();
+      const existingTargets = window.loadTargets ? window.loadTargets() : JSON.parse(localStorage.getItem('smartScoresTargets') || '[]');
       
       // Check for duplicate
       const duplicate = existingTargets.find(t =>
@@ -592,7 +826,11 @@
         timestamp: new Date().toISOString()
       });
       
-      if (saveTargets(existingTargets)) {
+      // Save using app.js function if available
+      const saveSuccess = window.saveTargets ? window.saveTargets(existingTargets) : 
+        (localStorage.setItem('smartScoresTargets', JSON.stringify(existingTargets)), true);
+      
+      if (saveSuccess) {
         showAlert('Target saved successfully!', 'success');
         el('targetsForm').reset();
         // Reset year to current year
@@ -607,7 +845,7 @@
       if (!checkAuth()) return;
       
       // Use app.js function to load targets
-      const targets = loadTargets();
+      const targets = window.loadTargets ? window.loadTargets() : JSON.parse(localStorage.getItem('smartScoresTargets') || '[]');
       const tbody = document.querySelector('#targetsTable tbody');
       const emptyTargets = el('emptyTargets');
       
@@ -631,7 +869,7 @@
             <td>${target.examType}</td>
             <td style="font-weight: bold; color: var(--primary);">${target.score}%</td>
             <td>
-              <button onclick="deleteTarget(${index})" class="btn btn-danger btn-small">Delete</button>
+              <button onclick="deleteTarget(${index})" class="btn-modern btn-modern-danger btn-modern-small">Delete</button>
             </td>
           </tr>
         `).join('');
@@ -680,6 +918,24 @@
       }
     }
 
+    function deleteTarget(index) {
+      if (confirm('Are you sure you want to delete this target?')) {
+        const targets = window.loadTargets ? window.loadTargets() : JSON.parse(localStorage.getItem('smartScoresTargets') || '[]');
+        if (index >= 0 && index < targets.length) {
+          targets.splice(index, 1);
+          
+          // Save using app.js function if available
+          const saveSuccess = window.saveTargets ? window.saveTargets(targets) : 
+            (localStorage.setItem('smartScoresTargets', JSON.stringify(targets)), true);
+          
+          if (saveSuccess) {
+            showAlert('Target deleted successfully', 'success');
+            renderTargets();
+          }
+        }
+      }
+    }
+
     function filterTargets() {
       const searchTerm = (el('targetSearch')?.value || '').toLowerCase();
       const tbody = document.querySelector('#targetsTable tbody');
@@ -701,7 +957,7 @@
       // Use app.js function if available
       if (window.exportToExcel) {
         // Export targets specifically
-        const targets = loadTargets();
+        const targets = window.loadTargets ? window.loadTargets() : JSON.parse(localStorage.getItem('smartScoresTargets') || '[]');
         if (targets.length === 0) {
           showAlert('No targets to export', 'error');
           return;
@@ -733,16 +989,21 @@
     function clearAllTargets() {
       if (confirm('⚠️ ARE YOU SURE?\n\nThis will delete ALL your targets permanently. This action cannot be undone.')) {
         // Use app.js function
-        localStorage.removeItem('smartScoresTargets');
+        if (window.saveTargets) {
+          window.saveTargets([]);
+        } else {
+          localStorage.removeItem('smartScoresTargets');
+        }
         showAlert('All targets have been cleared successfully.', 'success');
         renderTargets();
       }
     }
 
     // ===== UTILITY FUNCTIONS =====
-    function showNotification(message) {
+    function showAlert(message, type = 'info') {
+      // Use app.js function if available
       if (window.showAlert) {
-        window.showAlert(message, 'success');
+        window.showAlert(message, type);
       } else {
         // Fallback notification
         const notification = document.createElement('div');
@@ -750,13 +1011,13 @@
           position: fixed;
           top: 100px;
           right: 20px;
-          background: var(--primary);
+          background: ${type === 'error' ? '#e53e3e' : type === 'success' ? '#38a169' : '#3182ce'};
           color: white;
           padding: 12px 20px;
           border-radius: 8px;
           z-index: 1000;
           font-weight: 600;
-          box-shadow: var(--shadow);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         `;
         notification.textContent = message;
         document.body.appendChild(notification);
@@ -769,7 +1030,7 @@
 
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('🎯 Targets with Updated Navigation initialized!');
+      console.log('🎯 Targets page initialized!');
       
       // Load theme
       loadTheme();
@@ -779,7 +1040,7 @@
       
       // Update teacher name using consistent storage keys
       const teacherNameElements = document.querySelectorAll('.teacher-name, #currentTeacher');
-      const teacherFullName = getTeacherName();
+      const teacherFullName = window.getTeacherName ? window.getTeacherName() : localStorage.getItem('teacherFullName') || 'Guest Teacher';
       
       teacherNameElements.forEach(element => {
         element.textContent = teacherFullName;
