@@ -567,13 +567,19 @@ header p {
   margin: 25px 0;
 }
 
-.dashboard-card {
-  background: var(--card);
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  border-left: 5px solid var(--primary);
-  transition: all 0.3s ease;
+   .dashboard-card {
+    background: var(--card);
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    border-left: 5px solid var(--primary);
+    transition: all 0.3s ease;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
 }
 
 .dashboard-card:hover {
@@ -581,27 +587,34 @@ header p {
 }
 
 .dashboard-card h3 {
-  font-size: 1.1em;
-  margin-bottom: 10px;
-  color: var(--primary);
+    font-size: 1.1em;
+    margin-bottom: 15px;
+    color: var(--primary);
+    text-align: center;
+    width: 100%;
 }
 
 .card-value {
-  font-size: 2.5em;
-  font-weight: 700;
-  color: var(--text);
-  margin: 10px 0;
+    font-size: 2.5em;
+    font-weight: 700;
+    color: var(--text);
+    margin: 10px 0;
+    text-align: center;
+    width: 100%;
 }
 
 .card-subtitle {
-  color: var(--secondary);
-  font-size: 0.9em;
+    color: var(--secondary);
+    font-size: 0.9em;
+    text-align: center;
+    width: 100%;
 }
 
 .card-loading {
-  text-align: center;
-  padding: 20px;
-  color: var(--secondary);
+    text-align: center;
+    padding: 20px;
+    color: var(--secondary);
+    width: 100%;
 }
 
 .quick-stats {
@@ -609,6 +622,11 @@ header p {
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 15px;
   margin: 20px 0;
+}
+   /* Ensure rubric badges are centered */
+.dashboard-card .rubric-badge {
+    margin: 8px auto;
+    display: inline-block;
 }
 
 .stat-card {
@@ -710,6 +728,47 @@ tbody tr:hover {
   margin-top: 5px;
 }
 
+   /* Fix recent records table header contrast */
+.recent-records table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.recent-records thead {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+.recent-records th {
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9em;
+    color: white;
+}
+
+.recent-records td {
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+}
+
+.recent-records tbody tr:hover {
+    background: rgba(139, 0, 0, 0.05);
+}
+
+/* Ensure dark mode compatibility */
+[data-theme="dark"] .recent-records thead {
+    background: var(--gradient-primary);
+}
+
+[data-theme="dark"] .recent-records th {
+    color: white;
+}
 /* =========================================================
    CHART & VISUALIZATION STYLES
 ========================================================= */
