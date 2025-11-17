@@ -118,6 +118,30 @@
     .recent-records tbody tr:hover {
         background: rgba(139, 0, 0, 0.05);
     }
+
+    /* Custom alert styles */
+    .custom-alert {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        color: white;
+        font-weight: 600;
+        z-index: 2000;
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .alert-success { background-color: #10B981; }
+    .alert-error { background-color: #EF4444; }
+    .alert-info { background-color: #3B82F6; }
+    .alert-warning { background-color: #F59E0B; }
+
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -196,8 +220,8 @@
      <button onclick="location.href='./data-entry.html'" class="btn-action">➕ Add New Scores</button>
      <button onclick="location.href='./set-targets.html'" class="btn-action">🎯 Set Targets</button>
      <button onclick="refreshDashboard()" class="btn-action">🔄 Refresh Dashboard</button>
-     <button onclick="downloadPDF()" class="btn-action">📄 Export PDF</button>
-     <button onclick="exportToExcel()" class="btn-action">📊 Export Excel</button>
+     <button onclick="handlePDFExport()" class="btn-action">📄 Export PDF</button>
+     <button onclick="handleExcelExport()" class="btn-action">📊 Export Excel</button>
    </div>
 
     <!-- Performance Trend Chart -->
@@ -250,14 +274,172 @@
 
     // Custom alert function
     function showCustomAlert(message, type = 'info') {
+      // Remove any existing alerts first
+      const existingAlerts = document.querySelectorAll('.custom-alert');
+      existingAlerts.forEach(alert => alert.remove());
+      
       const alertDiv = document.createElement('div');
       alertDiv.className = `custom-alert alert-${type}`;
       alertDiv.textContent = message;
       document.body.appendChild(alertDiv);
       
       setTimeout(() => {
-        alertDiv.remove();
+        if (alertDiv.parentNode) {
+          alertDiv.remove();
+        }
       }, 3000);
+    }
+
+    // Enhanced export functions with proper fallbacks
+    function handlePDFExport() {
+      console.log('PDF export triggered');
+      
+      // Check if the function exists in app.js
+      if (window.downloadPDF && typeof window.downloadPDF === 'function') {
+        console.log('Calling downloadPDF from app.js');
+        window.downloadPDF();
+      } else {
+        console.log('Using fallback PDF export');
+        fallbackPDFExport();
+      }
+    }
+
+    function handleExcelExport() {
+      console.log('Excel export triggered');
+      
+      // Check if the function exists in app.js
+      if (window.exportToExcel && typeof window.exportToExcel === 'function') {
+        console.log('Calling exportToExcel from app.js');
+        window.exportToExcel();
+      } else {
+        console.log('Using fallback Excel export');
+        fallbackExcelExport();
+      }
+    }
+
+    // Fallback PDF Export
+    function fallbackPDFExport() {
+      try {
+        showCustomAlert('🔄 Preparing PDF export...', 'info');
+        
+        const records = JSON.parse(localStorage.getItem('smartScoresRecords') || '[]');
+        
+        if (records.length === 0) {
+          showCustomAlert('No data available to export', 'warning');
+          return;
+        }
+
+        // Check if jsPDF is available
+        if (typeof jspdf === 'undefined') {
+          showCustomAlert('PDF library not loaded. Please try again.', 'error');
+          return;
+        }
+
+        const { jsPDF } = window.jspdf || jspdf;
+        const doc = new jsPDF();
+        
+        // Add title
+        doc.setFontSize(16);
+        doc.text('SmartScores Report', 20, 20);
+        
+        // Add generation info
+        doc.setFontSize(10);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 30);
+        doc.text(`Teacher: ${getTeacherName()}`, 20, 40);
+        doc.text(`Total Records: ${records.length}`, 20, 50);
+        
+        // Add table headers
+        let yPosition = 70;
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text('Subject', 20, yPosition);
+        doc.text('Grade', 80, yPosition);
+        doc.text('Term', 110, yPosition);
+        doc.text('Score', 140, yPosition);
+        
+        yPosition += 10;
+        doc.setFont(undefined, 'normal');
+        
+        // Add records
+        records.slice(0, 20).forEach((record, index) => {
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.text(record.subject || '-', 20, yPosition);
+          doc.text(record.grade || '-', 80, yPosition);
+          doc.text(record.term || '-', 110, yPosition);
+          doc.text(record.mean ? record.mean.toFixed(1) + '%' : '-', 140, yPosition);
+          
+          yPosition += 10;
+        });
+        
+        // Save the PDF
+        const teacherName = getTeacherName().replace(/[^a-zA-Z0-9]/g, '_');
+        const filename = `SmartScores_Report_${teacherName}.pdf`;
+        doc.save(filename);
+        
+        showCustomAlert(`✅ PDF exported successfully! ${records.length} records included.`, 'success');
+        
+      } catch (error) {
+        console.error('PDF Export Error:', error);
+        showCustomAlert('❌ Error exporting PDF. Please try again.', 'error');
+      }
+    }
+
+    // Fallback Excel Export
+    function fallbackExcelExport() {
+      try {
+        showCustomAlert('🔄 Preparing Excel export...', 'info');
+        
+        const records = JSON.parse(localStorage.getItem('smartScoresRecords') || '[]');
+        
+        if (records.length === 0) {
+          showCustomAlert('No data available to export', 'warning');
+          return;
+        }
+
+        // Check if XLSX is available
+        if (typeof XLSX === 'undefined') {
+          showCustomAlert('Excel library not loaded. Please try again.', 'error');
+          return;
+        }
+
+        // Prepare data for Excel
+        const excelData = records.map(record => ({
+          'Subject': record.subject || '',
+          'Grade': record.grade || '',
+          'Stream': record.stream || '',
+          'Term': record.term || '',
+          'Exam Type': record.examType || '',
+          'Year': record.year || '',
+          'Mean Score': record.mean || 0,
+          'Teacher': record.teacher || getTeacherName(),
+          'Date': record.timestamp ? new Date(record.timestamp).toLocaleDateString() : ''
+        }));
+
+        // Create worksheet and workbook
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Scores');
+
+        // Generate filename and save
+        const teacherName = getTeacherName().replace(/[^a-zA-Z0-9]/g, '_');
+        const filename = `SmartScores_Export_${teacherName}.xlsx`;
+        
+        XLSX.writeFile(workbook, filename);
+        showCustomAlert(`✅ Excel file exported successfully! ${records.length} records included.`, 'success');
+
+      } catch (error) {
+        console.error('Excel Export Error:', error);
+        showCustomAlert('❌ Error exporting Excel file. Please try again.', 'error');
+      }
+    }
+
+    // Helper function to get teacher name
+    function getTeacherName() {
+      return localStorage.getItem('teacherFullName') || 'Teacher';
     }
 
     if ('serviceWorker' in navigator) {
@@ -642,31 +824,6 @@
       }
     }
 
-    // Enhanced export functions
-    function downloadPDF() {
-      if (window.downloadPDF) {
-        window.downloadPDF();
-      } else {
-        // Fallback PDF export
-        showCustomAlert('PDF export is being prepared...', 'info');
-        setTimeout(() => {
-          showCustomAlert('PDF export feature will be available soon!', 'warning');
-        }, 1000);
-      }
-    }
-
-    function exportToExcel() {
-      if (window.exportToExcel) {
-        window.exportToExcel();
-      } else {
-        // Fallback Excel export
-        showCustomAlert('Excel export is being prepared...', 'info');
-        setTimeout(() => {
-          showCustomAlert('Excel export feature will be available soon!', 'warning');
-        }, 1000);
-      }
-    }
-
     // Set up auto-refresh for dashboard
     function setupDashboardAutoRefresh() {
       // Refresh when page becomes visible
@@ -707,8 +864,10 @@
     window.renderRecentRecordsFallback = renderRecentRecordsFallback;
     window.renderProgressChartFallback = renderProgressChartFallback;
     window.toggleDarkMode = toggleDarkMode;
-    window.downloadPDF = downloadPDF;
-    window.exportToExcel = exportToExcel;
+    window.handlePDFExport = handlePDFExport;
+    window.handleExcelExport = handleExcelExport;
+    window.fallbackPDFExport = fallbackPDFExport;
+    window.fallbackExcelExport = fallbackExcelExport;
 
     // Start auto-refresh
     setupDashboardAutoRefresh();
@@ -719,7 +878,9 @@
         updateDashboardStats: typeof window.updateDashboardStats,
         renderRecentRecords: typeof window.renderRecentRecords,
         renderProgressChart: typeof window.renderProgressChart,
-        toggleDarkMode: typeof window.toggleDarkMode
+        toggleDarkMode: typeof window.toggleDarkMode,
+        downloadPDF: typeof window.downloadPDF,
+        exportToExcel: typeof window.exportToExcel
       });
     }, 1000);
   </script>
