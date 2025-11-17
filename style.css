@@ -642,7 +642,7 @@ table {
 
 thead {
   background: var(--gradient-header);
-  color: white !important;
+  color: white;
 }
 
 th {
@@ -653,23 +653,10 @@ th {
   cursor: pointer;
   user-select: none;
   transition: background-color 0.3s ease;
-  color: white !important; /* Force white text */
 }
 
 th:hover {
   background: rgba(255,255,255,0.1);
-  color: white !important;
-}
-
-/* Ensure data table headers also have good contrast */
-.data-table th {
-  background-color: var(--primary);
-  color: white !important;
-  font-weight: 600;
-}
-
-.data-table thead {
-  background: var(--primary);
 }
 
 td {
@@ -1036,18 +1023,8 @@ tbody tr:hover {
   transition: all 0.3s ease;
 }
 
-/* Hide logout button in mobile view */
-@media (max-width: 768px) {
-  .nav-user .btn-danger {
-    display: none;
-  }
-  
-  .floating-top-btn {
-    top: 70px;
-    right: 15px;
-    padding: 10px 14px;
-    font-size: 1em;
-  }
+.floating-top-btn:hover {
+  transform: translateY(-2px);
 }
 
 /* =========================================================
