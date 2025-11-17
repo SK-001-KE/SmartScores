@@ -1000,7 +1000,11 @@ window.toggleDarkMode = () => {
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem(STORAGE_KEYS.THEME, newTheme);
+    showAlert(`Switched to ${newTheme} mode`, 'success');
 };
+
+// Load theme on startup
+loadTheme();
 
 // ==================== MOBILE NAVIGATION MANAGEMENT ====================
 window.toggleMobileMenu = function() {
