@@ -30,7 +30,7 @@
       <a href="./grade-distribution.html" class="nav-link">📈 Distribution</a>
       <a href="./set-targets.html" class="nav-link">🎯 Targets</a>
       <a href="./learner-scores.html" class="nav-link">👨‍🎓 Learner Scores</a>
-       <a href="./teacher-config.html" class="nav-link">⚙️ Configuration</a>
+      <a href="./teacher-config.html" class="nav-link">⚙️ Configuration</a>
     </div>
     
     <div class="nav-user">
@@ -52,7 +52,8 @@
     <a href="./trends.html">📊 Trends</a>
     <a href="./grade-distribution.html">📈 Grade Distribution</a>
     <a href="./set-targets.html">🎯 Set Targets</a>
-    <a href="./learner-scores.html" class="nav-link">👨‍🎓 Learner Scores</a>
+    <a href="./learner-scores.html">👨‍🎓 Learner Scores</a>
+    <a href="./teacher-config.html">⚙️ Configuration</a>
     <button class="logout-btn" onclick="logout()">🚪 Logout</button>
   </aside>
 
@@ -67,6 +68,9 @@
     <div class="form-header">
       <h2>Enter Score Data</h2>
       <p class="teacher-info">Teacher: <span id="currentTeacher">Loading...</span></p>
+      <div class="config-notice" id="configNotice" style="display: none;">
+        <p>⚠️ <strong>Configuration Required:</strong> Please set up your subjects and classes in the <a href="./teacher-config.html">Configuration</a> page first.</p>
+      </div>
     </div>
 
     <form id="dataEntryForm" class="form-box">
@@ -74,29 +78,14 @@
         <div class="form-group">
           <label>Subject *</label>
           <select id="subject" required>
-            <option value="">Select Subject</option>
-            <option>Mathematics</option>
-            <option>English</option>
-            <option>Kiswahili</option>
-            <option>Science</option>
-            <option>Social Studies</option>
-            <option>CRE</option>
-            <option>Pre-Technical Studies</option>
-            <option>Creative Arts</option>
-            <option>Agriculture</option>
+            <option value="">Loading subjects...</option>
           </select>
         </div>
 
         <div class="form-group">
           <label>Grade *</label>
           <select id="grade" required>
-            <option value="">Select Grade</option>
-            <option>4</option>
-            <option>5</option>
-            <option>6</option>
-            <option>7</option>
-            <option>8</option>
-            <option>9</option>
+            <option value="">Loading classes...</option>
           </select>
         </div>
       </div>
@@ -105,23 +94,14 @@
         <div class="form-group">
           <label>Stream *</label>
           <select id="stream" required>
-            <option value="">Select Stream</option>
-            <option>Faith</option>
-            <option>Glory</option>
-            <option>Joy</option>
-            <option>Love</option>
-            <option>Peace</option>
-            <option>Unity</option>
+            <option value="">Loading streams...</option>
           </select>
         </div>
 
         <div class="form-group">
           <label>Term *</label>
           <select id="term" required>
-            <option value="">Select Term</option>
-            <option>Term 1</option>
-            <option>Term 2</option>
-            <option>Term 3</option>
+            <option value="">Loading terms...</option>
           </select>
         </div>
       </div>
@@ -130,10 +110,7 @@
         <div class="form-group">
           <label>Exam Type *</label>
           <select id="examType" required>
-            <option value="">Select Exam Type</option>
-            <option>Opener Exam</option>
-            <option>Mid Term Exam</option>
-            <option>End Term Exam</option>
+            <option value="">Loading exam types...</option>
           </select>
         </div>
 
@@ -186,6 +163,112 @@ if ('serviceWorker' in navigator) {
       .then(registration => console.log('SW registered: ', registration))
       .catch(error => console.log('SW registration failed: ', error));
   });
+}
+
+// Function to populate dropdown with options
+function populateDropdown(elementId, options, defaultValue = '') {
+  const element = document.getElementById(elementId);
+  if (!element) return;
+  
+  // Save current value if it exists
+  const currentValue = element.value;
+  
+  // Clear existing options except the first one
+  while (element.options.length > 1) {
+    element.remove(1);
+  }
+  
+  // Update the first option text
+  if (element.options.length > 0) {
+    element.options[0].textContent = defaultValue || 'Select...';
+  }
+  
+  // Add new options
+  options.forEach(option => {
+    const optionElement = document.createElement('option');
+    optionElement.value = option;
+    optionElement.textContent = option;
+    element.appendChild(optionElement);
+  });
+  
+  // Restore previous value if it still exists in new options
+  if (currentValue && Array.from(element.options).some(opt => opt.value === currentValue)) {
+    element.value = currentValue;
+  }
+}
+
+// Function to update form based on teacher configuration
+function updateFormFromTeacherConfig() {
+  try {
+    // Check if teacher configuration functions are available
+    if (typeof window.getAllSubjects === 'undefined' || 
+        typeof window.getAllStreams === 'undefined' || 
+        typeof window.getAllExamTypes === 'undefined') {
+      console.warn('Teacher configuration functions not available yet');
+      setTimeout(updateFormFromTeacherConfig, 500);
+      return;
+    }
+
+    // Get configuration data
+    const teacherSubjects = window.getTeacherSubjects ? window.getTeacherSubjects() : [];
+    const allSubjects = window.getAllSubjects ? window.getAllSubjects() : [];
+    const allStreams = window.getAllStreams ? window.getAllStreams() : [];
+    const allExamTypes = window.getAllExamTypes ? window.getAllExamTypes() : [];
+    
+    // Default classes if not available from configuration
+    const defaultClasses = [
+      'Foundation Class', 'PP1', 'PP2', 
+      'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 
+      'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9'
+    ];
+    
+    // Update subject dropdown - use assigned subjects if available, otherwise all subjects
+    const availableSubjects = teacherSubjects.length > 0 ? teacherSubjects : allSubjects;
+    populateDropdown('subject', availableSubjects, 'Select Subject');
+    
+    // Update grade/class dropdown
+    populateDropdown('grade', defaultClasses, 'Select Grade');
+    
+    // Update stream dropdown
+    populateDropdown('stream', allStreams, 'Select Stream');
+    
+    // Update term dropdown
+    populateDropdown('term', ['Term 1', 'Term 2', 'Term 3'], 'Select Term');
+    
+    // Update exam type dropdown
+    populateDropdown('examType', allExamTypes, 'Select Exam Type');
+    
+    // Show/hide configuration notice
+    const configNotice = document.getElementById('configNotice');
+    if (configNotice) {
+      if (teacherSubjects.length === 0 && allSubjects.length > 0) {
+        configNotice.style.display = 'block';
+      } else {
+        configNotice.style.display = 'none';
+      }
+    }
+    
+    console.log('Form updated with teacher configuration:', {
+      subjects: availableSubjects.length,
+      streams: allStreams.length,
+      examTypes: allExamTypes.length,
+      hasAssignedSubjects: teacherSubjects.length > 0
+    });
+    
+  } catch (error) {
+    console.error('Error updating form from teacher config:', error);
+    
+    // Fallback to default values if configuration fails
+    populateDropdown('subject', [
+      'Mathematics', 'English', 'Kiswahili', 'Science', 'Social Studies', 
+      'CRE', 'Pre-Technical Studies', 'Creative Arts', 'Agriculture'
+    ], 'Select Subject');
+    
+    populateDropdown('grade', ['4', '5', '6', '7', '8', '9'], 'Select Grade');
+    populateDropdown('stream', ['Faith', 'Glory', 'Joy', 'Love', 'Peace', 'Unity'], 'Select Stream');
+    populateDropdown('term', ['Term 1', 'Term 2', 'Term 3'], 'Select Term');
+    populateDropdown('examType', ['Opener Exam', 'Mid Term Exam', 'End Term Exam'], 'Select Exam Type');
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -246,6 +329,13 @@ document.addEventListener('DOMContentLoaded', function() {
   // Auto-fill year
   autoFillYear();
 
+  // Update form with teacher configuration
+  // Wait a bit for app.js to load completely
+  setTimeout(updateFormFromTeacherConfig, 100);
+  
+  // Also try to update when app.js signals it's ready
+  document.addEventListener('appJsReady', updateFormFromTeacherConfig);
+
   // FORM SUBMISSION
   const dataEntryForm = document.getElementById('dataEntryForm');
   if (dataEntryForm) {
@@ -282,7 +372,11 @@ function updateDataEntryStats() {
     const yearRecords = document.getElementById('yearRecords');
     
     if (totalRecords) totalRecords.textContent = records.length;
-    if (termRecords) termRecords.textContent = records.filter(r => r.term === 'Term 1').length;
+    
+    // Use current term from configuration if available
+    const currentTerm = window.getCurrentTerm ? window.getCurrentTerm() : 'Term 1';
+    if (termRecords) termRecords.textContent = records.filter(r => r.term === currentTerm).length;
+    
     if (yearRecords) yearRecords.textContent = records.filter(r => parseInt(r.year) === new Date().getFullYear()).length;
   } catch (error) {
     console.error('Error updating stats:', error);
@@ -354,6 +448,8 @@ function handleSaveRecordFallback(event) {
     if (dataForm) {
       dataForm.reset(); 
       autoFillYear();
+      // Re-populate form with current configuration after reset
+      setTimeout(updateFormFromTeacherConfig, 100);
     }
 
     updateDataEntryStats();
@@ -368,6 +464,7 @@ function handleSaveRecordFallback(event) {
 window.autoFillYear = autoFillYear;
 window.updateDataEntryStats = updateDataEntryStats;
 window.handleSaveRecordFallback = handleSaveRecordFallback;
+window.updateFormFromTeacherConfig = updateFormFromTeacherConfig;
 
 function logout() {
   if (window.logout) {
@@ -396,18 +493,33 @@ console.log('handleSaveRecord:', typeof window.handleSaveRecord);
 console.log('renderRecords:', typeof window.renderRecords);
 console.log('updateDashboardStats:', typeof window.updateDashboardStats);
 
+// Check for teacher configuration functions
 setTimeout(() => {
+  const teacherConfigFunctions = [
+    'getAllSubjects', 'getAllStreams', 'getAllExamTypes', 
+    'getTeacherSubjects', 'getCurrentTerm', 'loadTeacherConfig'
+  ];
+  
+  teacherConfigFunctions.forEach(func => {
+    console.log(`${func}:`, typeof window[func]);
+  });
+  
   const appFunctions = Object.keys(window).filter(key => 
     typeof window[key] === 'function' && 
     (key.includes('render') || 
      key.includes('save') || 
      key.includes('update') ||
-     key.includes('handle'))
+     key.includes('handle') ||
+     key.includes('getAll') ||
+     key.includes('getTeacher'))
   );
   console.log('App.js functions found:', appFunctions);
   
   // Also check if app.js loaded at all
   console.log('app.js functions count:', appFunctions.length);
+  
+  // Signal that we're ready to update the form
+  document.dispatchEvent(new Event('appJsReady'));
 }, 2000);
 </script>
 </body>
