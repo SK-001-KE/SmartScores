@@ -11,32 +11,89 @@ const STORAGE_KEYS = {
     TEACHER: 'teacherFullName',
     TEACHER_FULL_NAME: 'teacherFullName',
     THEME: 'themeMode',
-    LEARNER_SCORES: 'learnerScores'
+    LEARNER_SCORES: 'learnerScores',
+    TEACHER_CONFIG: 'teacherConfig',
+    CUSTOM_SUBJECTS: 'customSubjects',
+    CUSTOM_EXAM_TYPES: 'customExamTypes',
+    CUSTOM_STREAMS: 'customStreams'
 };
-// ==================== TERM PERIODS CONFIGURATION ====================
-const TERM_PERIODS = {
-    'Term 1': {
-        start: 'January 1',
-        end: 'April 30',
-        fullPeriod: '1st January to 30th April'
+
+// ==================== TEACHER CONFIGURATION SYSTEM ====================
+
+// Default configuration data
+const DEFAULT_CONFIG = {
+    academicYear: new Date().getFullYear() + '/' + (new Date().getFullYear() + 1),
+    termDates: {
+        'Term 1': { start: '', end: '' },
+        'Term 2': { start: '', end: '' },
+        'Term 3': { start: '', end: '' }
     },
-    'Term 2': {
-        start: 'May 1', 
-        end: 'August 31',
-        fullPeriod: '1st May to 31st August'
-    },
-    'Term 3': {
-        start: 'September 1',
-        end: 'December 31',
-        fullPeriod: '1st September to 31st December'
+    assignedSubjects: [],
+    customSubjects: [],
+    customExamTypes: [],
+    customStreams: []
+};
+
+// Updated classes and subjects based on your requirements
+const DEFAULT_CLASSES = [
+    'Foundation Class', 'PP1', 'PP2', 
+    'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 
+    'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9'
+];
+
+const DEFAULT_STREAMS = ['Faith', 'Glory', 'Joy', 'Love', 'Peace', 'Unity'];
+
+const DEFAULT_SUBJECTS = [
+    'Agriculture', 'CRE', 'English', 'Creative Arts', 'Integrated Science', 
+    'Kiswahili', 'Mathematics', 'Pre-technical Studies', 'Social Studies',
+    'Creative Activities', 'Environmental Activities', 'Mathematical Activities',
+    'Religious Activities', 'Language Activities', 'Literature Activities', 
+    'Listening and Speaking', 'ICT', 'Chinese', 'French'
+];
+
+const DEFAULT_EXAM_TYPES = ['Opener Exam', 'Mid Term Exam', 'End Term Exam'];
+
+// Load teacher configuration
+const loadTeacherConfig = () => {
+    try {
+        const savedConfig = localStorage.getItem(STORAGE_KEYS.TEACHER_CONFIG);
+        if (savedConfig) {
+            return { ...DEFAULT_CONFIG, ...JSON.parse(savedConfig) };
+        }
+    } catch (error) {
+        console.error('Error loading teacher config:', error);
+    }
+    return { ...DEFAULT_CONFIG };
+};
+
+// Save teacher configuration
+const saveTeacherConfig = (config) => {
+    try {
+        localStorage.setItem(STORAGE_KEYS.TEACHER_CONFIG, JSON.stringify(config));
+        return true;
+    } catch (error) {
+        console.error('Error saving teacher config:', error);
+        return false;
     }
 };
 
-// Function to get current term based on current date
+// Get current term based on teacher-defined dates
 const getCurrentTerm = () => {
+    const config = loadTeacherConfig();
     const now = new Date();
-    const currentMonth = now.getMonth() + 1; // JavaScript months are 0-11
     
+    for (const [term, dates] of Object.entries(config.termDates)) {
+        if (dates.start && dates.end) {
+            const start = new Date(dates.start);
+            const end = new Date(dates.end);
+            if (now >= start && now <= end) {
+                return term;
+            }
+        }
+    }
+    
+    // Fallback to month-based detection if dates not configured
+    const currentMonth = now.getMonth() + 1;
     if (currentMonth >= 1 && currentMonth <= 4) {
         return 'Term 1';
     } else if (currentMonth >= 5 && currentMonth <= 8) {
@@ -46,17 +103,141 @@ const getCurrentTerm = () => {
     }
 };
 
-// Function to get term period display text
-const getTermPeriod = (term) => {
-    return TERM_PERIODS[term] ? TERM_PERIODS[term].fullPeriod : 'Period not defined';
+// Get all available subjects (default + custom)
+const getAllSubjects = () => {
+    const config = loadTeacherConfig();
+    return [...DEFAULT_SUBJECTS, ...config.customSubjects];
 };
 
-// Function to display term periods in the UI
+// Get all available streams (default + custom)
+const getAllStreams = () => {
+    const config = loadTeacherConfig();
+    return [...DEFAULT_STREAMS, ...config.customStreams];
+};
+
+// Get all available exam types (default + custom)
+const getAllExamTypes = () => {
+    const config = loadTeacherConfig();
+    return [...DEFAULT_EXAM_TYPES, ...config.customExamTypes];
+};
+
+// Get teacher's assigned subjects
+const getTeacherSubjects = () => {
+    const config = loadTeacherConfig();
+    return config.assignedSubjects.map(assignment => assignment.subject);
+};
+
+// Get classes for a specific subject
+const getClassesForSubject = (subject) => {
+    const config = loadTeacherConfig();
+    const assignment = config.assignedSubjects.find(a => a.subject === subject);
+    return assignment ? assignment.classes : [];
+};
+
+// Get streams for a specific subject
+const getStreamsForSubject = (subject) => {
+    const config = loadTeacherConfig();
+    const assignment = config.assignedSubjects.find(a => a.subject === subject);
+    return assignment ? assignment.streams : getAllStreams();
+};
+
+// Update data entry forms to use teacher configuration
+const updateDataEntryForms = () => {
+    const config = loadTeacherConfig();
+    
+    // Update subject dropdown
+    const subjectSelect = document.getElementById('subject');
+    if (subjectSelect) {
+        const currentValue = subjectSelect.value;
+        subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+        
+        const teacherSubjects = getTeacherSubjects();
+        if (teacherSubjects.length > 0) {
+            // Only show assigned subjects
+            teacherSubjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject;
+                option.textContent = subject;
+                subjectSelect.appendChild(option);
+            });
+        } else {
+            // Show all subjects if no configuration
+            getAllSubjects().forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject;
+                option.textContent = subject;
+                subjectSelect.appendChild(option);
+            });
+        }
+        
+        // Restore previous value if it exists in new options
+        if (currentValue && Array.from(subjectSelect.options).some(opt => opt.value === currentValue)) {
+            subjectSelect.value = currentValue;
+        }
+    }
+
+    // Update class dropdown
+    const gradeSelect = document.getElementById('grade');
+    if (gradeSelect) {
+        const currentValue = gradeSelect.value;
+        gradeSelect.innerHTML = '<option value="">Select Grade</option>';
+        
+        DEFAULT_CLASSES.forEach(className => {
+            const option = document.createElement('option');
+            option.value = className;
+            option.textContent = className;
+            gradeSelect.appendChild(option);
+        });
+        
+        if (currentValue && Array.from(gradeSelect.options).some(opt => opt.value === currentValue)) {
+            gradeSelect.value = currentValue;
+        }
+    }
+
+    // Update stream dropdown
+    const streamSelect = document.getElementById('stream');
+    if (streamSelect) {
+        const currentValue = streamSelect.value;
+        streamSelect.innerHTML = '<option value="">Select Stream</option>';
+        
+        getAllStreams().forEach(stream => {
+            const option = document.createElement('option');
+            option.value = stream;
+            option.textContent = stream;
+            streamSelect.appendChild(option);
+        });
+        
+        if (currentValue && Array.from(streamSelect.options).some(opt => opt.value === currentValue)) {
+            streamSelect.value = currentValue;
+        }
+    }
+
+    // Update exam type dropdown
+    const examTypeSelect = document.getElementById('examType');
+    if (examTypeSelect) {
+        const currentValue = examTypeSelect.value;
+        examTypeSelect.innerHTML = '<option value="">Select Exam Type</option>';
+        
+        getAllExamTypes().forEach(examType => {
+            const option = document.createElement('option');
+            option.value = examType;
+            option.textContent = examType;
+            examTypeSelect.appendChild(option);
+        });
+        
+        if (currentValue && Array.from(examTypeSelect.options).some(opt => opt.value === currentValue)) {
+            examTypeSelect.value = currentValue;
+        }
+    }
+};
+
+// Display term periods based on teacher configuration
 const displayTermPeriods = () => {
     const termPeriodsContainer = document.getElementById('termPeriodsDisplay');
     
     if (!termPeriodsContainer) return;
     
+    const config = loadTeacherConfig();
     const currentTerm = getCurrentTerm();
     
     let html = `
@@ -68,8 +249,13 @@ const displayTermPeriods = () => {
             <div class="term-periods-grid">
     `;
     
-    Object.entries(TERM_PERIODS).forEach(([term, period]) => {
+    Object.entries(config.termDates).forEach(([term, period]) => {
         const isCurrent = term === currentTerm;
+        const startDate = period.start ? new Date(period.start).toLocaleDateString() : 'Not set';
+        const endDate = period.end ? new Date(period.end).toLocaleDateString() : 'Not set';
+        const fullPeriod = period.start && period.end ? 
+            `${startDate} to ${endDate}` : 'Dates not configured';
+        
         html += `
             <div class="term-period-card ${isCurrent ? 'current-term' : ''}">
                 <div class="term-header">
@@ -79,19 +265,22 @@ const displayTermPeriods = () => {
                 <div class="term-dates">
                     <div class="date-range">
                         <span class="date-label">Starts:</span>
-                        <span class="date-value">${period.start}</span>
+                        <span class="date-value">${startDate}</span>
                     </div>
                     <div class="date-range">
                         <span class="date-label">Ends:</span>
-                        <span class="date-value">${period.end}</span>
+                        <span class="date-value">${endDate}</span>
                     </div>
                 </div>
-                <div class="full-period">${period.fullPeriod}</div>
+                <div class="full-period">${fullPeriod}</div>
             </div>
         `;
     });
     
     html += `
+            </div>
+            <div class="term-period-info">
+                <small>Configure term dates in the Teacher Configuration page</small>
             </div>
         </div>
     `;
@@ -99,57 +288,6 @@ const displayTermPeriods = () => {
     termPeriodsContainer.innerHTML = html;
 };
 
-// Function to add term period info to data entry forms
-const enhanceFormsWithTermInfo = () => {
-    const termSelect = document.getElementById('term');
-    
-    if (termSelect) {
-        // Add change event to show term period when term is selected
-        termSelect.addEventListener('change', function() {
-            const selectedTerm = this.value;
-            if (selectedTerm && TERM_PERIODS[selectedTerm]) {
-                // Create or update term period info display
-                let termInfo = document.getElementById('termPeriodInfo');
-                if (!termInfo) {
-                    termInfo = document.createElement('div');
-                    termInfo.id = 'termPeriodInfo';
-                    termInfo.className = 'term-period-info';
-                    termSelect.parentNode.appendChild(termInfo);
-                }
-                termInfo.innerHTML = `
-                    <small>📅 ${TERM_PERIODS[selectedTerm].fullPeriod}</small>
-                `;
-            } else {
-                const termInfo = document.getElementById('termPeriodInfo');
-                if (termInfo) {
-                    termInfo.remove();
-                }
-            }
-        });
-        
-        // Trigger change event if there's already a selected value
-        if (termSelect.value) {
-            termSelect.dispatchEvent(new Event('change'));
-        }
-    }
-};
-
-// Function to add term period validation
-const validateTermDate = (term, date) => {
-    if (!term || !date || !TERM_PERIODS[term]) return true; // Skip validation if data missing
-    
-    const inputDate = new Date(date);
-    const termData = TERM_PERIODS[term];
-    
-    // Simple month-based validation (you can enhance this with exact dates)
-    const inputMonth = inputDate.getMonth() + 1;
-    
-    if (term === 'Term 1' && (inputMonth >= 1 && inputMonth <= 4)) return true;
-    if (term === 'Term 2' && (inputMonth >= 5 && inputMonth <= 8)) return true;
-    if (term === 'Term 3' && (inputMonth >= 9 && inputMonth <= 12)) return true;
-    
-    return false;
-};
 // DOM Helper
 const el = id => document.getElementById(id);
 
@@ -422,63 +560,62 @@ const renderRecentRecords = () => {
         `;
         return;
     }
-   // Update the renderRecentRecordsFallback function in index.html
-function renderRecentRecordsFallback() {
-    try {
-        const container = document.getElementById('recentRecordsTable');
-        if (!container) return;
-        
-        const records = JSON.parse(localStorage.getItem('smartScoresRecords') || '[]');
-        
-        if (records.length === 0) {
+
+    // Update the renderRecentRecordsFallback function in index.html
+    function renderRecentRecordsFallback() {
+        try {
+            const container = document.getElementById('recentRecordsTable');
+            if (!container) return;
+            
+            const records = JSON.parse(localStorage.getItem('smartScoresRecords') || '[]');
+            
+            if (records.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No records yet. Start by entering scores in the Data Entry page.</p>
+                        <button onclick="location.href='./data-entry.html'" class="btn-action">Add First Record</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            const recentRecords = records
+                .sort((a, b) => new Date(b.timestamp || b.id) - new Date(a.timestamp || a.id))
+                .slice(0, 5);
+            
             container.innerHTML = `
-                <div class="empty-state">
-                    <p>No records yet. Start by entering scores in the Data Entry page.</p>
-                    <button onclick="location.href='./data-entry.html'" class="btn-action">Add First Record</button>
-                </div>
-            `;
-            return;
-        }
-        
-        const recentRecords = records
-            .sort((a, b) => new Date(b.timestamp || b.id) - new Date(a.timestamp || a.id))
-            .slice(0, 5);
-        
-        container.innerHTML = `
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Subject</th>
-                        <th>Grade</th>
-                        <th>Stream</th>
-                        <th>Term</th>
-                        <th>Exam</th>
-                        <th>Mean Score</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${recentRecords.map(record => `
+                <table class="data-table">
+                    <thead>
                         <tr>
-                            <td>${record.subject}</td>
-                            <td>${record.grade}</td>
-                            <td>${record.stream}</td>
-                            <td>${record.term}</td>
-                            <td>${record.examType}</td>
-                            <td style="font-weight: bold; color: ${getColorForScore(record.mean)}">
-                                ${record.mean.toFixed(1)}%
-                            </td>
+                            <th>Subject</th>
+                            <th>Grade</th>
+                            <th>Stream</th>
+                            <th>Term</th>
+                            <th>Exam</th>
+                            <th>Mean Score</th>
                         </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-    } catch (error) {
-        console.error('Error loading recent records:', error);
-        showError('recentRecordsTable', 'Error loading recent records');
+                    </thead>
+                    <tbody>
+                        ${recentRecords.map(record => `
+                            <tr>
+                                <td>${record.subject}</td>
+                                <td>${record.grade}</td>
+                                <td>${record.stream}</td>
+                                <td>${record.term}</td>
+                                <td>${record.examType}</td>
+                                <td style="font-weight: bold; color: ${getColorForScore(record.mean)}">
+                                    ${record.mean.toFixed(1)}%
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        } catch (error) {
+            console.error('Error loading recent records:', error);
+            showError('recentRecordsTable', 'Error loading recent records');
+        }
     }
-}
-    
-  
 
 // Enhanced grouping function with deviation calculation
 const groupLearnerScores = (scores) => {
@@ -1028,6 +1165,7 @@ window.toggleDarkMode = () => {
 
 // Load theme on startup
 loadTheme();
+
 // ==================== MOBILE NAVIGATION MANAGEMENT ====================
 window.toggleMobileMenu = function() {
     const mobileSidebar = document.getElementById('mobileSidebar');
@@ -2524,6 +2662,9 @@ const renderAll = async () => {
             teacherDisplay.textContent = getTeacherName() || 'Not logged in';
         }
         
+        // Update data entry forms with teacher configuration
+        updateDataEntryForms();
+        
         const records = loadRecords();
         const totalRecords = document.getElementById('totalRecords');
         const termRecords = document.getElementById('termRecords');
@@ -2532,7 +2673,7 @@ const renderAll = async () => {
         if (totalRecords) totalRecords.textContent = records.length;
         
         if (termRecords) {
-            const currentTerm = 'Term 1';
+            const currentTerm = getCurrentTerm();
             const termCount = records.filter(r => r.term === currentTerm).length;
             termRecords.textContent = termCount;
         }
@@ -2627,6 +2768,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         element.textContent = teacherFullName;
     });
 };
+
 // ==================== GLOBAL FUNCTION EXPORTS ====================
 // Add this section at the VERY END of app.js, after all your functions
 
@@ -2675,6 +2817,19 @@ window.formatRubricBadge = formatRubricBadge;
 window.updateSyncStatus = updateSyncStatus;
 window.migrateExistingData = migrateExistingData;
 
+// Teacher Configuration functions
+window.loadTeacherConfig = loadTeacherConfig;
+window.saveTeacherConfig = saveTeacherConfig;
+window.getCurrentTerm = getCurrentTerm;
+window.getAllSubjects = getAllSubjects;
+window.getAllStreams = getAllStreams;
+window.getAllExamTypes = getAllExamTypes;
+window.getTeacherSubjects = getTeacherSubjects;
+window.getClassesForSubject = getClassesForSubject;
+window.getStreamsForSubject = getStreamsForSubject;
+window.updateDataEntryForms = updateDataEntryForms;
+window.displayTermPeriods = displayTermPeriods;
+
 // Add this to app.js to ensure the cumulative averages function is available
 window.renderCumulativeAverages = renderCumulativeAverages;
 
@@ -2683,4 +2838,3 @@ console.log('✅ app.js loaded - Global functions exported:', Object.keys(window
     typeof window[key] === 'function' && 
     (key.includes('render') || key.includes('save') || key.includes('update') || key.includes('handle'))
 ).length + ' functions available');
-
