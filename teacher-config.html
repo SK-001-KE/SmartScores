@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartScores - Teacher Configuration</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js"></script>
+  <script src="./auth.js" defer></script>
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="./firebase-sync.js"></script>
+  
+  <style>
+    .config-section {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      margin: 20px 0;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    
+    .config-section h3 {
+      color: var(--primary);
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 10px;
+    }
+    
+    .term-dates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .term-date-card {
+      background: var(--bg);
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+    }
+    
+    .term-date-card.current {
+      border-color: var(--primary);
+      background: rgba(139, 0, 0, 0.05);
+    }
+    
+    .assignment-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 15px;
+      padding: 15px;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    
+    .custom-item {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+    
+    .custom-item input {
+      flex: 1;
+    }
+    
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 0.8em;
+    }
+    
+    .current-config {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+    }
+    
+    .current-config h4 {
+      margin: 0 0 10px 0;
+    }
+    
+    .config-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    
+    .summary-item {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    
+    @media (max-width: 768px) {
+      .assignment-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .term-dates-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- TOP NAVIGATION BAR -->
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <img src="./icon-192x192.png" class="logo-small" style="height:32px;margin-right:10px;border-radius:6px;">
+      <span>SmartScores</span>
+    </div>
+    
+    <div class="nav-links">
+      <a href="./index.html" class="nav-link">📊 Dashboard</a>
+      <a href="./data-entry.html" class="nav-link">📝 Data Entry</a>
+      <a href="./recorded-scores.html" class="nav-link">📋 Scores</a>
+      <a href="./ai-insights.html" class="nav-link">🤖 AI Insights</a>
+      <a href="./teacher-config.html" class="nav-link active">⚙️ Configuration</a>
+    </div>
+    
+    <div class="nav-user">
+      <span id="teacherName" class="teacher-name">Teacher</span>
+      <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
+    </div>
+  </nav>
+
+  <!-- MOBILE MENU TOGGLE -->
+  <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+
+  <!-- MOBILE SIDEBAR -->
+  <aside id="mobileSidebar" class="mobile-sidebar closed">
+    <a href="./index.html">📊 Dashboard</a>
+    <a href="./data-entry.html">📝 Data Entry</a>
+    <a href="./recorded-scores.html">📋 Recorded Scores</a>
+    <a href="./ai-insights.html">🤖 AI Insights</a>
+    <a href="./teacher-config.html" class="active">⚙️ Configuration</a>
+    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+  </aside>
+
+  <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
+
+  <header>
+    <h1>Teacher Configuration</h1>
+    <p>Customize your teaching profile and academic settings</p>
+  </header>
+
+  <main class="content">
+    <!-- Current Configuration Summary -->
+    <div class="current-config" id="currentConfigSummary">
+      <h4>📋 Current Configuration</h4>
+      <div class="config-summary">
+        <div class="summary-item">
+          <strong>Academic Year:</strong>
+          <div id="currentAcademicYear">Loading...</div>
+        </div>
+        <div class="summary-item">
+          <strong>Current Term:</strong>
+          <div id="currentTermDisplay">Loading...</div>
+        </div>
+        <div class="summary-item">
+          <strong>Subjects:</strong>
+          <div id="currentSubjectsCount">Loading...</div>
+        </div>
+        <div class="summary-item">
+          <strong>Classes:</strong>
+          <div id="currentClassesCount">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Academic Year Configuration -->
+    <div class="config-section">
+      <h3>📅 Academic Year Setup</h3>
+      <div class="form-group">
+        <label>Current Academic Year</label>
+        <input type="text" id="academicYear" placeholder="e.g., 2024/2025" required>
+        <small class="hint">Format: YYYY/YYYY (e.g., 2024/2025)</small>
+      </div>
+    </div>
+
+    <!-- Term Dates Configuration -->
+    <div class="config-section">
+      <h3>📚 Term Dates Configuration</h3>
+      <div class="term-dates-grid">
+        <div class="term-date-card" id="term1Card">
+          <h4>Term 1 Dates</h4>
+          <div class="form-group">
+            <label>Start Date</label>
+            <input type="date" id="term1Start" class="term-date">
+          </div>
+          <div class="form-group">
+            <label>End Date</label>
+            <input type="date" id="term1End" class="term-date">
+          </div>
+        </div>
+        
+        <div class="term-date-card" id="term2Card">
+          <h4>Term 2 Dates</h4>
+          <div class="form-group">
+            <label>Start Date</label>
+            <input type="date" id="term2Start" class="term-date">
+          </div>
+          <div class="form-group">
+            <label>End Date</label>
+            <input type="date" id="term2End" class="term-date">
+          </div>
+        </div>
+        
+        <div class="term-date-card" id="term3Card">
+          <h4>Term 3 Dates</h4>
+          <div class="form-group">
+            <label>Start Date</label>
+            <input type="date" id="term3Start" class="term-date">
+          </div>
+          <div class="form-group">
+            <label>End Date</label>
+            <input type="date" id="term3End" class="term-date">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subject & Class Assignment -->
+    <div class="config-section">
+      <h3>📖 Subject & Class Assignment</h3>
+      <p class="hint">Select the subjects you teach and assign them to specific classes</p>
+      
+      <div id="subjectAssignments">
+        <!-- Dynamic assignments will be added here -->
+      </div>
+      
+      <button type="button" onclick="addSubjectAssignment()" class="btn btn-primary">
+        ➕ Add Another Subject
+      </button>
+    </div>
+
+    <!-- Custom Subjects Management -->
+    <div class="config-section">
+      <h3>📝 Custom Subjects</h3>
+      <p class="hint">Add subjects that are not in the default list</p>
+      
+      <div id="customSubjectsList">
+        <!-- Custom subjects will be added here -->
+      </div>
+      
+      <div class="custom-item">
+        <input type="text" id="newCustomSubject" placeholder="Enter new subject name">
+        <button type="button" onclick="addCustomSubject()" class="btn btn-success btn-small">
+          Add Subject
+        </button>
+      </div>
+    </div>
+
+    <!-- Custom Exam Types -->
+    <div class="config-section">
+      <h3>📊 Custom Exam Types</h3>
+      <p class="hint">Add additional exam types beyond the standard ones</p>
+      
+      <div id="customExamTypesList">
+        <!-- Custom exam types will be added here -->
+      </div>
+      
+      <div class="custom-item">
+        <input type="text" id="newCustomExamType" placeholder="Enter new exam type">
+        <button type="button" onclick="addCustomExamType()" class="btn btn-success btn-small">
+          Add Exam Type
+        </button>
+      </div>
+    </div>
+
+    <!-- Custom Streams -->
+    <div class="config-section">
+      <h3>👥 Custom Streams</h3>
+      <p class="hint">Add additional streams beyond the default ones</p>
+      
+      <div id="customStreamsList">
+        <!-- Custom streams will be added here -->
+      </div>
+      
+      <div class="custom-item">
+        <input type="text" id="newCustomStream" placeholder="Enter new stream name">
+        <button type="button" onclick="addCustomStream()" class="btn btn-success btn-small">
+          Add Stream
+        </button>
+      </div>
+    </div>
+
+    <!-- Save Configuration -->
+    <div class="form-actions" style="margin-top: 30px;">
+      <button type="button" onclick="saveTeacherConfig()" class="btn btn-primary full">
+        💾 Save Configuration
+      </button>
+      <button type="button" onclick="resetToDefaults()" class="btn btn-secondary">
+        🔄 Reset to Defaults
+      </button>
+    </div>
+  </main>
+
+  <footer>SmartScores v3.0 © Kariuki 2025</footer>
+
+  <script>
+    // Default configuration data
+    const DEFAULT_CONFIG = {
+      academicYear: new Date().getFullYear() + '/' + (new Date().getFullYear() + 1),
+      termDates: {
+        'Term 1': { start: '', end: '' },
+        'Term 2': { start: '', end: '' },
+        'Term 3': { start: '', end: '' }
+      },
+      assignedSubjects: [],
+      customSubjects: [],
+      customExamTypes: [],
+      customStreams: []
+    };
+
+    // Default classes and subjects
+    const DEFAULT_CLASSES = [
+      'Foundation Class', 'PP1', 'PP2', 
+      'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 
+      'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9'
+    ];
+
+    const DEFAULT_STREAMS = ['Faith', 'Glory', 'Joy', 'Love', 'Peace', 'Unity'];
+
+    const DEFAULT_SUBJECTS = [
+      'Agriculture', 'CRE', 'English', 'Creative Arts', 'Integrated Science', 
+      'Kiswahili', 'Mathematics', 'Pre-technical Studies', 'Social Studies',
+      'Creative Activities', 'Environmental Activities', 'Mathematical Activities',
+      'Religious Activities', 'Language Activities', 'Literature Activities', 
+      'Listening and Speaking', 'ICT', 'Chinese', 'French'
+    ];
+
+    const DEFAULT_EXAM_TYPES = ['Opener Exam', 'Mid Term Exam', 'End Term Exam'];
+
+    let teacherConfig = { ...DEFAULT_CONFIG };
+
+    // Load configuration when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      initializePage();
+      loadTeacherConfig();
+      setupMobileMenu();
+    });
+
+    function initializePage() {
+      // Set current teacher name
+      const teacherName = localStorage.getItem('teacherFullName') || 'Teacher';
+      document.getElementById('teacherName').textContent = teacherName;
+      
+      // Initialize subject assignments
+      initializeSubjectAssignments();
+      
+      // Load custom items
+      loadCustomItems();
+    }
+
+    function setupMobileMenu() {
+      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      
+      if (mobileMenuToggle && mobileSidebar) {
+        mobileMenuToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          mobileSidebar.classList.toggle('closed');
+          mobileMenuToggle.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
+        });
+      }
+    }
+
+    function loadTeacherConfig() {
+      try {
+        const savedConfig = localStorage.getItem('teacherConfig');
+        if (savedConfig) {
+          teacherConfig = { ...DEFAULT_CONFIG, ...JSON.parse(savedConfig) };
+        }
+        renderConfiguration();
+      } catch (error) {
+        console.error('Error loading teacher config:', error);
+        teacherConfig = { ...DEFAULT_CONFIG };
+      }
+    }
+
+    function saveTeacherConfig() {
+      try {
+        // Gather form data
+        gatherFormData();
+        
+        // Save to localStorage
+        localStorage.setItem('teacherConfig', JSON.stringify(teacherConfig));
+        
+        // Update current term based on dates
+        updateCurrentTerm();
+        
+        showAlert('Configuration saved successfully!', 'success');
+        renderConfiguration();
+      } catch (error) {
+        console.error('Error saving teacher config:', error);
+        showAlert('Error saving configuration', 'error');
+      }
+    }
+
+    function gatherFormData() {
+      // Academic Year
+      teacherConfig.academicYear = document.getElementById('academicYear').value;
+      
+      // Term Dates
+      teacherConfig.termDates['Term 1'] = {
+        start: document.getElementById('term1Start').value,
+        end: document.getElementById('term1End').value
+      };
+      teacherConfig.termDates['Term 2'] = {
+        start: document.getElementById('term2Start').value,
+        end: document.getElementById('term2End').value
+      };
+      teacherConfig.termDates['Term 3'] = {
+        start: document.getElementById('term3Start').value,
+        end: document.getElementById('term3End').value
+      };
+      
+      // Subject Assignments
+      teacherConfig.assignedSubjects = gatherSubjectAssignments();
+    }
+
+    function gatherSubjectAssignments() {
+      const assignments = [];
+      const assignmentElements = document.querySelectorAll('.assignment-grid');
+      
+      assignmentElements.forEach(element => {
+        const subject = element.querySelector('.assignment-subject').value;
+        const classElements = element.querySelectorAll('.assignment-class:checked');
+        const streamElements = element.querySelectorAll('.assignment-stream:checked');
+        
+        if (subject && classElements.length > 0) {
+          const classes = Array.from(classElements).map(cb => cb.value);
+          const streams = Array.from(streamElements).map(cb => cb.value);
+          
+          assignments.push({
+            subject: subject,
+            classes: classes,
+            streams: streams
+          });
+        }
+      });
+      
+      return assignments;
+    }
+
+    function initializeSubjectAssignments() {
+      const container = document.getElementById('subjectAssignments');
+      container.innerHTML = '';
+      
+      // Add one empty assignment to start with
+      addSubjectAssignment();
+    }
+
+    function addSubjectAssignment() {
+      const container = document.getElementById('subjectAssignments');
+      const assignmentId = 'assignment-' + Date.now();
+      
+      const assignmentHTML = `
+        <div class="assignment-grid" id="${assignmentId}">
+          <div class="form-group">
+            <label>Subject</label>
+            <select class="assignment-subject" onchange="updateAvailableClasses(this)">
+              <option value="">Select Subject</option>
+              ${getAllSubjects().map(subject => 
+                `<option value="${subject}">${subject}</option>`
+              ).join('')}
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Classes</label>
+            <div class="checkbox-group">
+              ${DEFAULT_CLASSES.map(className => `
+                <label style="display: block; margin: 5px 0;">
+                  <input type="checkbox" class="assignment-class" value="${className}">
+                  ${className}
+                </label>
+              `).join('')}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Streams</label>
+            <div class="checkbox-group">
+              ${getAllStreams().map(stream => `
+                <label style="display: block; margin: 5px 0;">
+                  <input type="checkbox" class="assignment-stream" value="${stream}" checked>
+                  ${stream}
+                </label>
+              `).join('')}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button type="button" onclick="removeAssignment('${assignmentId}')" 
+                    class="btn btn-danger btn-small" ${container.children.length === 1 ? 'disabled' : ''}>
+              🗑️ Remove
+            </button>
+          </div>
+        </div>
+      `;
+      
+      container.insertAdjacentHTML('beforeend', assignmentHTML);
+    }
+
+    function removeAssignment(assignmentId) {
+      const element = document.getElementById(assignmentId);
+      if (element) {
+        element.remove();
+      }
+    }
+
+    function getAllSubjects() {
+      return [...DEFAULT_SUBJECTS, ...teacherConfig.customSubjects];
+    }
+
+    function getAllStreams() {
+      return [...DEFAULT_STREAMS, ...teacherConfig.customStreams];
+    }
+
+    function getAllExamTypes() {
+      return [...DEFAULT_EXAM_TYPES, ...teacherConfig.customExamTypes];
+    }
+
+    function addCustomSubject() {
+      const input = document.getElementById('newCustomSubject');
+      const subject = input.value.trim();
+      
+      if (subject && !getAllSubjects().includes(subject)) {
+        teacherConfig.customSubjects.push(subject);
+        saveCustomItems();
+        input.value = '';
+        renderCustomSubjects();
+        showAlert('Custom subject added!', 'success');
+      } else {
+        showAlert('Subject already exists or is invalid', 'error');
+      }
+    }
+
+    function addCustomExamType() {
+      const input = document.getElementById('newCustomExamType');
+      const examType = input.value.trim();
+      
+      if (examType && !getAllExamTypes().includes(examType)) {
+        teacherConfig.customExamTypes.push(examType);
+        saveCustomItems();
+        input.value = '';
+        renderCustomExamTypes();
+        showAlert('Custom exam type added!', 'success');
+      } else {
+        showAlert('Exam type already exists or is invalid', 'error');
+      }
+    }
+
+    function addCustomStream() {
+      const input = document.getElementById('newCustomStream');
+      const stream = input.value.trim();
+      
+      if (stream && !getAllStreams().includes(stream)) {
+        teacherConfig.customStreams.push(stream);
+        saveCustomItems();
+        input.value = '';
+        renderCustomStreams();
+        showAlert('Custom stream added!', 'success');
+      } else {
+        showAlert('Stream already exists or is invalid', 'error');
+      }
+    }
+
+    function saveCustomItems() {
+      localStorage.setItem('customSubjects', JSON.stringify(teacherConfig.customSubjects));
+      localStorage.setItem('customExamTypes', JSON.stringify(teacherConfig.customExamTypes));
+      localStorage.setItem('customStreams', JSON.stringify(teacherConfig.customStreams));
+    }
+
+    function loadCustomItems() {
+      teacherConfig.customSubjects = JSON.parse(localStorage.getItem('customSubjects') || '[]');
+      teacherConfig.customExamTypes = JSON.parse(localStorage.getItem('customExamTypes') || '[]');
+      teacherConfig.customStreams = JSON.parse(localStorage.getItem('customStreams') || '[]');
+      
+      renderCustomSubjects();
+      renderCustomExamTypes();
+      renderCustomStreams();
+    }
+
+    function renderCustomSubjects() {
+      const container = document.getElementById('customSubjectsList');
+      container.innerHTML = teacherConfig.customSubjects.map(subject => `
+        <div class="custom-item">
+          <span>${subject}</span>
+          <button type="button" onclick="removeCustomSubject('${subject}')" 
+                  class="btn btn-danger btn-small">Remove</button>
+        </div>
+      `).join('');
+    }
+
+    function renderCustomExamTypes() {
+      const container = document.getElementById('customExamTypesList');
+      container.innerHTML = teacherConfig.customExamTypes.map(examType => `
+        <div class="custom-item">
+          <span>${examType}</span>
+          <button type="button" onclick="removeCustomExamType('${examType}')" 
+                  class="btn btn-danger btn-small">Remove</button>
+        </div>
+      `).join('');
+    }
+
+    function renderCustomStreams() {
+      const container = document.getElementById('customStreamsList');
+      container.innerHTML = teacherConfig.customStreams.map(stream => `
+        <div class="custom-item">
+          <span>${stream}</span>
+          <button type="button" onclick="removeCustomStream('${stream}')" 
+                  class="btn btn-danger btn-small">Remove</button>
+        </div>
+      `).join('');
+    }
+
+    function removeCustomSubject(subject) {
+      teacherConfig.customSubjects = teacherConfig.customSubjects.filter(s => s !== subject);
+      saveCustomItems();
+      renderCustomSubjects();
+      showAlert('Subject removed', 'info');
+    }
+
+    function removeCustomExamType(examType) {
+      teacherConfig.customExamTypes = teacherConfig.customExamTypes.filter(e => e !== examType);
+      saveCustomItems();
+      renderCustomExamTypes();
+      showAlert('Exam type removed', 'info');
+    }
+
+    function removeCustomStream(stream) {
+      teacherConfig.customStreams = teacherConfig.customStreams.filter(s => s !== stream);
+      saveCustomItems();
+      renderCustomStreams();
+      showAlert('Stream removed', 'info');
+    }
+
+    function renderConfiguration() {
+      // Academic Year
+      document.getElementById('academicYear').value = teacherConfig.academicYear;
+      
+      // Term Dates
+      document.getElementById('term1Start').value = teacherConfig.termDates['Term 1'].start;
+      document.getElementById('term1End').value = teacherConfig.termDates['Term 1'].end;
+      document.getElementById('term2Start').value = teacherConfig.termDates['Term 2'].start;
+      document.getElementById('term2End').value = teacherConfig.termDates['Term 2'].end;
+      document.getElementById('term3Start').value = teacherConfig.termDates['Term 3'].start;
+      document.getElementById('term3End').value = teacherConfig.termDates['Term 3'].end;
+      
+      // Update current config summary
+      updateCurrentConfigSummary();
+      
+      // Highlight current term
+      highlightCurrentTerm();
+    }
+
+    function updateCurrentConfigSummary() {
+      document.getElementById('currentAcademicYear').textContent = teacherConfig.academicYear;
+      document.getElementById('currentTermDisplay').textContent = getCurrentTermFromConfig();
+      document.getElementById('currentSubjectsCount').textContent = teacherConfig.assignedSubjects.length + ' subjects';
+      
+      const totalClasses = teacherConfig.assignedSubjects.reduce((total, assignment) => 
+        total + assignment.classes.length, 0
+      );
+      document.getElementById('currentClassesCount').textContent = totalClasses + ' classes';
+    }
+
+    function getCurrentTermFromConfig() {
+      const now = new Date();
+      
+      for (const [term, dates] of Object.entries(teacherConfig.termDates)) {
+        if (dates.start && dates.end) {
+          const start = new Date(dates.start);
+          const end = new Date(dates.end);
+          if (now >= start && now <= end) {
+            return term;
+          }
+        }
+      }
+      
+      return 'Not set';
+    }
+
+    function updateCurrentTerm() {
+      const currentTerm = getCurrentTermFromConfig();
+      localStorage.setItem('currentTerm', currentTerm);
+    }
+
+    function highlightCurrentTerm() {
+      const currentTerm = getCurrentTermFromConfig();
+      
+      // Remove current class from all term cards
+      document.querySelectorAll('.term-date-card').forEach(card => {
+        card.classList.remove('current');
+      });
+      
+      // Add current class to current term card
+      const currentTermCard = document.getElementById(currentTerm.toLowerCase() + 'Card');
+      if (currentTermCard) {
+        currentTermCard.classList.add('current');
+      }
+    }
+
+    function resetToDefaults() {
+      if (confirm('Are you sure you want to reset all configuration to defaults? This will clear all your custom settings.')) {
+        teacherConfig = { ...DEFAULT_CONFIG };
+        localStorage.removeItem('teacherConfig');
+        localStorage.removeItem('customSubjects');
+        localStorage.removeItem('customExamTypes');
+        localStorage.removeItem('customStreams');
+        
+        initializeSubjectAssignments();
+        loadCustomItems();
+        renderConfiguration();
+        showAlert('Configuration reset to defaults', 'info');
+      }
+    }
+
+    function showAlert(message, type) {
+      // Use your existing alert system from app.js
+      if (window.showAlert) {
+        window.showAlert(message, type);
+      } else {
+        alert(message);
+      }
+    }
+
+    function logout() {
+      if (window.logout) {
+        window.logout();
+      } else {
+        window.location.href = './login.html';
+      }
+    }
+
+    function toggleDarkMode() {
+      if (window.toggleDarkMode) {
+        window.toggleDarkMode();
+      } else {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('themeMode', newTheme);
+      }
+    }
+
+    // Make functions available globally
+    window.addSubjectAssignment = addSubjectAssignment;
+    window.removeAssignment = removeAssignment;
+    window.addCustomSubject = addCustomSubject;
+    window.addCustomExamType = addCustomExamType;
+    window.addCustomStream = addCustomStream;
+    window.removeCustomSubject = removeCustomSubject;
+    window.removeCustomExamType = removeCustomExamType;
+    window.removeCustomStream = removeCustomStream;
+    window.saveTeacherConfig = saveTeacherConfig;
+    window.resetToDefaults = resetToDefaults;
+  </script>
+</body>
+</html>
