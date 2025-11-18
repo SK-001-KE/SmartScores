@@ -12,20 +12,50 @@
   <script type="module" src="./firebase-sync.js"></script>
   
   <style>
+    /* Modern styling improvements */
+    :root {
+      --primary: #8B0000;
+      --primary-light: #a83232;
+      --secondary: #4a5568;
+      --success: #38a169;
+      --warning: #d69e2e;
+      --danger: #e53e3e;
+      --bg: #f7fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    [data-theme="dark"] {
+      --bg: #1a202c;
+      --card: #2d3748;
+      --border: #4a5568;
+      --text: #e2e8f0;
+    }
+
     .config-section {
       background: var(--card);
       padding: 25px;
-      border-radius: 12px;
+      border-radius: 16px;
       margin: 20px 0;
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+    
+    .config-section:hover {
+      box-shadow: var(--shadow-lg);
     }
     
     .config-section h3 {
       color: var(--primary);
       margin-bottom: 20px;
-      border-bottom: 2px solid var(--primary);
       padding-bottom: 10px;
+      border-bottom: 2px solid var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     
     .term-dates-grid {
@@ -38,8 +68,27 @@
     .term-date-card {
       background: var(--bg);
       padding: 20px;
-      border-radius: 8px;
+      border-radius: 12px;
       border: 2px solid var(--border);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .term-date-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--primary);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+    
+    .term-date-card:hover::before {
+      transform: scaleX(1);
     }
     
     .term-date-card.current {
@@ -47,15 +96,25 @@
       background: rgba(139, 0, 0, 0.05);
     }
     
+    .term-date-card.current::before {
+      transform: scaleX(1);
+      background: var(--primary);
+    }
+    
     .assignment-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 15px;
       margin-bottom: 15px;
-      padding: 15px;
+      padding: 20px;
       background: var(--bg);
-      border-radius: 8px;
+      border-radius: 12px;
       border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    
+    .assignment-grid:hover {
+      box-shadow: var(--shadow);
     }
     
     .custom-item {
@@ -67,23 +126,41 @@
     
     .custom-item input {
       flex: 1;
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      transition: all 0.3s ease;
+    }
+    
+    .custom-item input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
     }
     
     .btn-small {
-      padding: 6px 12px;
-      font-size: 0.8em;
+      padding: 8px 16px;
+      font-size: 0.85em;
+      border-radius: 8px;
+      transition: all 0.3s ease;
     }
     
     .current-config {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #8B0000 0%, #a83232 100%);
       color: white;
-      padding: 20px;
-      border-radius: 12px;
+      padding: 25px;
+      border-radius: 16px;
       margin: 20px 0;
+      box-shadow: var(--shadow-lg);
     }
     
     .current-config h4 {
-      margin: 0 0 10px 0;
+      margin: 0 0 15px 0;
+      font-size: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     
     .config-summary {
@@ -95,17 +172,261 @@
     
     .summary-item {
       background: rgba(255, 255, 255, 0.2);
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    
+    .summary-item:hover {
+      transform: translateY(-5px);
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--secondary);
+    }
+    
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px 15px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
+    }
+    
+    .checkbox-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
       padding: 10px;
-      border-radius: 6px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+    }
+    
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: normal;
+      margin: 0;
+      padding: 5px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    
+    .checkbox-group label:hover {
+      background: rgba(139, 0, 0, 0.05);
+    }
+    
+    .hint {
+      display: block;
+      margin-top: 5px;
+      font-size: 0.85rem;
+      color: var(--secondary);
+      opacity: 0.7;
+    }
+    
+    .form-actions {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+      justify-content: center;
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .btn-secondary {
+      background: var(--secondary);
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+    
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+    
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+    
+    .btn-full {
+      width: 100%;
+    }
+    
+    .floating-top-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: var(--shadow-lg);
+      transition: all 0.3s ease;
+    }
+    
+    .floating-top-btn:hover {
+      transform: scale(1.1);
+    }
+    
+    /* Modern select styling */
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 15px center;
+      background-size: 16px;
+      padding-right: 45px;
+    }
+    
+    /* Progress indicator */
+    .progress-indicator {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      position: relative;
+    }
+    
+    .progress-indicator::before {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 1;
+    }
+    
+    .progress-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .progress-step .step-number {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-bottom: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .progress-step.active .step-number {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .progress-step .step-label {
+      font-size: 0.85rem;
+      color: var(--secondary);
       text-align: center;
     }
     
+    .progress-step.active .step-label {
+      color: var(--primary);
+      font-weight: 600;
+    }
+    
+    /* Responsive improvements */
     @media (max-width: 768px) {
       .assignment-grid {
         grid-template-columns: 1fr;
       }
       
       .term-dates-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .config-summary {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .form-actions {
+        flex-direction: column;
+      }
+      
+      .checkbox-group {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .config-section {
+        padding: 15px;
+      }
+      
+      .checkbox-group {
+        grid-template-columns: 1fr;
+      }
+      
+      .config-summary {
         grid-template-columns: 1fr;
       }
     }
@@ -154,6 +475,26 @@
   </header>
 
   <main class="content">
+    <!-- Progress Indicator -->
+    <div class="progress-indicator">
+      <div class="progress-step active" data-step="1">
+        <div class="step-number">1</div>
+        <div class="step-label">Academic Year</div>
+      </div>
+      <div class="progress-step" data-step="2">
+        <div class="step-number">2</div>
+        <div class="step-label">Term Dates</div>
+      </div>
+      <div class="progress-step" data-step="3">
+        <div class="step-number">3</div>
+        <div class="step-label">Subjects & Classes</div>
+      </div>
+      <div class="progress-step" data-step="4">
+        <div class="step-number">4</div>
+        <div class="step-label">Custom Options</div>
+      </div>
+    </div>
+
     <!-- Current Configuration Summary -->
     <div class="current-config" id="currentConfigSummary">
       <h4>📋 Current Configuration</h4>
@@ -178,18 +519,29 @@
     </div>
 
     <!-- Academic Year Configuration -->
-    <div class="config-section">
+    <div class="config-section" id="academicYearSection">
       <h3>📅 Academic Year Setup</h3>
       <div class="form-group">
         <label>Current Academic Year</label>
         <input type="text" id="academicYear" placeholder="e.g., 2024/2025" required>
-        <small class="hint">Format: YYYY/YYYY (e.g., 2024/2025)</small>
+        <small class="hint">Format: YYYY/YYYY (e.g., 2024/2025). The current year is pre-filled.</small>
       </div>
     </div>
 
     <!-- Term Dates Configuration -->
-    <div class="config-section">
+    <div class="config-section" id="termDatesSection">
       <h3>📚 Term Dates Configuration</h3>
+      <div class="form-group">
+        <label>Select Current Term</label>
+        <select id="currentTermSelect" onchange="highlightSelectedTerm()">
+          <option value="">Select Term</option>
+          <option value="Term 1">Term 1</option>
+          <option value="Term 2">Term 2</option>
+          <option value="Term 3">Term 3</option>
+        </select>
+        <small class="hint">Select the term you're currently configuring</small>
+      </div>
+      
       <div class="term-dates-grid">
         <div class="term-date-card" id="term1Card">
           <h4>Term 1 Dates</h4>
@@ -230,7 +582,7 @@
     </div>
 
     <!-- Subject & Class Assignment -->
-    <div class="config-section">
+    <div class="config-section" id="subjectAssignmentSection">
       <h3>📖 Subject & Class Assignment</h3>
       <p class="hint">Select the subjects you teach and assign them to specific classes</p>
       
@@ -244,7 +596,7 @@
     </div>
 
     <!-- Custom Subjects Management -->
-    <div class="config-section">
+    <div class="config-section" id="customSubjectsSection">
       <h3>📝 Custom Subjects</h3>
       <p class="hint">Add subjects that are not in the default list</p>
       
@@ -296,7 +648,7 @@
 
     <!-- Save Configuration -->
     <div class="form-actions" style="margin-top: 30px;">
-      <button type="button" onclick="saveTeacherConfig()" class="btn btn-primary full">
+      <button type="button" onclick="saveTeacherConfig()" class="btn btn-primary">
         💾 Save Configuration
       </button>
       <button type="button" onclick="resetToDefaults()" class="btn btn-secondary">
@@ -348,6 +700,7 @@
       initializePage();
       loadTeacherConfig();
       setupMobileMenu();
+      setupProgressIndicator();
     });
 
     function initializePage() {
@@ -360,6 +713,18 @@
       
       // Load custom items
       loadCustomItems();
+      
+      // Auto-fill current year
+      autoFillCurrentYear();
+    }
+
+    function autoFillCurrentYear() {
+      const currentYear = new Date().getFullYear();
+      const nextYear = currentYear + 1;
+      const academicYear = `${currentYear}/${nextYear}`;
+      
+      document.getElementById('academicYear').value = academicYear;
+      teacherConfig.academicYear = academicYear;
     }
 
     function setupMobileMenu() {
@@ -372,6 +737,42 @@
           mobileSidebar.classList.toggle('closed');
           mobileMenuToggle.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
         });
+      }
+    }
+
+    function setupProgressIndicator() {
+      const progressSteps = document.querySelectorAll('.progress-step');
+      
+      progressSteps.forEach(step => {
+        step.addEventListener('click', function() {
+          const stepNumber = this.getAttribute('data-step');
+          scrollToStep(stepNumber);
+        });
+      });
+    }
+
+    function scrollToStep(stepNumber) {
+      const sections = [
+        'academicYearSection',
+        'termDatesSection',
+        'subjectAssignmentSection',
+        'customSubjectsSection'
+      ];
+      
+      if (stepNumber > 0 && stepNumber <= sections.length) {
+        const sectionId = sections[stepNumber - 1];
+        const section = document.getElementById(sectionId);
+        
+        if (section) {
+          section.scrollIntoView({ behavior: 'smooth' });
+          
+          // Update active step
+          document.querySelectorAll('.progress-step').forEach(step => {
+            step.classList.remove('active');
+          });
+          
+          document.querySelector(`.progress-step[data-step="${stepNumber}"]`).classList.add('active');
+        }
       }
     }
 
@@ -481,7 +882,7 @@
             <label>Classes</label>
             <div class="checkbox-group">
               ${DEFAULT_CLASSES.map(className => `
-                <label style="display: block; margin: 5px 0;">
+                <label style="display: flex; align-items: center; margin: 5px 0;">
                   <input type="checkbox" class="assignment-class" value="${className}">
                   ${className}
                 </label>
@@ -493,7 +894,7 @@
             <label>Streams</label>
             <div class="checkbox-group">
               ${getAllStreams().map(stream => `
-                <label style="display: block; margin: 5px 0;">
+                <label style="display: flex; align-items: center; margin: 5px 0;">
                   <input type="checkbox" class="assignment-stream" value="${stream}" checked>
                   ${stream}
                 </label>
@@ -694,6 +1095,23 @@
       return 'Not set';
     }
 
+    function highlightSelectedTerm() {
+      const selectedTerm = document.getElementById('currentTermSelect').value;
+      
+      // Remove current class from all term cards
+      document.querySelectorAll('.term-date-card').forEach(card => {
+        card.classList.remove('current');
+      });
+      
+      // Add current class to selected term card
+      if (selectedTerm) {
+        const selectedTermCard = document.getElementById(selectedTerm.toLowerCase().replace(' ', '') + 'Card');
+        if (selectedTermCard) {
+          selectedTermCard.classList.add('current');
+        }
+      }
+    }
+
     function updateCurrentTerm() {
       const currentTerm = getCurrentTermFromConfig();
       localStorage.setItem('currentTerm', currentTerm);
@@ -708,7 +1126,7 @@
       });
       
       // Add current class to current term card
-      const currentTermCard = document.getElementById(currentTerm.toLowerCase() + 'Card');
+      const currentTermCard = document.getElementById(currentTerm.toLowerCase().replace(' ', '') + 'Card');
       if (currentTermCard) {
         currentTermCard.classList.add('current');
       }
@@ -768,6 +1186,7 @@
     window.removeCustomStream = removeCustomStream;
     window.saveTeacherConfig = saveTeacherConfig;
     window.resetToDefaults = resetToDefaults;
+    window.highlightSelectedTerm = highlightSelectedTerm;
   </script>
 </body>
 </html>
