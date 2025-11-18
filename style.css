@@ -20,8 +20,12 @@
   --info: #3182ce;
   --button-text: white;
   --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
   --gradient-primary: linear-gradient(135deg, #8B0000, #a83232);
   --gradient-header: linear-gradient(135deg, #2d3748, #4a5568);
+  --gradient-nav: linear-gradient(135deg, #8B0000 0%, #a83232 50%, #8B0000 100%);
+  --glass-effect: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
 }
 
 [data-theme="dark"] {
@@ -39,8 +43,12 @@
   --info: #63b3ed;
   --button-text: white;
   --shadow: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,0.5);
   --gradient-primary: linear-gradient(135deg, #c53030, #e53e3e);
   --gradient-header: linear-gradient(135deg, #2d3748, #4a5568);
+  --gradient-nav: linear-gradient(135deg, #c53030 0%, #e53e3e 50%, #c53030 100%);
+  --glass-effect: rgba(45, 55, 72, 0.3);
+  --glass-border: rgba(255, 255, 255, 0.1);
 }
 
 /* =========================================================
@@ -63,85 +71,299 @@ body {
 }
 
 /* =========================================================
-   TOP NAVIGATION BAR - DESKTOP
+   MODERN DESKTOP NAVIGATION
 ========================================================= */
 
 .top-nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 20px 15px 70px; /* Added left padding for mobile menu */
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
-    box-shadow: var(--shadow);
+    padding: 0 30px;
+    background: var(--gradient-nav);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-lg);
     position: sticky;
     top: 0;
     z-index: 1000;
+    height: 70px;
 }
 
-@media (max-width: 768px) {
-    .mobile-menu-toggle {
-        display: block;
-    }
-    
-    .top-nav {
-        padding-left: 70px; /* Ensure space for hamburger button */
-    }
-    
-    .nav-brand {
-        font-size: 1.1em;
-        margin-left: 0;
-    }
+/* Brand/Logo Section */
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 1.4em;
+    color: white;
+    text-decoration: none;
+}
 
 .logo-small {
-  height: 32px;
-  margin-right: 10px;
-  border-radius: 6px;
+    height: 40px;
+    width: 40px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
 }
 
+.logo-small:hover {
+    transform: scale(1.05);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Navigation Links */
 .nav-links {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: center;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 0 auto;
+    background: var(--glass-effect);
+    padding: 8px;
+    border-radius: 16px;
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
 }
 
 .nav-link {
-  color: var(--secondary);
-  text-decoration: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  white-space: nowrap;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.nav-link:hover::before {
+    left: 100%;
 }
 
 .nav-link:hover {
-  background: rgba(139, 0, 0, 0.1);
-  color: var(--primary);
-  transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .nav-link.active {
-  background: var(--gradient-primary);
-  color: white;
-  box-shadow: 0 2px 8px rgba(139, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    font-weight: 600;
 }
 
+.nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+/* User Section */
 .nav-user {
-  display: flex;
-  align-items: center;
-  gap: 15px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: var(--glass-effect);
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9em;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .teacher-name {
-  font-weight: 600;
-  color: var(--text);
+    font-weight: 600;
+    color: white;
+    font-size: 0.95em;
+}
+
+/* Navigation Buttons */
+.nav-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-nav {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    font-size: 0.9em;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+}
+
+.btn-nav:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn-nav.logout {
+    background: linear-gradient(135deg, rgba(229, 62, 62, 0.8), rgba(197, 48, 48, 0.8));
+}
+
+.btn-nav.logout:hover {
+    background: linear-gradient(135deg, rgba(229, 62, 62, 1), rgba(197, 48, 48, 1));
+}
+
+.btn-nav.theme-toggle {
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-nav i {
+    font-size: 1.1em;
 }
 
 /* =========================================================
-   MOBILE NAVIGATION
+   MODERN HEADER SECTION
+========================================================= */
+header {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--gradient-header);
+    color: white;
+    position: relative;
+    z-index: 100;
+    overflow: hidden;
+}
+
+header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.15) 0%, transparent 50%);
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(1deg); }
+}
+
+.header-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+header h1 {
+    font-size: 3em;
+    margin-bottom: 16px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 0%, #e2e8f0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    letter-spacing: -0.5px;
+}
+
+header p {
+    font-size: 1.3em;
+    opacity: 0.9;
+    font-weight: 300;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.header-stats {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.header-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 25px;
+    background: var(--glass-effect);
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    min-width: 120px;
+}
+
+.stat-number {
+    font-size: 2em;
+    font-weight: 700;
+    margin-bottom: 5px;
+    background: linear-gradient(135deg, #fff, #e2e8f0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-label {
+    font-size: 0.9em;
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+/* =========================================================
+   MOBILE NAVIGATION (Updated to match new style)
 ========================================================= */
 .mobile-menu-toggle {
     position: fixed;
@@ -151,129 +373,226 @@ body {
     color: white;
     border: none;
     padding: 12px 14px;
-    border-radius: 10px;
+    border-radius: 12px;
     z-index: 1001;
     cursor: pointer;
     font-size: 1.1em;
     transition: all 0.3s ease;
     display: none;
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
 }
 
 .mobile-menu-toggle:hover {
-  transform: translateY(-2px);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .mobile-sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 280px;
-  height: 100vh;
-  background: var(--card);
-  border-right: 1px solid var(--border);
-  padding-top: 80px;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: 1000;
-  overflow-y: auto;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 320px;
+    height: 100vh;
+    background: var(--gradient-nav);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid var(--glass-border);
+    padding-top: 80px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+    overflow-y: auto;
 }
 
 .mobile-sidebar.closed {
-  transform: translateX(-100%);
+    transform: translateX(-100%);
 }
 
 .mobile-sidebar:not(.closed) {
-  transform: translateX(0);
+    transform: translateX(0);
 }
 
 .mobile-sidebar a,
 .mobile-sidebar button {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text);
-  text-decoration: none;
-  font-weight: 600;
-  background: none;
-  text-align: left;
-  width: 100%;
-  transition: all 0.3s ease;
-  font-size: 1em;
-  border: none;
-  cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px 25px;
+    border-bottom: 1px solid var(--glass-border);
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    font-weight: 600;
+    background: none;
+    text-align: left;
+    width: 100%;
+    transition: all 0.3s ease;
+    font-size: 1em;
+    border: none;
+    cursor: pointer;
 }
 
 .mobile-sidebar a:hover,
 .mobile-sidebar button:hover {
-  background: rgba(139, 0, 0, 0.08);
-  color: var(--primary);
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    padding-left: 30px;
 }
 
 .mobile-sidebar a.active {
-  background: var(--gradient-primary);
-  color: white;
-  border-left: 4px solid var(--info);
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    border-left: 4px solid white;
 }
 
 .mobile-sidebar button.logout-btn {
-  background: linear-gradient(135deg, #e53e3e, #c53030);
-  color: white;
-  margin-top: auto;
-  border: none;
+    background: linear-gradient(135deg, rgba(229, 62, 62, 0.8), rgba(197, 48, 48, 0.8));
+    color: white;
+    margin-top: auto;
+    border: none;
+    border-left: 4px solid transparent;
 }
 
 .mobile-sidebar button.logout-btn:hover {
-  background: linear-gradient(135deg, #f56565, #e53e3e);
-}
-
-/* =========================================================
-   HEADER STYLES
-========================================================= */
-header {
-  text-align: center;
-  padding: 25px 20px;
-  background: var(--gradient-header);
-  color: white;
-  position: relative;
-  z-index: 100;
-}
-
-header h1 {
-  font-size: 2.2em;
-  margin-bottom: 8px;
-  font-weight: 700;
-}
-
-header p {
-  font-size: 1.1em;
-  opacity: 0.9;
-  font-weight: 300;
+    background: linear-gradient(135deg, rgba(229, 62, 62, 1), rgba(197, 48, 48, 1));
+    border-left: 4px solid white;
 }
 
 /* =========================================================
    CONTENT LAYOUT
 ========================================================= */
 .content {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .content-with-sidebar {
-  margin-left: 0;
-  transition: margin-left 0.3s ease;
+    margin-left: 0;
+    transition: margin-left 0.3s ease;
 }
 
 .centered {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
 }
+
+/* =========================================================
+   RESPONSIVE DESIGN
+========================================================= */
+@media (max-width: 1024px) {
+    .nav-links {
+        gap: 5px;
+    }
+    
+    .nav-link {
+        padding: 8px 16px;
+        font-size: 0.9em;
+    }
+    
+    header h1 {
+        font-size: 2.5em;
+    }
+    
+    .header-stats {
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Hide desktop nav, show mobile toggle */
+    .nav-links,
+    .nav-user {
+        display: none;
+    }
+    
+    .mobile-menu-toggle {
+        display: block;
+    }
+    
+    .top-nav {
+        padding: 0 15px 0 70px;
+        height: 60px;
+    }
+    
+    .nav-brand {
+        font-size: 1.2em;
+    }
+    
+    .content {
+        padding: 20px;
+    }
+    
+    header {
+        padding: 40px 20px;
+    }
+    
+    header h1 {
+        font-size: 2em;
+    }
+    
+    header p {
+        font-size: 1.1em;
+    }
+    
+    .header-stats {
+        gap: 15px;
+    }
+    
+    .header-stat {
+        padding: 12px 20px;
+        min-width: 100px;
+    }
+    
+    .stat-number {
+        font-size: 1.6em;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.8em;
+    }
+    
+    header p {
+        font-size: 1em;
+    }
+    
+    .header-stats {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .header-stat {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .top-nav {
+        padding: 0 10px 0 60px;
+    }
+}
+
+/* Dark mode adjustments for header and nav */
+[data-theme="dark"] .top-nav,
+[data-theme="dark"] .mobile-sidebar {
+    background: var(--gradient-nav);
+}
+
+[data-theme="dark"] header {
+    background: var(--gradient-header);
+}
+
+[data-theme="dark"] .nav-link:hover,
+[data-theme="dark"] .mobile-sidebar a:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Rest of your existing CSS remains the same below this point... */
 
 /* =========================================================
    FORM STYLES
@@ -451,7 +770,7 @@ header p {
 }
 
 .date-label {
-    color: var(--text-light);
+    color: var(--secondary);
     font-weight: 500;
 }
 
@@ -462,17 +781,17 @@ header p {
 
 .full-period {
     font-size: 0.8em;
-    color: var(--text-light);
+    color: var(--secondary);
     font-style: italic;
     text-align: center;
     padding-top: 8px;
-    border-top: 1px solid var(--border-light);
+    border-top: 1px solid var(--border);
 }
 
 .term-period-info {
     margin-top: 5px;
     padding: 8px;
-    background: var(--bg-light);
+    background: var(--bg);
     border-radius: 6px;
     border-left: 3px solid #667eea;
 }
@@ -567,7 +886,7 @@ header p {
   margin: 25px 0;
 }
 
-   .dashboard-card {
+.dashboard-card {
     background: var(--card);
     padding: 25px;
     border-radius: 12px;
@@ -623,7 +942,8 @@ header p {
   gap: 15px;
   margin: 20px 0;
 }
-   /* Ensure rubric badges are centered */
+
+/* Ensure rubric badges are centered */
 .dashboard-card .rubric-badge {
     margin: 8px auto;
     display: inline-block;
@@ -701,7 +1021,7 @@ tbody tr:hover {
 
 .table-controls {
   display: flex;
-  justify-content: between;
+  justify-content: space-between;
   align-items: center;
   margin: 20px 0;
   gap: 15px;
@@ -728,7 +1048,7 @@ tbody tr:hover {
   margin-top: 5px;
 }
 
-   /* Fix recent records table header contrast */
+/* Fix recent records table header contrast */
 .recent-records table {
     width: 100%;
     border-collapse: collapse;
@@ -769,6 +1089,7 @@ tbody tr:hover {
 [data-theme="dark"] .recent-records th {
     color: white;
 }
+
 /* =========================================================
    CHART & VISUALIZATION STYLES
 ========================================================= */
@@ -1081,42 +1402,14 @@ tbody tr:hover {
   right: 20px;
   padding: 12px 16px;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--info), #3182ce);
-  color: white;
+  background: var(--primary);
+  color: var(--button-text);
   border: none;
   cursor: pointer;
   z-index: 1000;
   font-size: 1.1em;
   transition: all 0.3s ease;
-}
-
-/* Hide logout button in mobile view */
-@media (max-width: 768px) {
-  .nav-user .btn-danger {
-    display: none;
-  }
-  
-  .floating-top-btn {
-    top: 70px;
-    right: 15px;
-    padding: 10px 14px;
-    font-size: 1em;
-  }
-   /* Add to the existing floating-top-btn styles */
-.floating-top-btn {
-    position: fixed;
-    top: 80px;
-    right: 20px;
-    padding: 12px 16px;
-    border-radius: 10px;
-    background: var(--primary);
-    color: var(--button-text);
-    border: none;
-    cursor: pointer;
-    z-index: 1000;
-    font-size: 1.1em;
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow);
+  box-shadow: var(--shadow);
 }
 
 .floating-top-btn:hover {
@@ -1128,6 +1421,7 @@ tbody tr:hover {
 [data-theme="dark"] .floating-top-btn {
     background: var(--primary-light);
 }
+
 /* =========================================================
    LOGIN & AUTH SPECIFIC
 ========================================================= */
@@ -1209,7 +1503,7 @@ footer {
   }
   
   .top-nav {
-    padding: 12px 15px;
+    padding: 12px 15px 12px 70px;
   }
   
   .nav-brand {
@@ -1286,6 +1580,11 @@ footer {
   
   .form-box {
     padding: 20px;
+  }
+  
+  /* Hide logout button in mobile view */
+  .nav-user .btn-danger {
+    display: none;
   }
 }
 
