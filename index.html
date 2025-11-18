@@ -154,7 +154,7 @@
 
     .config-status-header {
         display: flex;
-        justify-content: between;
+        justify-content: space-between;
         align-items: center;
         margin-bottom: 15px;
     }
@@ -202,6 +202,77 @@
         margin: 0 5px;
     }
 
+    /* Mobile Sidebar Fixes */
+    .mobile-sidebar {
+        position: fixed;
+        top: 0;
+        left: -300px;
+        width: 280px;
+        height: 100vh;
+        background: var(--card);
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        transition: left 0.3s ease;
+        padding: 20px;
+        overflow-y: auto;
+    }
+
+    .mobile-sidebar:not(.closed) {
+        left: 0;
+    }
+
+    .mobile-sidebar a {
+        display: block;
+        padding: 12px 15px;
+        color: var(--text);
+        text-decoration: none;
+        border-radius: 8px;
+        margin-bottom: 5px;
+        transition: background 0.3s;
+    }
+
+    .mobile-sidebar a:hover,
+    .mobile-sidebar a.active {
+        background: var(--primary);
+        color: white;
+    }
+
+    .mobile-sidebar .logout-btn {
+        width: 100%;
+        margin-top: 20px;
+        padding: 12px;
+        background: var(--danger);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .mobile-menu-toggle {
+        display: none;
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 1001;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 15px;
+        font-size: 1.2em;
+        cursor: pointer;
+    }
+
+    @media (max-width: 1024px) {
+        .mobile-menu-toggle {
+            display: block;
+        }
+        
+        .nav-links {
+            display: none;
+        }
+    }
+
     @keyframes slideIn {
         from { transform: translateX(100%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
@@ -238,7 +309,7 @@
   </nav>
 
   <!-- MOBILE MENU TOGGLE -->
-  <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+  <button id="mobileMenuToggle" class="mobile-menu-toggle">☰</button>
 
   <!-- MOBILE SIDEBAR -->
   <aside id="mobileSidebar" class="mobile-sidebar closed">
@@ -347,6 +418,57 @@
       
       // Show alert
       showCustomAlert(`Switched to ${newTheme} mode`, 'success');
+    }
+
+    // Mobile sidebar functionality
+    function setupMobileMenu() {
+      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      
+      if (mobileMenuToggle && mobileSidebar) {
+        // Toggle sidebar
+        mobileMenuToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          mobileSidebar.classList.toggle('closed');
+          mobileMenuToggle.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
+          
+          if (!mobileSidebar.classList.contains('closed')) {
+            // Add click outside listener when sidebar is open
+            setTimeout(() => {
+              document.addEventListener('click', closeMobileSidebarOnClickOutside);
+            }, 100);
+          }
+        });
+        
+        // Close sidebar when clicking on links
+        const mobileLinks = mobileSidebar.querySelectorAll('a, button');
+        mobileLinks.forEach(link => {
+          link.addEventListener('click', function() {
+            if (!mobileSidebar.classList.contains('closed')) {
+              mobileSidebar.classList.add('closed');
+              mobileMenuToggle.textContent = '☰';
+              document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+            }
+          });
+        });
+      }
+    }
+
+    // Close mobile sidebar when clicking outside
+    function closeMobileSidebarOnClickOutside(event) {
+      const mobileSidebar = document.getElementById('mobileSidebar');
+      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+      
+      if (!mobileSidebar || !mobileMenuToggle) return;
+      
+      const isClickInsideSidebar = mobileSidebar.contains(event.target);
+      const isClickOnToggle = mobileMenuToggle.contains(event.target);
+      
+      if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
+        mobileSidebar.classList.add('closed');
+        mobileMenuToggle.textContent = '☰';
+        document.removeEventListener('click', closeMobileSidebarOnClickOutside);
+      }
     }
 
     // Custom alert function
@@ -663,6 +785,20 @@
       return localStorage.getItem('teacherFullName') || 'Teacher';
     }
 
+    // Error display function
+    function showError(containerId, message) {
+      const container = document.getElementById(containerId);
+      if (container) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div style="color: #ef4444; font-size: 2em;">⚠️</div>
+            <p>${message}</p>
+            <button onclick="refreshDashboard()" class="btn-action">Try Again</button>
+          </div>
+        `;
+      }
+    }
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('./service-worker.js')
@@ -678,52 +814,9 @@
       // Initialize theme first
       initializeTheme();
       
-      // Mobile menu functionality
-      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-      const mobileSidebar = document.getElementById('mobileSidebar');
+      // Setup mobile menu
+      setupMobileMenu();
       
-      if (mobileMenuToggle && mobileSidebar) {
-        mobileMenuToggle.addEventListener('click', function(e) {
-          e.stopPropagation();
-          mobileSidebar.classList.toggle('closed');
-          mobileMenuToggle.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
-          
-          if (!mobileSidebar.classList.contains('closed')) {
-            setTimeout(() => {
-              document.addEventListener('click', closeMobileSidebarOnClickOutside);
-            }, 100);
-          }
-        });
-        
-        // Close sidebar when clicking on links
-        const mobileLinks = mobileSidebar.querySelectorAll('a, button');
-        mobileLinks.forEach(link => {
-          link.addEventListener('click', function() {
-            if (!mobileSidebar.classList.contains('closed')) {
-              mobileSidebar.classList.add('closed');
-              mobileMenuToggle.textContent = '☰';
-            }
-          });
-        });
-      }
-      
-      // Close mobile sidebar when clicking outside
-      function closeMobileSidebarOnClickOutside(event) {
-        const mobileSidebar = document.getElementById('mobileSidebar');
-        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-        
-        if (!mobileSidebar || !mobileMenuToggle) return;
-        
-        const isClickInsideSidebar = mobileSidebar.contains(event.target);
-        const isClickOnToggle = mobileMenuToggle.contains(event.target);
-        
-        if (!isClickInsideSidebar && !isClickOnToggle && !mobileSidebar.classList.contains('closed')) {
-          mobileSidebar.classList.add('closed');
-          mobileMenuToggle.textContent = '☰';
-          document.removeEventListener('click', closeMobileSidebarOnClickOutside);
-        }
-      }
-
       // Update teacher name
       updateTeacherName();
 
@@ -1022,4 +1115,76 @@
           }
         });
         
-      } catch (error
+      } catch (error) {
+        console.error('Error rendering progress chart:', error);
+        showError('progressChart', 'Error loading chart data');
+      }
+    }
+
+    // Helper function for score colors
+    function getColorForScore(score) {
+      if (score === null || score === undefined) return '#666';
+      if (score >= 80) return '#10B981';
+      if (score >= 60) return '#3B82F6';
+      if (score >= 50) return '#F59E0B';
+      return '#EF4444';
+    }
+
+    // Set up auto-refresh for dashboard
+    function setupDashboardAutoRefresh() {
+      // Refresh when page becomes visible
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+          setTimeout(initializeDashboard, 100);
+        }
+      });
+      
+      // Refresh when page gains focus
+      window.addEventListener('focus', function() {
+        setTimeout(initializeDashboard, 100);
+      });
+      
+      // Refresh every 30 seconds while on dashboard
+      setInterval(initializeDashboard, 30000);
+    }
+
+    // Global function handlers
+    function logout() {
+      if (window.logout) {
+        window.logout();
+      } else {
+        window.location.href = './login.html';
+      }
+    }
+
+    // Make functions available globally
+    window.initializeDashboard = initializeDashboard;
+    window.refreshDashboard = refreshDashboard;
+    window.updateDashboardStatsFallback = updateDashboardStatsFallback;
+    window.renderRecentRecordsFallback = renderRecentRecordsFallback;
+    window.renderProgressChartFallback = renderProgressChartFallback;
+    window.toggleDarkMode = toggleDarkMode;
+    window.handlePDFExport = handlePDFExport;
+    window.handleExcelExport = handleExcelExport;
+    window.fallbackPDFExport = fallbackPDFExport;
+    window.fallbackExcelExport = fallbackExcelExport;
+    window.setupMobileMenu = setupMobileMenu;
+    window.closeMobileSidebarOnClickOutside = closeMobileSidebarOnClickOutside;
+
+    // Start auto-refresh
+    setupDashboardAutoRefresh();
+
+    // Initial debug check
+    setTimeout(() => {
+      console.log('Dashboard initialized. Available functions:', {
+        updateDashboardStats: typeof window.updateDashboardStats,
+        renderRecentRecords: typeof window.renderRecentRecords,
+        renderProgressChart: typeof window.renderProgressChart,
+        toggleDarkMode: typeof window.toggleDarkMode,
+        downloadPDF: typeof window.downloadPDF,
+        exportToExcel: typeof window.exportToExcel
+      });
+    }, 1000);
+  </script>
+</body>
+</html>
