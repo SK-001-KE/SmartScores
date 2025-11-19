@@ -12,98 +12,70 @@
   <script type="module" src="./firebase-sync.js"></script>
   
   <style>
-    /* Modern styling improvements */
-    :root {
-      --primary: #8B0000;
-      --primary-light: #a83232;
-      --secondary: #4a5568;
-      --success: #38a169;
-      --warning: #d69e2e;
-      --danger: #e53e3e;
-      --bg: #f7fafc;
-      --card: #ffffff;
-      --border: #e2e8f0;
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    }
-
-    [data-theme="dark"] {
-      --bg: #1a202c;
-      --card: #2d3748;
-      --border: #4a5568;
-      --text: #e2e8f0;
-    }
-
-    .config-section {
+    /* Add these new styles to your existing CSS */
+    
+    /* Assignment table styles */
+    .assignments-table-container {
+      margin-top: 25px;
       background: var(--card);
-      padding: 25px;
-      border-radius: 16px;
-      margin: 20px 0;
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      transition: all 0.3s ease;
-    }
-    
-    .config-section:hover {
-      box-shadow: var(--shadow-lg);
-    }
-    
-    .config-section h3 {
-      color: var(--primary);
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .term-dates-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-    
-    .term-date-card {
-      background: var(--bg);
-      padding: 20px;
       border-radius: 12px;
-      border: 2px solid var(--border);
-      transition: all 0.3s ease;
-      position: relative;
+      border: 1px solid var(--border);
       overflow: hidden;
+      box-shadow: var(--shadow);
     }
     
-    .term-date-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
+    .assignments-table {
       width: 100%;
-      height: 4px;
+      border-collapse: collapse;
+    }
+    
+    .assignments-table th {
       background: var(--primary);
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
+      color: white;
+      padding: 12px 15px;
+      text-align: left;
+      font-weight: 600;
     }
     
-    .term-date-card:hover::before {
-      transform: scaleX(1);
+    .assignments-table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border);
     }
     
-    .term-date-card.current {
-      border-color: var(--primary);
+    .assignments-table tr:hover {
       background: rgba(139, 0, 0, 0.05);
     }
     
-    .term-date-card.current::before {
-      transform: scaleX(1);
-      background: var(--primary);
+    .assignments-table tr:last-child td {
+      border-bottom: none;
     }
     
+    .empty-assignments {
+      padding: 40px;
+      text-align: center;
+      color: var(--secondary);
+      font-style: italic;
+    }
+    
+    .term-filter {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      padding: 15px;
+      background: var(--bg);
+      border-radius: 8px;
+    }
+    
+    .term-filter label {
+      font-weight: 600;
+      margin: 0;
+    }
+    
+    /* Updated assignment grid for dropdowns */
     .assignment-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr auto;
       gap: 15px;
       margin-bottom: 15px;
       padding: 20px;
@@ -111,328 +83,56 @@
       border-radius: 12px;
       border: 1px solid var(--border);
       transition: all 0.3s ease;
+      align-items: end;
     }
     
     .assignment-grid:hover {
       box-shadow: var(--shadow);
     }
     
-    .custom-item {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-      align-items: center;
-    }
-    
-    .custom-item input {
-      flex: 1;
-      padding: 10px 15px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      transition: all 0.3s ease;
-    }
-    
-    .custom-item input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
-    }
-    
-    .btn-small {
-      padding: 8px 16px;
-      font-size: 0.85em;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-    }
-    
-    .current-config {
-      background: linear-gradient(135deg, #8B0000 0%, #a83232 100%);
-      color: white;
-      padding: 25px;
-      border-radius: 16px;
-      margin: 20px 0;
-      box-shadow: var(--shadow-lg);
-    }
-    
-    .current-config h4 {
-      margin: 0 0 15px 0;
-      font-size: 1.25rem;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .config-summary {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-top: 15px;
-    }
-    
-    .summary-item {
-      background: rgba(255, 255, 255, 0.2);
-      padding: 15px;
-      border-radius: 10px;
-      text-align: center;
-      backdrop-filter: blur(10px);
-      transition: all 0.3s ease;
-    }
-    
-    .summary-item:hover {
-      transform: translateY(-5px);
-      background: rgba(255, 255, 255, 0.3);
-    }
-    
-    .form-group {
-      margin-bottom: 20px;
-    }
-    
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: var(--secondary);
-    }
-    
-    .form-group input,
-    .form-group select {
-      width: 100%;
-      padding: 12px 15px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      transition: all 0.3s ease;
-      font-size: 1rem;
-    }
-    
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
-    }
-    
+    /* Remove old checkbox styles */
     .checkbox-group {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 8px;
-      max-height: 200px;
-      overflow-y: auto;
-      padding: 10px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--bg);
-    }
-    
-    .checkbox-group label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: normal;
-      margin: 0;
-      padding: 5px;
-      border-radius: 4px;
-      transition: all 0.2s ease;
-    }
-    
-    .checkbox-group label:hover {
-      background: rgba(139, 0, 0, 0.05);
-    }
-    
-    .hint {
       display: block;
-      margin-top: 5px;
-      font-size: 0.85rem;
-      color: var(--secondary);
-      opacity: 0.7;
+      max-height: none;
+      overflow: visible;
     }
     
-    .form-actions {
-      display: flex;
-      gap: 15px;
-      margin-top: 30px;
-      justify-content: center;
+    /* Responsive improvements for new layout */
+    @media (max-width: 1024px) {
+      .assignment-grid {
+        grid-template-columns: 1fr 1fr;
+      }
     }
     
-    .btn {
-      padding: 12px 24px;
-      border-radius: 8px;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-    
-    .btn-primary:hover {
-      background: var(--primary-light);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-    
-    .btn-secondary {
-      background: var(--secondary);
-      color: white;
-    }
-    
-    .btn-secondary:hover {
-      opacity: 0.9;
-      transform: translateY(-2px);
-      box-shadow: var(--shadow);
-    }
-    
-    .btn-success {
-      background: var(--success);
-      color: white;
-    }
-    
-    .btn-danger {
-      background: var(--danger);
-      color: white;
-    }
-    
-    .btn-full {
-      width: 100%;
-    }
-    
-    .floating-top-btn {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 1000;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: var(--shadow-lg);
-      transition: all 0.3s ease;
-    }
-    
-    .floating-top-btn:hover {
-      transform: scale(1.1);
-    }
-    
-    /* Modern select styling */
-    select {
-      appearance: none;
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-      background-repeat: no-repeat;
-      background-position: right 15px center;
-      background-size: 16px;
-      padding-right: 45px;
-    }
-    
-    /* Progress indicator */
-    .progress-indicator {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 30px;
-      position: relative;
-    }
-    
-    .progress-indicator::before {
-      content: '';
-      position: absolute;
-      top: 15px;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: var(--border);
-      z-index: 1;
-    }
-    
-    .progress-step {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      z-index: 2;
-    }
-    
-    .progress-step .step-number {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background: var(--border);
-      color: var(--secondary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      margin-bottom: 8px;
-      transition: all 0.3s ease;
-    }
-    
-    .progress-step.active .step-number {
-      background: var(--primary);
-      color: white;
-    }
-    
-    .progress-step .step-label {
-      font-size: 0.85rem;
-      color: var(--secondary);
-      text-align: center;
-    }
-    
-    .progress-step.active .step-label {
-      color: var(--primary);
-      font-weight: 600;
-    }
-    
-    /* Responsive improvements */
     @media (max-width: 768px) {
       .assignment-grid {
         grid-template-columns: 1fr;
       }
       
-      .term-dates-grid {
-        grid-template-columns: 1fr;
+      .assignments-table {
+        font-size: 0.9em;
       }
       
-      .config-summary {
-        grid-template-columns: 1fr 1fr;
-      }
-      
-      .form-actions {
-        flex-direction: column;
-      }
-      
-      .checkbox-group {
-        grid-template-columns: 1fr 1fr;
+      .assignments-table th,
+      .assignments-table td {
+        padding: 8px 10px;
       }
     }
     
     @media (max-width: 480px) {
-      .config-section {
-        padding: 15px;
-      }
-      
-      .checkbox-group {
+      .assignment-grid {
         grid-template-columns: 1fr;
       }
       
-      .config-summary {
-        grid-template-columns: 1fr;
+      .term-filter {
+        flex-direction: column;
+        align-items: stretch;
       }
     }
   </style>
 </head>
 <body>
+  <!-- Your existing navigation and header code remains the same -->
   <!-- TOP NAVIGATION BAR -->
   <nav class="top-nav">
     <div class="nav-brand">
@@ -584,7 +284,7 @@
     <!-- Subject & Class Assignment -->
     <div class="config-section" id="subjectAssignmentSection">
       <h3>📖 Subject & Class Assignment</h3>
-      <p class="hint">Select the subjects you teach and assign them to specific classes</p>
+      <p class="hint">Select the subjects you teach and assign them to specific classes and streams</p>
       
       <div id="subjectAssignments">
         <!-- Dynamic assignments will be added here -->
@@ -593,8 +293,37 @@
       <button type="button" onclick="addSubjectAssignment()" class="btn btn-primary">
         ➕ Add Another Subject
       </button>
+
+      <!-- Current Assignments Table -->
+      <div class="assignments-table-container">
+        <div class="term-filter">
+          <label>Show assignments for:</label>
+          <select id="assignmentsTermFilter" onchange="renderAssignmentsTable()">
+            <option value="current">Current Term Only</option>
+            <option value="all">All Terms</option>
+            <option value="Term 1">Term 1</option>
+            <option value="Term 2">Term 2</option>
+            <option value="Term 3">Term 3</option>
+          </select>
+        </div>
+        
+        <table class="assignments-table">
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Class</th>
+              <th>Stream</th>
+              <th>Term</th>
+            </tr>
+          </thead>
+          <tbody id="assignmentsTableBody">
+            <!-- Dynamic content will be inserted here -->
+          </tbody>
+        </table>
+      </div>
     </div>
 
+    <!-- The rest of your sections remain the same -->
     <!-- Custom Subjects Management -->
     <div class="config-section" id="customSubjectsSection">
       <h3>📝 Custom Subjects</h3>
@@ -716,6 +445,9 @@
       
       // Auto-fill current year
       autoFillCurrentYear();
+      
+      // Initialize assignments table
+      renderAssignmentsTable();
     }
 
     function autoFillCurrentYear() {
@@ -800,6 +532,9 @@
         // Update current term based on dates
         updateCurrentTerm();
         
+        // Update assignments table
+        renderAssignmentsTable();
+        
         showAlert('Configuration saved successfully!', 'success');
         renderConfiguration();
       } catch (error) {
@@ -836,17 +571,16 @@
       
       assignmentElements.forEach(element => {
         const subject = element.querySelector('.assignment-subject').value;
-        const classElements = element.querySelectorAll('.assignment-class:checked');
-        const streamElements = element.querySelectorAll('.assignment-stream:checked');
+        const selectedClass = element.querySelector('.assignment-class').value;
+        const selectedStream = element.querySelector('.assignment-stream').value;
+        const selectedTerm = element.querySelector('.assignment-term').value;
         
-        if (subject && classElements.length > 0) {
-          const classes = Array.from(classElements).map(cb => cb.value);
-          const streams = Array.from(streamElements).map(cb => cb.value);
-          
+        if (subject && selectedClass && selectedStream && selectedTerm) {
           assignments.push({
             subject: subject,
-            classes: classes,
-            streams: streams
+            class: selectedClass,
+            stream: selectedStream,
+            term: selectedTerm
           });
         }
       });
@@ -870,7 +604,7 @@
         <div class="assignment-grid" id="${assignmentId}">
           <div class="form-group">
             <label>Subject</label>
-            <select class="assignment-subject" onchange="updateAvailableClasses(this)">
+            <select class="assignment-subject">
               <option value="">Select Subject</option>
               ${getAllSubjects().map(subject => 
                 `<option value="${subject}">${subject}</option>`
@@ -879,27 +613,33 @@
           </div>
           
           <div class="form-group">
-            <label>Classes</label>
-            <div class="checkbox-group">
-              ${DEFAULT_CLASSES.map(className => `
-                <label style="display: flex; align-items: center; margin: 5px 0;">
-                  <input type="checkbox" class="assignment-class" value="${className}">
-                  ${className}
-                </label>
-              `).join('')}
-            </div>
+            <label>Class</label>
+            <select class="assignment-class">
+              <option value="">Select Class</option>
+              ${DEFAULT_CLASSES.map(className => 
+                `<option value="${className}">${className}</option>`
+              ).join('')}
+            </select>
           </div>
           
           <div class="form-group">
-            <label>Streams</label>
-            <div class="checkbox-group">
-              ${getAllStreams().map(stream => `
-                <label style="display: flex; align-items: center; margin: 5px 0;">
-                  <input type="checkbox" class="assignment-stream" value="${stream}" checked>
-                  ${stream}
-                </label>
-              `).join('')}
-            </div>
+            <label>Stream</label>
+            <select class="assignment-stream">
+              <option value="">Select Stream</option>
+              ${getAllStreams().map(stream => 
+                `<option value="${stream}">${stream}</option>`
+              ).join('')}
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Term</label>
+            <select class="assignment-term">
+              <option value="">Select Term</option>
+              <option value="Term 1">Term 1</option>
+              <option value="Term 2">Term 2</option>
+              <option value="Term 3">Term 3</option>
+            </select>
           </div>
           
           <div class="form-group">
@@ -922,6 +662,44 @@
       }
     }
 
+    function renderAssignmentsTable() {
+      const tbody = document.getElementById('assignmentsTableBody');
+      const termFilter = document.getElementById('assignmentsTermFilter').value;
+      const currentTerm = getCurrentTermFromConfig();
+      
+      let assignmentsToShow = teacherConfig.assignedSubjects;
+      
+      // Apply term filter
+      if (termFilter === 'current') {
+        assignmentsToShow = assignmentsToShow.filter(assignment => assignment.term === currentTerm);
+      } else if (termFilter !== 'all') {
+        assignmentsToShow = assignmentsToShow.filter(assignment => assignment.term === termFilter);
+      }
+      
+      if (assignmentsToShow.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="empty-assignments">
+              No assignments found for the selected term. Add assignments above.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      tbody.innerHTML = assignmentsToShow.map(assignment => `
+        <tr>
+          <td><strong>${assignment.subject}</strong></td>
+          <td>${assignment.class}</td>
+          <td>${assignment.stream}</td>
+          <td>
+            <span class="assignment-term-badge">${assignment.term}</span>
+            ${assignment.term === currentTerm ? '<small style="color: var(--success);">(Current)</small>' : ''}
+          </td>
+        </tr>
+      `).join('');
+    }
+
     function getAllSubjects() {
       return [...DEFAULT_SUBJECTS, ...teacherConfig.customSubjects];
     }
@@ -934,6 +712,7 @@
       return [...DEFAULT_EXAM_TYPES, ...teacherConfig.customExamTypes];
     }
 
+    // The rest of your functions remain the same (addCustomSubject, addCustomExamType, etc.)
     function addCustomSubject() {
       const input = document.getElementById('newCustomSubject');
       const subject = input.value.trim();
@@ -1066,6 +845,9 @@
       
       // Highlight current term
       highlightCurrentTerm();
+      
+      // Render assignments table
+      renderAssignmentsTable();
     }
 
     function updateCurrentConfigSummary() {
@@ -1073,10 +855,8 @@
       document.getElementById('currentTermDisplay').textContent = getCurrentTermFromConfig();
       document.getElementById('currentSubjectsCount').textContent = teacherConfig.assignedSubjects.length + ' subjects';
       
-      const totalClasses = teacherConfig.assignedSubjects.reduce((total, assignment) => 
-        total + assignment.classes.length, 0
-      );
-      document.getElementById('currentClassesCount').textContent = totalClasses + ' classes';
+      const uniqueClasses = [...new Set(teacherConfig.assignedSubjects.map(a => a.class))];
+      document.getElementById('currentClassesCount').textContent = uniqueClasses.length + ' classes';
     }
 
     function getCurrentTermFromConfig() {
@@ -1187,6 +967,7 @@
     window.saveTeacherConfig = saveTeacherConfig;
     window.resetToDefaults = resetToDefaults;
     window.highlightSelectedTerm = highlightSelectedTerm;
+    window.renderAssignmentsTable = renderAssignmentsTable;
   </script>
 </body>
 </html>
