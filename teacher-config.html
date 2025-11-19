@@ -388,7 +388,7 @@
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
-  <script>
+<script>
     // Default configuration data
     const DEFAULT_CONFIG = {
       academicYear: new Date().getFullYear() + '/' + (new Date().getFullYear() + 1),
@@ -424,12 +424,19 @@
 
     let teacherConfig = { ...DEFAULT_CONFIG };
 
+    // Validation state tracking
+    const validationState = {
+      hasErrors: false,
+      errors: []
+    };
+
     // Load configuration when page loads
     document.addEventListener('DOMContentLoaded', function() {
       initializePage();
       loadTeacherConfig();
       setupMobileMenu();
       setupProgressIndicator();
+      setupValidationListeners();
     });
 
     function initializePage() {
@@ -448,6 +455,265 @@
       
       // Initialize assignments table
       renderAssignmentsTable();
+    }
+
+    function setupValidationListeners() {
+      // Add real-time validation for academic year
+      const academicYearInput = document.getElementById('academicYear');
+      if (academicYearInput) {
+        academicYearInput.addEventListener('blur', validateAcademicYear);
+      }
+
+      // Add validation for term dates
+      const termDateInputs = document.querySelectorAll('.term-date');
+      termDateInputs.forEach(input => {
+        input.addEventListener('change', validateTermDates);
+      });
+    }
+
+    function validateAcademicYear() {
+      const input = document.getElementById('academicYear');
+      const value = input.value.trim();
+      const academicYearRegex = /^\d{4}\/\d{4}$/;
+      
+      clearFieldError(input);
+      
+      if (!value) {
+        showFieldError(input, 'Academic year is required');
+        return false;
+      }
+      
+      if (!academicYearRegex.test(value)) {
+        showFieldError(input, 'Please use format: YYYY/YYYY (e.g., 2024/2025)');
+        return false;
+      }
+      
+      const years = value.split('/');
+      const startYear = parseInt(years[0]);
+      const endYear = parseInt(years[1]);
+      
+      if (endYear !== startYear + 1) {
+        showFieldError(input, 'End year must be exactly one year after start year');
+        return false;
+      }
+      
+      return true;
+    }
+
+    function validateTermDates() {
+      let isValid = true;
+      const termCards = document.querySelectorAll('.term-date-card');
+      
+      termCards.forEach(card => {
+        const startInput = card.querySelector('input[type="date"]:first-of-type');
+        const endInput = card.querySelector('input[type="date"]:last-of-type');
+        const startValue = startInput.value;
+        const endValue = endInput.value;
+        
+        clearFieldError(startInput);
+        clearFieldError(endInput);
+        
+        // If one date is filled, the other must also be filled
+        if ((startValue && !endValue) || (!startValue && endValue)) {
+          showFieldError(startInput, 'Both start and end dates are required');
+          showFieldError(endInput, 'Both start and end dates are required');
+          isValid = false;
+        }
+        
+        // Validate date logic
+        if (startValue && endValue) {
+          const startDate = new Date(startValue);
+          const endDate = new Date(endValue);
+          
+          if (endDate <= startDate) {
+            showFieldError(endInput, 'End date must be after start date');
+            isValid = false;
+          }
+          
+          // Validate term overlaps
+          if (!validateTermOverlaps()) {
+            isValid = false;
+          }
+        }
+      });
+      
+      return isValid;
+    }
+
+    function validateTermOverlaps() {
+      const terms = ['Term 1', 'Term 2', 'Term 3'];
+      let isValid = true;
+      
+      for (let i = 0; i < terms.length; i++) {
+        for (let j = i + 1; j < terms.length; j++) {
+          const term1 = terms[i];
+          const term2 = terms[j];
+          const term1Start = document.getElementById(`${term1.toLowerCase().replace(' ', '')}Start`).value;
+          const term1End = document.getElementById(`${term1.toLowerCase().replace(' ', '')}End`).value;
+          const term2Start = document.getElementById(`${term2.toLowerCase().replace(' ', '')}Start`).value;
+          const term2End = document.getElementById(`${term2.toLowerCase().replace(' ', '')}End`).value;
+          
+          if (term1Start && term1End && term2Start && term2End) {
+            const start1 = new Date(term1Start);
+            const end1 = new Date(term1End);
+            const start2 = new Date(term2Start);
+            const end2 = new Date(term2End);
+            
+            if ((start1 <= end2 && start2 <= end1)) {
+              showFieldError(document.getElementById(`${term1.toLowerCase().replace(' ', '')}Start`), `Overlaps with ${term2}`);
+              showFieldError(document.getElementById(`${term2.toLowerCase().replace(' ', '')}Start`), `Overlaps with ${term1}`);
+              isValid = false;
+            }
+          }
+        }
+      }
+      
+      return isValid;
+    }
+
+    function validateAssignment(assignmentElement) {
+      const subject = assignmentElement.querySelector('.assignment-subject').value;
+      const selectedClass = assignmentElement.querySelector('.assignment-class').value;
+      const selectedStream = assignmentElement.querySelector('.assignment-stream').value;
+      const selectedTerm = assignmentElement.querySelector('.assignment-term').value;
+      
+      // Clear previous errors
+      clearAssignmentErrors(assignmentElement);
+      
+      let isValid = true;
+      
+      // Validate required fields
+      if (!subject) {
+        showAssignmentError(assignmentElement, '.assignment-subject', 'Subject is required');
+        isValid = false;
+      }
+      
+      if (!selectedClass) {
+        showAssignmentError(assignmentElement, '.assignment-class', 'Class is required');
+        isValid = false;
+      }
+      
+      if (!selectedStream) {
+        showAssignmentError(assignmentElement, '.assignment-stream', 'Stream is required');
+        isValid = false;
+      }
+      
+      if (!selectedTerm) {
+        showAssignmentError(assignmentElement, '.assignment-term', 'Term is required');
+        isValid = false;
+      }
+      
+      // Check for duplicates
+      if (subject && selectedClass && selectedStream && selectedTerm) {
+        const isDuplicate = checkDuplicateAssignment(subject, selectedClass, selectedStream, selectedTerm, assignmentElement.id);
+        if (isDuplicate) {
+          showAssignmentError(assignmentElement, '.assignment-subject', 'This combination already exists');
+          isValid = false;
+        }
+      }
+      
+      return isValid;
+    }
+
+    function checkDuplicateAssignment(subject, className, stream, term, currentAssignmentId) {
+      const assignmentElements = document.querySelectorAll('.assignment-grid');
+      
+      for (const element of assignmentElements) {
+        if (element.id === currentAssignmentId) continue;
+        
+        const existingSubject = element.querySelector('.assignment-subject').value;
+        const existingClass = element.querySelector('.assignment-class').value;
+        const existingStream = element.querySelector('.assignment-stream').value;
+        const existingTerm = element.querySelector('.assignment-term').value;
+        
+        if (existingSubject === subject && 
+            existingClass === className && 
+            existingStream === stream && 
+            existingTerm === term) {
+          return true;
+        }
+      }
+      
+      // Also check against saved assignments
+      return teacherConfig.assignedSubjects.some(assignment => 
+        assignment.subject === subject && 
+        assignment.class === className && 
+        assignment.stream === stream && 
+        assignment.term === term
+      );
+    }
+
+    function validateAllAssignments() {
+      const assignmentElements = document.querySelectorAll('.assignment-grid');
+      let allValid = true;
+      
+      assignmentElements.forEach(element => {
+        if (!validateAssignment(element)) {
+          allValid = false;
+        }
+      });
+      
+      return allValid;
+    }
+
+    function validateCustomItem(input, existingItems, itemType) {
+      const value = input.value.trim();
+      clearFieldError(input);
+      
+      if (!value) {
+        showFieldError(input, `${itemType} name is required`);
+        return false;
+      }
+      
+      if (value.length < 2) {
+        showFieldError(input, `${itemType} name must be at least 2 characters`);
+        return false;
+      }
+      
+      if (existingItems.includes(value)) {
+        showFieldError(input, `${itemType} already exists`);
+        return false;
+      }
+      
+      return true;
+    }
+
+    function showFieldError(input, message) {
+      clearFieldError(input);
+      
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'field-error';
+      errorDiv.textContent = message;
+      errorDiv.style.cssText = `
+        color: #e53e3e;
+        font-size: 0.8rem;
+        margin-top: 5px;
+        padding: 5px;
+        background: rgba(229, 62, 62, 0.1);
+        border-radius: 4px;
+        border-left: 3px solid #e53e3e;
+      `;
+      
+      input.style.borderColor = '#e53e3e';
+      input.parentNode.appendChild(errorDiv);
+    }
+
+    function clearFieldError(input) {
+      input.style.borderColor = '';
+      const existingError = input.parentNode.querySelector('.field-error');
+      if (existingError) {
+        existingError.remove();
+      }
+    }
+
+    function showAssignmentError(assignmentElement, selector, message) {
+      const field = assignmentElement.querySelector(selector);
+      showFieldError(field, message);
+    }
+
+    function clearAssignmentErrors(assignmentElement) {
+      const fields = assignmentElement.querySelectorAll('select');
+      fields.forEach(field => clearFieldError(field));
     }
 
     function autoFillCurrentYear() {
@@ -523,6 +789,21 @@
 
     function saveTeacherConfig() {
       try {
+        // Reset validation state
+        validationState.hasErrors = false;
+        validationState.errors = [];
+        
+        // Validate all sections
+        const academicYearValid = validateAcademicYear();
+        const termDatesValid = validateTermDates();
+        const assignmentsValid = validateAllAssignments();
+        
+        if (!academicYearValid || !termDatesValid || !assignmentsValid) {
+          showAlert('Please fix the validation errors before saving', 'error');
+          scrollToFirstError();
+          return;
+        }
+        
         // Gather form data
         gatherFormData();
         
@@ -540,6 +821,13 @@
       } catch (error) {
         console.error('Error saving teacher config:', error);
         showAlert('Error saving configuration', 'error');
+      }
+    }
+
+    function scrollToFirstError() {
+      const firstError = document.querySelector('.field-error');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
 
@@ -604,7 +892,7 @@
         <div class="assignment-grid" id="${assignmentId}">
           <div class="form-group">
             <label>Subject</label>
-            <select class="assignment-subject">
+            <select class="assignment-subject" onchange="validateAssignment(this.parentElement.parentElement)">
               <option value="">Select Subject</option>
               ${getAllSubjects().map(subject => 
                 `<option value="${subject}">${subject}</option>`
@@ -614,7 +902,7 @@
           
           <div class="form-group">
             <label>Class</label>
-            <select class="assignment-class">
+            <select class="assignment-class" onchange="validateAssignment(this.parentElement.parentElement)">
               <option value="">Select Class</option>
               ${DEFAULT_CLASSES.map(className => 
                 `<option value="${className}">${className}</option>`
@@ -624,7 +912,7 @@
           
           <div class="form-group">
             <label>Stream</label>
-            <select class="assignment-stream">
+            <select class="assignment-stream" onchange="validateAssignment(this.parentElement.parentElement)">
               <option value="">Select Stream</option>
               ${getAllStreams().map(stream => 
                 `<option value="${stream}">${stream}</option>`
@@ -634,7 +922,7 @@
           
           <div class="form-group">
             <label>Term</label>
-            <select class="assignment-term">
+            <select class="assignment-term" onchange="validateAssignment(this.parentElement.parentElement)">
               <option value="">Select Term</option>
               <option value="Term 1">Term 1</option>
               <option value="Term 2">Term 2</option>
@@ -659,6 +947,8 @@
       const element = document.getElementById(assignmentId);
       if (element) {
         element.remove();
+        // Re-validate remaining assignments to clear any duplicate errors
+        validateAllAssignments();
       }
     }
 
@@ -712,50 +1002,77 @@
       return [...DEFAULT_EXAM_TYPES, ...teacherConfig.customExamTypes];
     }
 
-    // The rest of your functions remain the same (addCustomSubject, addCustomExamType, etc.)
     function addCustomSubject() {
       const input = document.getElementById('newCustomSubject');
       const subject = input.value.trim();
       
-      if (subject && !getAllSubjects().includes(subject)) {
-        teacherConfig.customSubjects.push(subject);
-        saveCustomItems();
-        input.value = '';
-        renderCustomSubjects();
-        showAlert('Custom subject added!', 'success');
-      } else {
-        showAlert('Subject already exists or is invalid', 'error');
+      if (!validateCustomItem(input, getAllSubjects(), 'Subject')) {
+        return;
       }
+      
+      teacherConfig.customSubjects.push(subject);
+      saveCustomItems();
+      input.value = '';
+      renderCustomSubjects();
+      showAlert('Custom subject added!', 'success');
+      
+      // Refresh subject dropdowns in assignments
+      refreshSubjectDropdowns();
     }
 
     function addCustomExamType() {
       const input = document.getElementById('newCustomExamType');
       const examType = input.value.trim();
       
-      if (examType && !getAllExamTypes().includes(examType)) {
-        teacherConfig.customExamTypes.push(examType);
-        saveCustomItems();
-        input.value = '';
-        renderCustomExamTypes();
-        showAlert('Custom exam type added!', 'success');
-      } else {
-        showAlert('Exam type already exists or is invalid', 'error');
+      if (!validateCustomItem(input, getAllExamTypes(), 'Exam type')) {
+        return;
       }
+      
+      teacherConfig.customExamTypes.push(examType);
+      saveCustomItems();
+      input.value = '';
+      renderCustomExamTypes();
+      showAlert('Custom exam type added!', 'success');
     }
 
     function addCustomStream() {
       const input = document.getElementById('newCustomStream');
       const stream = input.value.trim();
       
-      if (stream && !getAllStreams().includes(stream)) {
-        teacherConfig.customStreams.push(stream);
-        saveCustomItems();
-        input.value = '';
-        renderCustomStreams();
-        showAlert('Custom stream added!', 'success');
-      } else {
-        showAlert('Stream already exists or is invalid', 'error');
+      if (!validateCustomItem(input, getAllStreams(), 'Stream')) {
+        return;
       }
+      
+      teacherConfig.customStreams.push(stream);
+      saveCustomItems();
+      input.value = '';
+      renderCustomStreams();
+      showAlert('Custom stream added!', 'success');
+      
+      // Refresh stream dropdowns in assignments
+      refreshStreamDropdowns();
+    }
+
+    function refreshSubjectDropdowns() {
+      const subjectDropdowns = document.querySelectorAll('.assignment-subject');
+      subjectDropdowns.forEach(dropdown => {
+        const currentValue = dropdown.value;
+        dropdown.innerHTML = '<option value="">Select Subject</option>' + 
+          getAllSubjects().map(subject => 
+            `<option value="${subject}" ${subject === currentValue ? 'selected' : ''}>${subject}</option>`
+          ).join('');
+      });
+    }
+
+    function refreshStreamDropdowns() {
+      const streamDropdowns = document.querySelectorAll('.assignment-stream');
+      streamDropdowns.forEach(dropdown => {
+        const currentValue = dropdown.value;
+        dropdown.innerHTML = '<option value="">Select Stream</option>' + 
+          getAllStreams().map(stream => 
+            `<option value="${stream}" ${stream === currentValue ? 'selected' : ''}>${stream}</option>`
+          ).join('');
+      });
     }
 
     function saveCustomItems() {
@@ -811,6 +1128,7 @@
       teacherConfig.customSubjects = teacherConfig.customSubjects.filter(s => s !== subject);
       saveCustomItems();
       renderCustomSubjects();
+      refreshSubjectDropdowns();
       showAlert('Subject removed', 'info');
     }
 
@@ -825,6 +1143,7 @@
       teacherConfig.customStreams = teacherConfig.customStreams.filter(s => s !== stream);
       saveCustomItems();
       renderCustomStreams();
+      refreshStreamDropdowns();
       showAlert('Stream removed', 'info');
     }
 
@@ -913,7 +1232,7 @@
     }
 
     function resetToDefaults() {
-      if (confirm('Are you sure you want to reset all configuration to defaults? This will clear all your custom settings.')) {
+      if (confirm('Are you sure you want to reset all configuration to defaults? This will clear all your custom settings and assignments.')) {
         teacherConfig = { ...DEFAULT_CONFIG };
         localStorage.removeItem('teacherConfig');
         localStorage.removeItem('customSubjects');
@@ -968,6 +1287,7 @@
     window.resetToDefaults = resetToDefaults;
     window.highlightSelectedTerm = highlightSelectedTerm;
     window.renderAssignmentsTable = renderAssignmentsTable;
+    window.validateAssignment = validateAssignment;
   </script>
 </body>
 </html>
