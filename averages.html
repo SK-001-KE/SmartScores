@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>SmartScores - Cumulative Averages</title>
+  <title>SmartScores - Averages & Trends</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="./style.css">
   <script src="./app.js" defer></script>
@@ -11,60 +11,95 @@
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./firebase-sync.js"></script>
   <style>
+    /* ===== COMBINED STYLES FOR AVERAGES & TRENDS ===== */
     
-   /* ===== AVERAGES SPECIFIC STYLES ===== */
-.quick-stats {
-  margin: 25px 0;
-}
+    /* Quick Stats Grid */
+    .quick-stats {
+      margin: 25px 0;
+    }
 
-.stats-grid {
-  display: grid;
-  /* Retain original column logic for responsiveness */
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  /* *** THE FIX: Center the grid items within their tracks *** */
-  justify-items: center; 
-  /* *** NEW ADDITION: Center the entire grid container on the page *** */
-  /* This ensures the grid itself is centered when it doesn't span the full page width, 
-     which is common on tablets or wider mobile views where cards don't fill a row. */
-  max-width: 1200px; /* Adjust this value if your main content container is wider */
-  margin: 0 auto;
-}
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      justify-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-.stat-item {
-  background: var(--card);
-  padding: 25px;
-  border-radius: 12px;
-  text-align: center;
-  border-top: 4px solid var(--primary);
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow);
-  width: 100%;
-  max-width: 250px;
-}
+    .stat-item {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      text-align: center;
+      border-top: 4px solid var(--primary);
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 250px;
+    }
 
-.stat-item:hover {
-  transform: translateY(-3px);
-}
+    .stat-item:hover {
+      transform: translateY(-3px);
+    }
 
-.stat-value {
-  font-size: 2.5em;
-  font-weight: bold;
-  margin: 10px 0;
-  color: var(--primary);
-}
+    .stat-value {
+      font-size: 2.5em;
+      font-weight: bold;
+      margin: 10px 0;
+      color: var(--primary);
+    }
 
-.stat-label {
-  font-weight: 600;
-  margin-bottom: 5px;
-}
+    .stat-label {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
 
-.stat-subtext {
-  font-size: 0.85em;
-  color: var(--secondary);
-}
+    .stat-subtext {
+      font-size: 0.85em;
+      color: var(--secondary);
+    }
 
-    /* Filter Section */
+    /* Progress Overview Cards */
+    .dashboard-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .dashboard-card {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .dashboard-card h3 {
+      font-size: 0.9em;
+      margin: 0 0 8px 0;
+      color: var(--secondary);
+    }
+
+    .dashboard-card .card-value {
+      font-size: 1.8em;
+      font-weight: bold;
+      margin: 5px 0;
+      color: var(--primary);
+    }
+
+    .dashboard-card .card-subtitle {
+      font-size: 0.8em;
+      color: var(--secondary);
+      margin: 0;
+    }
+
+    /* Filter Sections */
     .filter-section {
       background: var(--card);
       padding: 25px;
@@ -107,7 +142,7 @@
       flex-wrap: wrap;
     }
 
-    /* Table Section */
+    /* Table Sections */
     .table-section {
       margin: 30px 0;
     }
@@ -127,6 +162,58 @@
       flex-wrap: wrap;
     }
 
+    .table-info {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .info-badge {
+      padding: 6px 12px;
+      background: var(--primary);
+      color: white;
+      border-radius: 12px;
+      font-size: 0.85em;
+      font-weight: 600;
+    }
+
+    /* Insights Section */
+    .key-insights {
+      margin: 25px 0;
+    }
+
+    .insights-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .insight-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+      padding: 20px;
+      background: var(--card);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+    }
+
+    .insight-icon {
+      font-size: 1.5em;
+      flex-shrink: 0;
+    }
+
+    .insight-content h4 {
+      margin: 0 0 8px 0;
+      font-size: 1.1em;
+    }
+
+    .insight-content p {
+      margin: 0;
+      color: var(--secondary);
+      line-height: 1.5;
+    }
+
     /* Loading and Empty States */
     .loading-cell {
       padding: 40px 20px;
@@ -144,6 +231,24 @@
 
       .stat-item {
         max-width: 100%;
+      }
+
+      .dashboard-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .dashboard-card {
+        padding: 15px;
+        min-height: 100px;
+      }
+
+      .dashboard-card h3 {
+        font-size: 0.85em;
+      }
+
+      .dashboard-card .card-value {
+        font-size: 1.5em;
       }
 
       .filter-controls {
@@ -174,6 +279,16 @@
       .filter-actions .btn {
         width: 100%;
       }
+
+      .insight-item {
+        padding: 15px;
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .insight-icon {
+        margin-bottom: 10px;
+      }
     }
 
     @media (max-width: 480px) {
@@ -185,6 +300,15 @@
         font-size: 2em;
       }
       
+      .dashboard-cards {
+        grid-template-columns: 1fr;
+      }
+      
+      .dashboard-card {
+        min-height: 90px;
+        padding: 15px 10px;
+      }
+
       .filter-section {
         padding: 20px 15px;
       }
@@ -204,8 +328,7 @@
       <a href="./data-entry.html" class="nav-link">📝 Data Entry</a>
       <a href="./recorded-scores.html" class="nav-link">📋 Scores</a>
       <a href="./ai-insights.html" class="nav-link">🤖 AI Insights</a>
-      <a href="./averages.html" class="nav-link active">📈 Averages</a>
-      <a href="./trends.html" class="nav-link">📊 Trends</a>
+      <a href="./averages.html" class="nav-link active">📈 Averages & Trends</a>
       <a href="./grade-distribution.html" class="nav-link">📈 Distribution</a>
       <a href="./set-targets.html" class="nav-link">🎯 Targets</a>
       <a href="./learner-scores.html" class="nav-link">👨‍🎓 Learner Scores</a>
@@ -226,8 +349,7 @@
     <a href="./data-entry.html">📝 Data Entry</a>
     <a href="./recorded-scores.html">📋 Recorded Scores</a>
     <a href="./ai-insights.html">🤖 AI Insights</a>
-    <a href="./averages.html" class="active">📈 Averages</a>
-    <a href="./trends.html">📊 Trends</a>
+    <a href="./averages.html" class="active">📈 Averages & Trends</a>
     <a href="./grade-distribution.html">📈 Grade Distribution</a>
     <a href="./set-targets.html">🎯 Set Targets</a>
     <a href="./learner-scores.html" class="nav-link">👨‍🎓 Learner Scores</a>
@@ -238,18 +360,18 @@
 
   <header>
     <h1>SmartScores</h1>
-    <p>Cumulative Averages & Performance Breakdown</p>
+    <p>Comprehensive Averages & Trend Analysis</p>
   </header>
 
   <div class="content content-with-sidebar">
     <div class="form-header">
-      <h2>Cumulative Averages Dashboard</h2>
+      <h2>Averages & Trends Dashboard</h2>
       <p class="teacher-info">Teacher: <span id="currentTeacher">Loading...</span></p>
     </div>
 
-    <!-- QUICK STATS -->
+    <!-- COMBINED QUICK STATS -->
     <section class="quick-stats">
-      <h2>Performance Summary</h2>
+      <h2>Performance Overview</h2>
       <div class="stats-grid">
         <div class="stat-item">
           <div class="stat-value" id="totalSubjects">--</div>
@@ -262,21 +384,48 @@
           <div class="stat-subtext" id="bestSubjectName">--</div>
         </div>
         <div class="stat-item">
-          <div class="stat-value" id="improvedSubjects">--</div>
-          <div class="stat-label">Improved</div>
-          <div class="stat-subtext">this term</div>
-        </div>
-        <div class="stat-item">
           <div class="stat-value" id="overallAverage">--</div>
           <div class="stat-label">Overall Average</div>
           <div class="stat-subtext">All subjects</div>
         </div>
+        <div class="stat-item">
+          <div class="stat-value" id="improvingCount">--</div>
+          <div class="stat-label">Improving</div>
+          <div class="stat-subtext">Subjects</div>
+        </div>
       </div>
     </section>
 
-    <!-- FILTER CONTROLS -->
+    <!-- PROGRESS OVERVIEW CARDS -->
+    <section class="progress-overview">
+      <h2>📈 Progress Overview</h2>
+      <div class="dashboard-cards">
+        <div class="dashboard-card">
+          <h3>Improving</h3>
+          <div class="card-value" id="trendImprovingCount">--</div>
+          <p class="card-subtitle">Subjects showing growth</p>
+        </div>
+        <div class="dashboard-card">
+          <h3>Stable</h3>
+          <div class="card-value" id="stableCount">--</div>
+          <p class="card-subtitle">Consistent performance</p>
+        </div>
+        <div class="dashboard-card">
+          <h3>Declining</h3>
+          <div class="card-value" id="decliningCount">--</div>
+          <p class="card-subtitle">Need intervention</p>
+        </div>
+        <div class="dashboard-card">
+          <h3>Insufficient Data</h3>
+          <div class="card-value" id="insufficientData">--</div>
+          <p class="card-subtitle">Need more exams</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- AVERAGES FILTER CONTROLS -->
     <section class="filter-section">
-      <h3>Filter Results</h3>
+      <h3>Filter Averages</h3>
       <div class="filter-controls">
         <div class="filter-group">
           <label>Grade</label>
@@ -352,6 +501,99 @@
       </div>
     </section>
 
+    <!-- TRENDS FILTER CONTROLS -->
+    <section class="filter-section">
+      <h3>Filter Trends</h3>
+      <div class="filter-controls">
+        <div class="filter-group">
+          <label>Trend Status</label>
+          <select id="trendFilter">
+            <option value="">All Trends</option>
+            <option value="improving">📈 Improving</option>
+            <option value="declining">📉 Declining</option>
+            <option value="stable">➡️ Stable</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Subject</label>
+          <select id="subjectFilter">
+            <option value="">Select Subject</option>
+            <option>Mathematics</option>
+            <option>English</option>
+            <option>Kiswahili</option>
+            <option>Science</option>
+            <option>Social Studies</option>
+            <option>CRE</option>
+            <option>Pre-Technical Studies</option>
+            <option>Creative Arts</option>
+            <option>Agriculture</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Grade</label>
+          <select id="trendGradeFilter">
+            <option value="">All Grades</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+            <option>9</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button onclick="applyTrendFilters()" class="btn btn-primary">Apply Filters</button>
+          <button onclick="resetTrendFilters()" class="btn btn-secondary">Reset</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRENDS TABLE -->
+    <section class="table-section">
+      <div class="section-header">
+        <h2>Detailed Trend Analysis</h2>
+        <div class="table-info">
+          <span class="info-badge" id="trendsCount">0 trends analyzed</span>
+        </div>
+      </div>
+      <div class="table-container">
+        <table id="trendTable">
+          <thead>
+            <tr>
+              <th onclick="sortTrendsTable(0)">Subject ▾</th>
+              <th onclick="sortTrendsTable(1)">Grade ▾</th>
+              <th onclick="sortTrendsTable(2)">Stream ▾</th>
+              <th onclick="sortTrendsTable(3)">Term ▾</th>
+              <th onclick="sortTrendsTable(4)">Opener ▾</th>
+              <th onclick="sortTrendsTable(5)">Mid Term ▾</th>
+              <th onclick="sortTrendsTable(6)">End Term ▾</th>
+              <th onclick="sortTrendsTable(7)">Trend ▾</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="9" class="loading-cell">Loading trend analysis...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- KEY INSIGHTS -->
+    <section class="key-insights">
+      <h2>💡 Key Insights</h2>
+      <div id="combinedInsights" class="insights-list">
+        <div class="insight-item">
+          <div class="insight-icon">📊</div>
+          <div class="insight-content">
+            <h4>Add More Data</h4>
+            <p>Enter exam scores for multiple terms to see comprehensive averages and trend analysis.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- RUBRIC KEY -->
     <section class="rubric-section">
       <h3>🎯 Performance Rubric Key</h3>
@@ -371,8 +613,8 @@
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
   <script>
-    // ==================== AVERAGES WITH UPDATED NAVIGATION ====================
-    console.log('📈 Averages with Updated Navigation loaded!');
+    // ==================== COMBINED AVERAGES & TRENDS ====================
+    console.log('📈📊 Combined Averages & Trends loaded!');
 
     // Simple DOM helper
     const el = id => document.getElementById(id);
@@ -483,9 +725,9 @@
       }
     }
 
-    // ===== AVERAGES CALCULATIONS =====
-    function calculateAverages() {
-      console.log('📊 Calculating averages...');
+    // ===== COMBINED INITIALIZATION =====
+    function initializeCombinedAnalysis() {
+      console.log('📊 Initializing combined averages and trends...');
       
       if (!checkAuth()) return;
       
@@ -495,16 +737,19 @@
       // If no records, show empty state
       if (records.length === 0) {
         showEmptyState();
-        updateQuickStats([]);
+        updateCombinedStats([]);
         return;
       }
 
-      // Calculate and display averages
+      // Calculate and display both averages and trends
       calculateOverallStats(records);
       renderAveragesTable(records);
-      updateQuickStats(records);
+      renderTrendsTable(records);
+      updateCombinedStats(records);
+      updateCombinedInsights(records);
     }
 
+    // ===== AVERAGES CALCULATIONS =====
     function calculateOverallStats(records) {
       // Calculate overall average
       const overallAvg = records.reduce((sum, record) => sum + record.mean, 0) / records.length;
@@ -616,7 +861,7 @@
       });
 
       // Apply filters if any
-      const filteredAverages = applyCurrentFilters(averages);
+      const filteredAverages = applyAveragesFiltersLogic(averages);
 
       // Render table
       if (filteredAverages.length === 0) {
@@ -655,16 +900,267 @@
       }
     }
 
-    function updateQuickStats(records) {
-      // Calculate improved subjects (simple logic based on term comparison)
-      let improvedCount = 0;
-      if (records.length > 0) {
-        // Simple improvement calculation - count records with score > 70 as "improved"
-        improvedCount = records.filter(record => record.mean > 70).length;
+    // ===== TREND ANALYSIS =====
+    function renderTrendsTable(records) {
+      const tbody = document.querySelector('#trendTable tbody');
+      if (!tbody) return;
+
+      // Group records by subject, grade, stream, term
+      const groups = {};
+      records.forEach(record => {
+        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}`;
+        if (!groups[key]) {
+          groups[key] = {
+            subject: record.subject,
+            grade: record.grade,
+            stream: record.stream,
+            term: record.term,
+            exams: {}
+          };
+        }
+        
+        const examType = record.examType || '';
+        groups[key].exams[examType] = record.mean;
+      });
+
+      const trends = [];
+      Object.values(groups).forEach(group => {
+        const { exams } = group;
+        const opener = exams['Opener Exam'];
+        const mid = exams['Mid Term Exam'];
+        const end = exams['End Term Exam'];
+        
+        const examCount = [opener, mid, end].filter(score => score !== undefined).length;
+        if (examCount < 2) return;
+        
+        let trend = '';
+        let trendValue = 0;
+        let status = '';
+        let statusColor = '#666';
+        
+        if (opener !== undefined && end !== undefined) {
+          trendValue = end - opener;
+          trend = `${trendValue >= 0 ? '+' : ''}${trendValue.toFixed(1)}%`;
+          status = trendValue > 2 ? 'Improving' : trendValue < -2 ? 'Declining' : 'Stable';
+          statusColor = trendValue > 2 ? '#10b981' : trendValue < -2 ? '#ef4444' : '#f59e0b';
+        } else if (opener !== undefined && mid !== undefined) {
+          trendValue = mid - opener;
+          trend = `${trendValue >= 0 ? '+' : ''}${trendValue.toFixed(1)}%`;
+          status = trendValue > 2 ? 'Improving' : trendValue < -2 ? 'Declining' : 'Stable';
+          statusColor = trendValue > 2 ? '#10b981' : trendValue < -2 ? '#ef4444' : '#f59e0b';
+        } else if (mid !== undefined && end !== undefined) {
+          trendValue = end - mid;
+          trend = `${trendValue >= 0 ? '+' : ''}${trendValue.toFixed(1)}%`;
+          status = trendValue > 2 ? 'Improving' : trendValue < -2 ? 'Declining' : 'Stable';
+          statusColor = trendValue > 2 ? '#10b981' : trendValue < -2 ? '#ef4444' : '#f59e0b';
+        }
+        
+        trends.push({
+          ...group,
+          opener: opener !== undefined ? opener.toFixed(1) : '–',
+          mid: mid !== undefined ? mid.toFixed(1) : '–',
+          end: end !== undefined ? end.toFixed(1) : '–',
+          trend,
+          status,
+          statusColor
+        });
+      });
+
+      // Apply filters if any
+      const filteredTrends = applyTrendsFiltersLogic(trends);
+
+      // Render table
+      tbody.innerHTML = filteredTrends.length > 0 ? filteredTrends.map(trend => `
+        <tr>
+          <td>${trend.subject}</td>
+          <td>${trend.grade}</td>
+          <td>${trend.stream}</td>
+          <td>${trend.term}</td>
+          <td style="text-align: center; font-weight: bold;">${trend.opener}%</td>
+          <td style="text-align: center; font-weight: bold;">${trend.mid}%</td>
+          <td style="text-align: center; font-weight: bold;">${trend.end}%</td>
+          <td style="font-weight: bold; color: ${trend.statusColor};">${trend.trend}</td>
+          <td>
+            <span class="rubric-badge" style="background: ${trend.statusColor}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">${trend.status}</span>
+          </td>
+        </tr>
+      `).join('') : `
+        <tr>
+          <td colspan="9" class="text-center" style="padding: 40px; color: var(--secondary);">
+            ${trends.length === 0 ? 'Not enough data for trend analysis (need 2+ exams per group).' : 'No trends match your filters.'}
+          </td>
+        </tr>
+      `;
+    }
+
+    // ===== COMBINED STATS UPDATE =====
+    function updateCombinedStats(records) {
+      // Update averages stats
+      const improvedSubjectsElement = el('improvingCount');
+      if (improvedSubjectsElement) {
+        // Simple improvement calculation
+        const improvedCount = records.filter(record => record.mean > 70).length;
+        improvedSubjectsElement.textContent = improvedCount;
       }
+
+      // Update trends overview
+      if (records.length === 0) {
+        document.getElementById('trendImprovingCount').textContent = '0';
+        document.getElementById('stableCount').textContent = '0';
+        document.getElementById('decliningCount').textContent = '0';
+        document.getElementById('insufficientData').textContent = '0';
+        document.getElementById('trendsCount').textContent = '0 trends analyzed';
+        return;
+      }
+
+      // Calculate actual trends from data
+      const trends = calculateTrendsFromRecords(records);
       
-      const improvedSubjectsElement = el('improvedSubjects');
-      if (improvedSubjectsElement) improvedSubjectsElement.textContent = improvedCount;
+      document.getElementById('trendImprovingCount').textContent = trends.improving;
+      document.getElementById('stableCount').textContent = trends.stable;
+      document.getElementById('decliningCount').textContent = trends.declining;
+      document.getElementById('insufficientData').textContent = trends.insufficient;
+      document.getElementById('trendsCount').textContent = `${trends.total} trends analyzed`;
+    }
+
+    function calculateTrendsFromRecords(records) {
+      const groups = {};
+      
+      // Group records by subject, grade, stream, term
+      records.forEach(record => {
+        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}`;
+        if (!groups[key]) {
+          groups[key] = {
+            subject: record.subject,
+            grade: record.grade,
+            stream: record.stream,
+            term: record.term,
+            exams: {}
+          };
+        }
+        
+        const examType = record.examType || '';
+        groups[key].exams[examType] = record.mean;
+      });
+
+      let improving = 0;
+      let stable = 0;
+      let declining = 0;
+      let insufficient = 0;
+
+      Object.values(groups).forEach(group => {
+        const { exams } = group;
+        const opener = exams['Opener Exam'];
+        const mid = exams['Mid Term Exam'];
+        const end = exams['End Term Exam'];
+        
+        const examCount = [opener, mid, end].filter(score => score !== undefined).length;
+        
+        if (examCount < 2) {
+          insufficient++;
+          return;
+        }
+        
+        let trendValue = 0;
+        
+        if (opener !== undefined && end !== undefined) {
+          trendValue = end - opener;
+        } else if (opener !== undefined && mid !== undefined) {
+          trendValue = mid - opener;
+        } else if (mid !== undefined && end !== undefined) {
+          trendValue = end - mid;
+        }
+        
+        if (trendValue > 2) {
+          improving++;
+        } else if (trendValue < -2) {
+          declining++;
+        } else {
+          stable++;
+        }
+      });
+
+      return {
+        improving,
+        stable,
+        declining,
+        insufficient,
+        total: improving + stable + declining
+      };
+    }
+
+    // ===== FILTERS AND SORTING =====
+    function applyAveragesFiltersLogic(averages) {
+      const gradeFilter = el('gradeFilter')?.value || '';
+      const streamFilter = el('streamFilter')?.value || '';
+      const termFilter = el('termFilter')?.value || '';
+      
+      return averages.filter(avg => {
+        return (!gradeFilter || avg.grade === gradeFilter) &&
+               (!streamFilter || avg.stream === streamFilter) &&
+               (!termFilter || avg.term === termFilter);
+      });
+    }
+
+    function applyTrendsFiltersLogic(trends) {
+      const trendFilter = el('trendFilter')?.value || '';
+      const subjectFilter = el('subjectFilter')?.value || '';
+      const gradeFilter = el('trendGradeFilter')?.value || '';
+      
+      return trends.filter(trend => {
+        return (!trendFilter || 
+                (trendFilter === 'improving' && trend.status === 'Improving') ||
+                (trendFilter === 'declining' && trend.status === 'Declining') ||
+                (trendFilter === 'stable' && trend.status === 'Stable')) &&
+               (!subjectFilter || trend.subject === subjectFilter) &&
+               (!gradeFilter || trend.grade === gradeFilter);
+      });
+    }
+
+    function applyAveragesFilters() {
+      showNotification('Averages filters applied!');
+      initializeCombinedAnalysis();
+    }
+
+    function resetAveragesFilters() {
+      if (el('gradeFilter')) el('gradeFilter').value = '';
+      if (el('streamFilter')) el('streamFilter').value = '';
+      if (el('termFilter')) el('termFilter').value = '';
+      showNotification('Averages filters reset!');
+      initializeCombinedAnalysis();
+    }
+
+    function applyTrendFilters() {
+      showNotification('Trend filters applied!', 'success');
+      initializeCombinedAnalysis();
+    }
+
+    function resetTrendFilters() {
+      if (el('trendFilter')) el('trendFilter').value = '';
+      if (el('subjectFilter')) el('subjectFilter').value = '';
+      if (el('trendGradeFilter')) el('trendGradeFilter').value = '';
+      showNotification('Trend filters reset!', 'info');
+      initializeCombinedAnalysis();
+    }
+
+    function sortAveragesTable(column) {
+      showNotification(`Sorting averages by ${column}`);
+      initializeCombinedAnalysis();
+    }
+
+    function sortTrendsTable(column) {
+      showNotification(`Sorting trends by column ${column}`, 'info');
+      initializeCombinedAnalysis();
+    }
+
+    function exportAverages() {
+      showNotification('Export feature would be implemented here');
+    }
+
+    function refreshCombined() {
+      console.log('🔄 Refreshing combined analysis...');
+      initializeCombinedAnalysis();
+      showNotification('Averages & Trends refreshed!', 'success');
     }
 
     // ===== RUBRIC SYSTEM =====
@@ -716,54 +1212,69 @@
       return luminance > 0.5 ? '#000000' : '#FFFFFF';
     }
 
-    // ===== FILTERS AND SORTING =====
-    function applyCurrentFilters(averages) {
-      const gradeFilter = el('gradeFilter')?.value || '';
-      const streamFilter = el('streamFilter')?.value || '';
-      const termFilter = el('termFilter')?.value || '';
+    // ===== COMBINED INSIGHTS =====
+    function updateCombinedInsights(records) {
+      const insightsContainer = document.getElementById('combinedInsights');
       
-      return averages.filter(avg => {
-        return (!gradeFilter || avg.grade === gradeFilter) &&
-               (!streamFilter || avg.stream === streamFilter) &&
-               (!termFilter || avg.term === termFilter);
-      });
-    }
+      if (records.length === 0) {
+        insightsContainer.innerHTML = `
+          <div class="insight-item">
+            <div class="insight-icon">📊</div>
+            <div class="insight-content">
+              <h4>No Data Available</h4>
+              <p>Start by entering scores in the Data Entry page to see comprehensive averages and trend analysis.</p>
+            </div>
+          </div>
+        `;
+        return;
+      }
 
-    function applyAveragesFilters() {
-      showNotification('Filters applied!');
-      calculateAverages();
-    }
-
-    function resetAveragesFilters() {
-      if (el('gradeFilter')) el('gradeFilter').value = '';
-      if (el('streamFilter')) el('streamFilter').value = '';
-      if (el('termFilter')) el('termFilter').value = '';
-      showNotification('Filters reset!');
-      calculateAverages();
-    }
-
-    function sortAveragesTable(column) {
-      showNotification(`Sorting by ${column}`);
-      // For now, just refresh to show it works
-      calculateAverages();
-    }
-
-    function exportAverages() {
-      showNotification('Export feature would be implemented here');
-      // Implementation for export would go here
-    }
-
-    function refreshAverages() {
-      console.log('🔄 Refreshing averages...');
-      calculateAverages();
-      showNotification('Averages refreshed!');
+      const trends = calculateTrendsFromRecords(records);
+      const overallAvg = records.reduce((sum, record) => sum + record.mean, 0) / records.length;
+      const uniqueSubjects = [...new Set(records.map(r => r.subject))].length;
+      
+      insightsContainer.innerHTML = `
+        <div class="insight-item">
+          <div class="insight-icon">📈</div>
+          <div class="insight-content">
+            <h4>Performance Overview</h4>
+            <p>Overall average: <strong>${overallAvg.toFixed(1)}%</strong> across ${uniqueSubjects} subjects. ${trends.improving} subjects showing improvement, ${trends.declining} need attention.</p>
+          </div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-icon">💡</div>
+          <div class="insight-content">
+            <h4>Track Progress</h4>
+            <p>Monitor improvement trends to identify areas needing attention and celebrate growth in performing subjects.</p>
+          </div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-icon">🎯</div>
+          <div class="insight-content">
+            <h4>Actionable Insights</h4>
+            <p>Use the averages table to identify subject performance and the trends table to track progress over time.</p>
+          </div>
+        </div>
+      `;
     }
 
     // ===== UTILITY FUNCTIONS =====
     function showEmptyState() {
-      const tbody = document.querySelector('#averagesTable tbody');
-      if (tbody) {
-        tbody.innerHTML = `
+      const averagesTbody = document.querySelector('#averagesTable tbody');
+      const trendsTbody = document.querySelector('#trendTable tbody');
+      
+      if (averagesTbody) {
+        averagesTbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="text-center" style="padding: 40px; color: var(--secondary);">
+              No records found. <a href="./data-entry.html" style="color: var(--primary);">Add your first record</a>
+            </td>
+          </tr>
+        `;
+      }
+      
+      if (trendsTbody) {
+        trendsTbody.innerHTML = `
           <tr>
             <td colspan="9" class="text-center" style="padding: 40px; color: var(--secondary);">
               No records found. <a href="./data-entry.html" style="color: var(--primary);">Add your first record</a>
@@ -773,14 +1284,14 @@
       }
     }
 
-    function showNotification(message) {
+    function showNotification(message, type = 'info') {
       // Create a simple notification
       const notification = document.createElement('div');
       notification.style.cssText = `
         position: fixed;
         top: 100px;
         right: 20px;
-        background: var(--primary);
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
         color: white;
         padding: 12px 20px;
         border-radius: 8px;
@@ -798,7 +1309,7 @@
 
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('📈 Averages with Updated Navigation initialized!');
+      console.log('📈📊 Combined Averages & Trends initialized!');
       
       // Load theme
       loadTheme();
@@ -814,29 +1325,38 @@
         element.textContent = teacherFullName;
       });
       
-      // Run averages calculation
-      calculateAverages();
+      // Run combined analysis
+      initializeCombinedAnalysis();
       
       // Add event listeners for filters
       const gradeFilter = el('gradeFilter');
       const streamFilter = el('streamFilter');
       const termFilter = el('termFilter');
+      const trendFilter = el('trendFilter');
+      const subjectFilter = el('subjectFilter');
+      const trendGradeFilter = el('trendGradeFilter');
       
-      if (gradeFilter) gradeFilter.addEventListener('change', calculateAverages);
-      if (streamFilter) streamFilter.addEventListener('change', calculateAverages);
-      if (termFilter) termFilter.addEventListener('change', calculateAverages);
+      if (gradeFilter) gradeFilter.addEventListener('change', initializeCombinedAnalysis);
+      if (streamFilter) streamFilter.addEventListener('change', initializeCombinedAnalysis);
+      if (termFilter) termFilter.addEventListener('change', initializeCombinedAnalysis);
+      if (trendFilter) trendFilter.addEventListener('change', initializeCombinedAnalysis);
+      if (subjectFilter) subjectFilter.addEventListener('change', initializeCombinedAnalysis);
+      if (trendGradeFilter) trendGradeFilter.addEventListener('change', initializeCombinedAnalysis);
     });
 
     // Make functions available globally
     window.toggleMobileMenu = toggleMobileMenu;
     window.toggleDarkMode = toggleDarkMode;
     window.logout = logout;
-    window.refreshAverages = refreshAverages;
+    window.refreshCombined = refreshCombined;
     window.applyAveragesFilters = applyAveragesFilters;
     window.resetAveragesFilters = resetAveragesFilters;
     window.sortAveragesTable = sortAveragesTable;
     window.exportAverages = exportAverages;
-    window.calculateAverages = calculateAverages;
+    window.applyTrendFilters = applyTrendFilters;
+    window.resetTrendFilters = resetTrendFilters;
+    window.sortTrendsTable = sortTrendsTable;
+    window.initializeCombinedAnalysis = initializeCombinedAnalysis;
   </script>
 </body>
 </html>
