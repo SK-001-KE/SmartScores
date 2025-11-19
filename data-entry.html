@@ -2,7 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartScores - Data Entry</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="./style.css">
@@ -11,6 +11,38 @@
   <script src="./auth.js" defer></script>
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./firebase-sync.js"></script>
+  
+  <style>
+    .dropdown-loading {
+      color: #666;
+      font-style: italic;
+    }
+    
+    .dropdown-disabled {
+      background-color: #f5f5f5;
+      color: #999;
+      cursor: not-allowed;
+    }
+    
+    .workflow-step {
+      border-left: 4px solid var(--primary);
+      padding-left: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .workflow-step h4 {
+      margin: 0 0 10px 0;
+      color: var(--primary);
+      font-size: 1.1em;
+    }
+    
+    .dependency-notice {
+      font-size: 0.85em;
+      color: #666;
+      margin-top: 5px;
+      font-style: italic;
+    }
+  </style>
 </head>
 <body>
   <!-- TOP NAVIGATION BAR -->
@@ -74,61 +106,89 @@
     </div>
 
     <form id="dataEntryForm" class="form-box">
-      <div class="form-row">
-        <div class="form-group">
-          <label>Subject *</label>
-          <select id="subject" required>
-            <option value="">Loading subjects...</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Grade *</label>
-          <select id="grade" required>
-            <option value="">Loading classes...</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Stream *</label>
-          <select id="stream" required>
-            <option value="">Loading streams...</option>
-          </select>
-        </div>
-
+      <!-- Step 1: Term Selection -->
+      <div class="workflow-step">
+        <h4>Step 1: Select Term</h4>
         <div class="form-group">
           <label>Term *</label>
-          <select id="term" required>
-            <option value="">Loading terms...</option>
+          <select id="term" required onchange="onTermChange()">
+            <option value="">Select Term</option>
+            <option value="Term 1">Term 1</option>
+            <option value="Term 2">Term 2</option>
+            <option value="Term 3">Term 3</option>
           </select>
+          <small class="dependency-notice">Select term to proceed to next steps</small>
         </div>
       </div>
 
-      <div class="form-row">
+      <!-- Step 2: Class/Grade Selection -->
+      <div class="workflow-step">
+        <h4>Step 2: Select Class/Grade</h4>
+        <div class="form-group">
+          <label>Grade *</label>
+          <select id="grade" required disabled onchange="onGradeChange()">
+            <option value="" class="dropdown-loading">Select Term first</option>
+          </select>
+          <small class="dependency-notice">Only classes configured for the selected term will appear</small>
+        </div>
+      </div>
+
+      <!-- Step 3: Stream Selection -->
+      <div class="workflow-step">
+        <h4>Step 3: Select Stream</h4>
+        <div class="form-group">
+          <label>Stream *</label>
+          <select id="stream" required disabled onchange="onStreamChange()">
+            <option value="" class="dropdown-loading">Select Class first</option>
+          </select>
+          <small class="dependency-notice">Only streams configured for the selected term and class will appear</small>
+        </div>
+      </div>
+
+      <!-- Step 4: Subject Selection -->
+      <div class="workflow-step">
+        <h4>Step 4: Select Subject</h4>
+        <div class="form-group">
+          <label>Subject *</label>
+          <select id="subject" required disabled>
+            <option value="" class="dropdown-loading">Select Stream first</option>
+          </select>
+          <small class="dependency-notice">Only subjects configured for the selected term, class and stream will appear</small>
+        </div>
+      </div>
+
+      <!-- Step 5: Exam Type Selection -->
+      <div class="workflow-step">
+        <h4>Step 5: Select Exam Type</h4>
         <div class="form-group">
           <label>Exam Type *</label>
-          <select id="examType" required>
-            <option value="">Loading exam types...</option>
+          <select id="examType" required disabled>
+            <option value="" class="dropdown-loading">Select Term first</option>
           </select>
-        </div>
-
-        <div class="form-group">
-          <label>Year *</label>
-          <input type="number" id="year" min="2000" max="2100" placeholder="e.g. 2025" required>
+          <small class="dependency-notice">Custom exam types for the selected term will appear</small>
         </div>
       </div>
 
-      <div class="form-group">
-        <label>Mean Score *</label>
-        <input type="number" id="meanScore" min="0" max="100" step="0.1" placeholder="Enter mean score (0-100)" required>
-        <small class="hint">Enter the average score for the class</small>
+      <!-- Step 6: Year and Score -->
+      <div class="workflow-step">
+        <h4>Step 6: Enter Year and Score</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Year *</label>
+            <input type="number" id="year" min="2000" max="2100" placeholder="e.g. 2025" required>
+          </div>
+
+          <div class="form-group">
+            <label>Mean Score *</label>
+            <input type="number" id="meanScore" min="0" max="100" step="0.1" placeholder="Enter mean score (0-100)" required disabled>
+            <small class="hint">Enter the average score for the class</small>
+          </div>
+        </div>
       </div>
 
       <div class="form-actions">
         <button type="submit" class="btn btn-primary full">💾 Save Record</button>
-        <button type="reset" class="btn btn-secondary">🔄 Clear Form</button>
+        <button type="reset" class="btn btn-secondary" onclick="resetFormWorkflow()">🔄 Clear Form</button>
       </div>
 
       <div class="form-info">
@@ -166,7 +226,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // Function to populate dropdown with options
-function populateDropdown(elementId, options, defaultValue = '') {
+function populateDropdown(elementId, options, defaultValue = '', enabled = true) {
   const element = document.getElementById(elementId);
   if (!element) return;
   
@@ -181,6 +241,7 @@ function populateDropdown(elementId, options, defaultValue = '') {
   // Update the first option text
   if (element.options.length > 0) {
     element.options[0].textContent = defaultValue || 'Select...';
+    element.options[0].className = '';
   }
   
   // Add new options
@@ -191,83 +252,239 @@ function populateDropdown(elementId, options, defaultValue = '') {
     element.appendChild(optionElement);
   });
   
+  // Enable/disable the dropdown
+  element.disabled = !enabled || options.length === 0;
+  
   // Restore previous value if it still exists in new options
   if (currentValue && Array.from(element.options).some(opt => opt.value === currentValue)) {
     element.value = currentValue;
+  } else {
+    element.value = '';
   }
+  
+  return options.length > 0;
+}
+
+// Get classes for selected term
+function getClassesForTerm(term) {
+  try {
+    const config = window.loadTeacherConfig ? window.loadTeacherConfig() : { assignedSubjects: [] };
+    const assignments = config.assignedSubjects || [];
+    
+    // Get unique classes for the selected term
+    const classes = [...new Set(assignments
+      .filter(assignment => assignment.term === term)
+      .map(assignment => assignment.class)
+    )].sort();
+    
+    return classes;
+  } catch (error) {
+    console.error('Error getting classes for term:', error);
+    return [];
+  }
+}
+
+// Get streams for selected term and class
+function getStreamsForTermAndClass(term, className) {
+  try {
+    const config = window.loadTeacherConfig ? window.loadTeacherConfig() : { assignedSubjects: [] };
+    const assignments = config.assignedSubjects || [];
+    
+    // Get unique streams for the selected term and class
+    const streams = [...new Set(assignments
+      .filter(assignment => assignment.term === term && assignment.class === className)
+      .map(assignment => assignment.stream)
+    )].sort();
+    
+    return streams;
+  } catch (error) {
+    console.error('Error getting streams for term and class:', error);
+    return [];
+  }
+}
+
+// Get subjects for selected term, class and stream
+function getSubjectsForTermClassAndStream(term, className, stream) {
+  try {
+    const config = window.loadTeacherConfig ? window.loadTeacherConfig() : { assignedSubjects: [] };
+    const assignments = config.assignedSubjects || [];
+    
+    // Get unique subjects for the selected term, class and stream
+    const subjects = [...new Set(assignments
+      .filter(assignment => 
+        assignment.term === term && 
+        assignment.class === className && 
+        assignment.stream === stream
+      )
+      .map(assignment => assignment.subject)
+    )].sort();
+    
+    return subjects;
+  } catch (error) {
+    console.error('Error getting subjects for term, class and stream:', error);
+    return [];
+  }
+}
+
+// Get exam types for selected term
+function getExamTypesForTerm(term) {
+  try {
+    // Get default exam types
+    const defaultExamTypes = ['Opener Exam', 'Mid Term Exam', 'End Term Exam'];
+    
+    // Get custom exam types from configuration
+    const config = window.loadTeacherConfig ? window.loadTeacherConfig() : { customExamTypes: [] };
+    const customExamTypes = config.customExamTypes || [];
+    
+    // Combine and return all exam types
+    return [...defaultExamTypes, ...customExamTypes];
+  } catch (error) {
+    console.error('Error getting exam types:', error);
+    return ['Opener Exam', 'Mid Term Exam', 'End Term Exam'];
+  }
+}
+
+// Event handler when term changes
+function onTermChange() {
+  const term = document.getElementById('term').value;
+  
+  if (!term) {
+    // Reset all dependent fields
+    resetDependentFields(['grade', 'stream', 'subject', 'examType']);
+    return;
+  }
+  
+  // Enable and populate class dropdown
+  const classes = getClassesForTerm(term);
+  const hasClasses = populateDropdown('grade', classes, 'Select Class', true);
+  
+  if (!hasClasses) {
+    populateDropdown('grade', [], 'No classes configured for this term', false);
+    resetDependentFields(['stream', 'subject']);
+  }
+  
+  // Enable and populate exam type dropdown
+  const examTypes = getExamTypesForTerm(term);
+  populateDropdown('examType', examTypes, 'Select Exam Type', true);
+  
+  // Reset dependent fields
+  resetDependentFields(['stream', 'subject']);
+  updateMeanScoreField();
+}
+
+// Event handler when class changes
+function onGradeChange() {
+  const term = document.getElementById('term').value;
+  const className = document.getElementById('grade').value;
+  
+  if (!term || !className) {
+    resetDependentFields(['stream', 'subject']);
+    return;
+  }
+  
+  // Enable and populate stream dropdown
+  const streams = getStreamsForTermAndClass(term, className);
+  const hasStreams = populateDropdown('stream', streams, 'Select Stream', true);
+  
+  if (!hasStreams) {
+    populateDropdown('stream', [], 'No streams configured for this class', false);
+    resetDependentFields(['subject']);
+  }
+  
+  // Reset subject field
+  resetDependentFields(['subject']);
+  updateMeanScoreField();
+}
+
+// Event handler when stream changes
+function onStreamChange() {
+  const term = document.getElementById('term').value;
+  const className = document.getElementById('grade').value;
+  const stream = document.getElementById('stream').value;
+  
+  if (!term || !className || !stream) {
+    resetDependentFields(['subject']);
+    return;
+  }
+  
+  // Enable and populate subject dropdown
+  const subjects = getSubjectsForTermClassAndStream(term, className, stream);
+  const hasSubjects = populateDropdown('subject', subjects, 'Select Subject', true);
+  
+  if (!hasSubjects) {
+    populateDropdown('subject', [], 'No subjects configured for this stream', false);
+  }
+  
+  updateMeanScoreField();
+}
+
+// Reset dependent fields
+function resetDependentFields(fieldIds) {
+  fieldIds.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (field) {
+      field.innerHTML = `<option value="" class="dropdown-loading">Select previous field first</option>`;
+      field.disabled = true;
+      field.value = '';
+    }
+  });
+}
+
+// Update mean score field enabled state
+function updateMeanScoreField() {
+  const subject = document.getElementById('subject');
+  const meanScore = document.getElementById('meanScore');
+  
+  if (subject && meanScore) {
+    meanScore.disabled = !subject.value;
+  }
+}
+
+// Reset form workflow
+function resetFormWorkflow() {
+  // Reset all dropdowns to initial state
+  document.getElementById('term').value = '';
+  resetDependentFields(['grade', 'stream', 'subject', 'examType']);
+  document.getElementById('meanScore').disabled = true;
+  document.getElementById('meanScore').value = '';
+  
+  // Auto-fill year again
+  autoFillYear();
 }
 
 // Function to update form based on teacher configuration
 function updateFormFromTeacherConfig() {
   try {
     // Check if teacher configuration functions are available
-    if (typeof window.getAllSubjects === 'undefined' || 
-        typeof window.getAllStreams === 'undefined' || 
-        typeof window.getAllExamTypes === 'undefined') {
+    if (typeof window.loadTeacherConfig === 'undefined') {
       console.warn('Teacher configuration functions not available yet');
       setTimeout(updateFormFromTeacherConfig, 500);
       return;
     }
 
-    // Get configuration data
-    const teacherSubjects = window.getTeacherSubjects ? window.getTeacherSubjects() : [];
-    const allSubjects = window.getAllSubjects ? window.getAllSubjects() : [];
-    const allStreams = window.getAllStreams ? window.getAllStreams() : [];
-    const allExamTypes = window.getAllExamTypes ? window.getAllExamTypes() : [];
-    
-    // Default classes if not available from configuration
-    const defaultClasses = [
-      'Foundation Class', 'PP1', 'PP2', 
-      'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 
-      'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9'
-    ];
-    
-    // Update subject dropdown - use assigned subjects if available, otherwise all subjects
-    const availableSubjects = teacherSubjects.length > 0 ? teacherSubjects : allSubjects;
-    populateDropdown('subject', availableSubjects, 'Select Subject');
-    
-    // Update grade/class dropdown
-    populateDropdown('grade', defaultClasses, 'Select Grade');
-    
-    // Update stream dropdown
-    populateDropdown('stream', allStreams, 'Select Stream');
-    
-    // Update term dropdown
-    populateDropdown('term', ['Term 1', 'Term 2', 'Term 3'], 'Select Term');
-    
-    // Update exam type dropdown
-    populateDropdown('examType', allExamTypes, 'Select Exam Type');
+    // Get teacher configuration
+    const config = window.loadTeacherConfig();
+    const hasAssignments = config.assignedSubjects && config.assignedSubjects.length > 0;
     
     // Show/hide configuration notice
     const configNotice = document.getElementById('configNotice');
     if (configNotice) {
-      if (teacherSubjects.length === 0 && allSubjects.length > 0) {
-        configNotice.style.display = 'block';
-      } else {
-        configNotice.style.display = 'none';
-      }
+      configNotice.style.display = hasAssignments ? 'none' : 'block';
     }
     
     console.log('Form updated with teacher configuration:', {
-      subjects: availableSubjects.length,
-      streams: allStreams.length,
-      examTypes: allExamTypes.length,
-      hasAssignedSubjects: teacherSubjects.length > 0
+      assignments: config.assignedSubjects.length,
+      hasConfiguration: hasAssignments
     });
     
   } catch (error) {
     console.error('Error updating form from teacher config:', error);
     
-    // Fallback to default values if configuration fails
-    populateDropdown('subject', [
-      'Mathematics', 'English', 'Kiswahili', 'Science', 'Social Studies', 
-      'CRE', 'Pre-Technical Studies', 'Creative Arts', 'Agriculture'
-    ], 'Select Subject');
-    
-    populateDropdown('grade', ['4', '5', '6', '7', '8', '9'], 'Select Grade');
-    populateDropdown('stream', ['Faith', 'Glory', 'Joy', 'Love', 'Peace', 'Unity'], 'Select Stream');
-    populateDropdown('term', ['Term 1', 'Term 2', 'Term 3'], 'Select Term');
-    populateDropdown('examType', ['Opener Exam', 'Mid Term Exam', 'End Term Exam'], 'Select Exam Type');
+    // Show configuration notice if there's an error
+    const configNotice = document.getElementById('configNotice');
+    if (configNotice) {
+      configNotice.style.display = 'block';
+    }
   }
 }
 
@@ -335,6 +552,15 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Also try to update when app.js signals it's ready
   document.addEventListener('appJsReady', updateFormFromTeacherConfig);
+
+  // Enable mean score field when subject is selected
+  const subjectField = document.getElementById('subject');
+  const meanScoreField = document.getElementById('meanScore');
+  if (subjectField && meanScoreField) {
+    subjectField.addEventListener('change', function() {
+      meanScoreField.disabled = !this.value;
+    });
+  }
 
   // FORM SUBMISSION
   const dataEntryForm = document.getElementById('dataEntryForm');
@@ -447,9 +673,8 @@ function handleSaveRecordFallback(event) {
     const dataForm = document.getElementById('dataEntryForm');
     if (dataForm) {
       dataForm.reset(); 
+      resetFormWorkflow();
       autoFillYear();
-      // Re-populate form with current configuration after reset
-      setTimeout(updateFormFromTeacherConfig, 100);
     }
 
     updateDataEntryStats();
@@ -465,6 +690,10 @@ window.autoFillYear = autoFillYear;
 window.updateDataEntryStats = updateDataEntryStats;
 window.handleSaveRecordFallback = handleSaveRecordFallback;
 window.updateFormFromTeacherConfig = updateFormFromTeacherConfig;
+window.onTermChange = onTermChange;
+window.onGradeChange = onGradeChange;
+window.onStreamChange = onStreamChange;
+window.resetFormWorkflow = resetFormWorkflow;
 
 function logout() {
   if (window.logout) {
@@ -496,27 +725,12 @@ console.log('updateDashboardStats:', typeof window.updateDashboardStats);
 // Check for teacher configuration functions
 setTimeout(() => {
   const teacherConfigFunctions = [
-    'getAllSubjects', 'getAllStreams', 'getAllExamTypes', 
-    'getTeacherSubjects', 'getCurrentTerm', 'loadTeacherConfig'
+    'loadTeacherConfig', 'getCurrentTerm'
   ];
   
   teacherConfigFunctions.forEach(func => {
     console.log(`${func}:`, typeof window[func]);
   });
-  
-  const appFunctions = Object.keys(window).filter(key => 
-    typeof window[key] === 'function' && 
-    (key.includes('render') || 
-     key.includes('save') || 
-     key.includes('update') ||
-     key.includes('handle') ||
-     key.includes('getAll') ||
-     key.includes('getTeacher'))
-  );
-  console.log('App.js functions found:', appFunctions);
-  
-  // Also check if app.js loaded at all
-  console.log('app.js functions count:', appFunctions.length);
   
   // Signal that we're ready to update the form
   document.dispatchEvent(new Event('appJsReady'));
