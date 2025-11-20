@@ -2864,10 +2864,22 @@ window.exportBackup = () => {
 
 window.clearAllData = () => {
     if (confirm('⚠️ ARE YOU SURE?\n\nThis will delete ALL your records and targets permanently. This action cannot be undone.')) {
-        localStorage.removeItem(STORAGE_KEYS.RECORDS);
-        localStorage.removeItem(STORAGE_KEYS.TARGETS);
-        showAlert('All data has been cleared successfully.', 'success');
-        renderAll();
+        if (confirm('❌ FINAL WARNING: This will delete ALL your data. Press OK to confirm deletion.')) {
+            localStorage.removeItem(STORAGE_KEYS.RECORDS);
+            localStorage.removeItem(STORAGE_KEYS.TARGETS);
+            showAlert('All data has been cleared successfully.', 'success');
+            
+            // Reset term filter
+            currentTermFilter = 'current';
+            
+            // Re-render everything
+            setTimeout(() => {
+                renderAll();
+                if (window.location.pathname.includes('recorded-scores.html')) {
+                    renderRecords();
+                }
+            }, 500);
+        }
     }
 };
 
