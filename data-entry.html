@@ -452,137 +452,44 @@ function resetFormWorkflow() {
   autoFillYear();
 }
 
-// Enhanced function to update form based on teacher configuration
+// Function to update form based on teacher configuration
 function updateFormFromTeacherConfig() {
-    try {
-        console.log('🔄 Updating form from teacher configuration...');
-        
-        // Multiple attempts to load teacher config with better error handling
-        let config = null;
-        let attempts = 0;
-        const maxAttempts = 5;
-        
-        while (attempts < maxAttempts && !config) {
-            try {
-                if (typeof window.loadTeacherConfig === 'function') {
-                    config = window.loadTeacherConfig();
-                    console.log('✅ Teacher config loaded successfully:', config);
-                }
-            } catch (error) {
-                console.warn(`Attempt ${attempts + 1} failed:`, error);
-            }
-            
-            if (!config) {
-                // Wait before retrying
-                await new Promise(resolve => setTimeout(resolve, 500));
-                attempts++;
-            }
-        }
-        
-        if (!config) {
-            console.warn('❌ Could not load teacher configuration after multiple attempts');
-            // Show configuration notice
-            const configNotice = document.getElementById('configNotice');
-            if (configNotice) {
-                configNotice.style.display = 'block';
-            }
-            return;
-        }
-        
-        const hasAssignments = config.assignedSubjects && config.assignedSubjects.length > 0;
-        
-        // Show/hide configuration notice
-        const configNotice = document.getElementById('configNotice');
-        if (configNotice) {
-            configNotice.style.display = hasAssignments ? 'none' : 'block';
-        }
-        
-        // Update dropdowns based on teacher configuration
-        updateDropdownsFromConfig(config);
-        
-        console.log('✅ Form updated with teacher configuration:', {
-            assignments: config.assignedSubjects?.length || 0,
-            hasConfiguration: hasAssignments
-        });
-        
-    } catch (error) {
-        console.error('❌ Error updating form from teacher config:', error);
-        
-        // Show configuration notice if there's an error
-        const configNotice = document.getElementById('configNotice');
-        if (configNotice) {
-            configNotice.style.display = 'block';
-        }
+  try {
+    // Check if teacher configuration functions are available
+    if (typeof window.loadTeacherConfig === 'undefined') {
+      console.warn('Teacher configuration functions not available yet');
+      setTimeout(updateFormFromTeacherConfig, 500);
+      return;
     }
+
+    // Get teacher configuration
+    const config = window.loadTeacherConfig();
+    const hasAssignments = config.assignedSubjects && config.assignedSubjects.length > 0;
+    
+    // Show/hide configuration notice
+    const configNotice = document.getElementById('configNotice');
+    if (configNotice) {
+      configNotice.style.display = hasAssignments ? 'none' : 'block';
+    }
+    
+    console.log('Form updated with teacher configuration:', {
+      assignments: config.assignedSubjects.length,
+      hasConfiguration: hasAssignments
+    });
+    
+  } catch (error) {
+    console.error('Error updating form from teacher config:', error);
+    
+    // Show configuration notice if there's an error
+    const configNotice = document.getElementById('configNotice');
+    if (configNotice) {
+      configNotice.style.display = 'block';
+    }
+  }
 }
 
-// New function to update dropdowns based on configuration
-function updateDropdownsFromConfig(config) {
-    // Update subject dropdown with assigned subjects only
-    const subjectSelect = document.getElementById('subject');
-    if (subjectSelect && config.assignedSubjects && config.assignedSubjects.length > 0) {
-        const currentValue = subjectSelect.value;
-        
-        // Get unique subjects from assigned subjects
-        const assignedSubjects = [...new Set(config.assignedSubjects.map(as => as.subject))].sort();
-        
-        // Clear and repopulate subject dropdown
-        subjectSelect.innerHTML = '<option value="">Select Subject</option>';
-        assignedSubjects.forEach(subject => {
-            const option = document.createElement('option');
-            option.value = subject;
-            option.textContent = subject;
-            subjectSelect.appendChild(option);
-        });
-        
-        // Restore previous selection if it exists
-        if (currentValue && assignedSubjects.includes(currentValue)) {
-            subjectSelect.value = currentValue;
-        }
-    }
-    
-    // Update stream dropdown with custom streams
-    const streamSelect = document.getElementById('stream');
-    if (streamSelect && config.customStreams && config.customStreams.length > 0) {
-        const currentValue = streamSelect.value;
-        const allStreams = ['Faith', 'Glory', 'Joy', 'Love', 'Peace', 'Unity', ...config.customStreams];
-        
-        // Clear and repopulate stream dropdown
-        streamSelect.innerHTML = '<option value="">Select Stream</option>';
-        allStreams.forEach(stream => {
-            const option = document.createElement('option');
-            option.value = stream;
-            option.textContent = stream;
-            streamSelect.appendChild(option);
-        });
-        
-        // Restore previous selection if it exists
-        if (currentValue && allStreams.includes(currentValue)) {
-            streamSelect.value = currentValue;
-        }
-    }
-    
-    // Update exam type dropdown with custom exam types
-    const examTypeSelect = document.getElementById('examType');
-    if (examTypeSelect && config.customExamTypes && config.customExamTypes.length > 0) {
-        const currentValue = examTypeSelect.value;
-        const allExamTypes = ['Opener Exam', 'Mid Term Exam', 'End Term Exam', ...config.customExamTypes];
-        
-        // Clear and repopulate exam type dropdown
-        examTypeSelect.innerHTML = '<option value="">Select Exam Type</option>';
-        allExamTypes.forEach(examType => {
-            const option = document.createElement('option');
-            option.value = examType;
-            option.textContent = examType;
-            examTypeSelect.appendChild(option);
-        });
-        
-        // Restore previous selection if it exists
-        if (currentValue && allExamTypes.includes(currentValue)) {
-            examTypeSelect.value = currentValue;
-        }
-    }
-}
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('=== PAGE LOADED ===');
   
   // Mobile menu functionality
   const mobileMenuToggle = document.getElementById('mobileMenuToggle');
@@ -628,58 +535,32 @@ function updateDropdownsFromConfig(config) {
     }
   }
 
+  // Get teacher name
   const teacherNameElement = document.getElementById('teacherName');
-    const currentTeacherElement = document.getElementById('currentTeacher');
-    const teacherFullName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
-    
-    if (teacherNameElement) teacherNameElement.textContent = teacherFullName;
-    if (currentTeacherElement) currentTeacherElement.textContent = teacherFullName;
+  const currentTeacherElement = document.getElementById('currentTeacher');
+  const teacherFullName = localStorage.getItem('teacherFullName') || 'Guest Teacher';
+  
+  if (teacherNameElement) teacherNameElement.textContent = teacherFullName;
+  if (currentTeacherElement) currentTeacherElement.textContent = teacherFullName;
 
-    // Auto-fill year
-    autoFillYear();
+  // Auto-fill year
+  autoFillYear();
 
-    // Enhanced configuration loading with retry mechanism
-    function initializeTeacherConfiguration() {
-        console.log('🔄 Initializing teacher configuration...');
-        
-        let attempts = 0;
-        const maxAttempts = 10; // Try for 5 seconds
-        
-        const configLoader = setInterval(() => {
-            attempts++;
-            
-            // Check if teacher config functions are available
-            if (typeof window.loadTeacherConfig !== 'undefined') {
-                console.log('✅ Teacher configuration functions available');
-                clearInterval(configLoader);
-                updateFormFromTeacherConfig();
-            } else if (attempts >= maxAttempts) {
-                console.warn('❌ Teacher configuration functions not available after maximum attempts');
-                clearInterval(configLoader);
-                
-                // Show configuration notice
-                const configNotice = document.getElementById('configNotice');
-                if (configNotice) {
-                    configNotice.style.display = 'block';
-                }
-            } else {
-                console.log(`⏳ Waiting for teacher config... attempt ${attempts}/${maxAttempts}`);
-            }
-        }, 500); // Check every 500ms
-    }
-    
-    // Start configuration initialization
-    initializeTeacherConfiguration();
-    
-    // Rest of your existing code...
-    // Enable mean score field when subject is selected
-    const subjectField = document.getElementById('subject');
-    const meanScoreField = document.getElementById('meanScore');
-    if (subjectField && meanScoreField) {
-        subjectField.addEventListener('change', function() {
-            meanScoreField.disabled = !this.value;
-        });
-    }
+  // Update form with teacher configuration
+  // Wait a bit for app.js to load completely
+  setTimeout(updateFormFromTeacherConfig, 100);
+  
+  // Also try to update when app.js signals it's ready
+  document.addEventListener('appJsReady', updateFormFromTeacherConfig);
+
+  // Enable mean score field when subject is selected
+  const subjectField = document.getElementById('subject');
+  const meanScoreField = document.getElementById('meanScore');
+  if (subjectField && meanScoreField) {
+    subjectField.addEventListener('change', function() {
+      meanScoreField.disabled = !this.value;
+    });
+  }
 
   // FORM SUBMISSION
   const dataEntryForm = document.getElementById('dataEntryForm');
