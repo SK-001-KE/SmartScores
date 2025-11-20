@@ -1,3 +1,5 @@
+teacher-config.html
+
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -1466,58 +1468,5 @@
             }
         }
     </script>
-    <script>
-// Export configuration functions globally so other pages can access them
-window.loadTeacherConfig = function() {
-    try {
-        const savedConfig = localStorage.getItem('smartScoresTeacherConfig');
-        if (savedConfig) {
-            return JSON.parse(savedConfig);
-        }
-    } catch (error) {
-        console.error('Error loading teacher config:', error);
-    }
-    return {
-        academicYear: new Date().getFullYear(),
-        termDates: {
-            'Term 1': { start: '', end: '' },
-            'Term 2': { start: '', end: '' },
-            'Term 3': { start: '', end: '' }
-        },
-        assignedSubjects: [],
-        customSubjects: [],
-        customExamTypes: [],
-        customStreams: []
-    };
-};
-
-window.getCurrentTerm = function() {
-    const config = window.loadTeacherConfig();
-    const now = new Date();
-    
-    for (const [term, dates] of Object.entries(config.termDates)) {
-        if (dates.start && dates.end) {
-            const start = new Date(dates.start);
-            const end = new Date(dates.end);
-            if (now >= start && now <= end) {
-                return term;
-            }
-        }
-    }
-    
-    // Fallback to month-based detection
-    const currentMonth = now.getMonth() + 1;
-    if (currentMonth >= 1 && currentMonth <= 4) {
-        return 'Term 1';
-    } else if (currentMonth >= 5 && currentMonth <= 8) {
-        return 'Term 2';
-    } else {
-        return 'Term 3';
-    }
-};
-
-// Signal that teacher config is ready
-console.log('✅ Teacher configuration functions exported globally');
-</script>
 </body>
 </html>
