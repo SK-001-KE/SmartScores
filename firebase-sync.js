@@ -149,6 +149,28 @@ class FirebaseSyncService {
     }
     return null;
   }
+  // Add to firebase-sync.js in the FirebaseSyncService class
+
+// Sync teacher configuration
+async saveTeacherConfig(config) {
+    return await this.saveData('teacherConfig', config);
+}
+
+// Load teacher configuration
+async loadTeacherConfig() {
+    return await this.loadData('teacherConfig', {
+        academicYear: new Date().getFullYear(),
+        termDates: {
+            'Term 1': { start: '', end: '' },
+            'Term 2': { start: '', end: '' },
+            'Term 3': { start: '', end: '' }
+        },
+        assignedSubjects: [],
+        customSubjects: [],
+        customExamTypes: [],
+        customStreams: []
+    });
+}
 
   // NEW: Update teacher name in existing records
   async updateTeacherNameInRecords(newFullName) {
