@@ -2535,7 +2535,227 @@ window.downloadPDF = () => {
         showAlert('❌ Error exporting PDF. Please try again.', 'error');
     }
 };
+   window.deleteRecord = (index) => {
+    if (confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
+        const records = loadRecords();
+        if (index >= 0 && index < records.length) {
+            const deletedRecord = records[index];
+            records.splice(index, 1);
+            if (saveRecords(records)) {
+                showAlert(`Record deleted: ${deletedRecord.subject} - ${deletedRecord.grade}`, 'success');
+                renderAll();
+                
+                // Force refresh of the current view
+                if (window.location.pathname.includes('recorded-scores.html')) {
+                    setTimeout(() => {
+                        renderRecords();
+                        applyTermFilter(); // Re-apply current filter
+                    }, 100);
+                }
+            } else {
+                showAlert('Error deleting record', 'error');
+            }
+        }
+    }
+};
+   // ==================== TERM FILTERING SYSTEM ====================
+let currentTermFilter = 'current'; // 'current', 'all', or specific term
 
+const getCurrentTermFromConfig = () => {
+    const config = loadTeacherConfig();
+    const now = new Date();
+    
+    for (const [term, dates] of Object.entries(config.termDates)) {
+        if (dates.start && dates.end) {
+            const start = new Date(dates.start);
+            const end = new Date(dates.end);
+            if (now >= start && now <= end) {
+                return term;
+            }
+        }
+    }
+    
+    // Fallback to month-based detection
+    const currentMonth = now.getMonth() + 1;
+    if (currentMonth >= 1 && currentMonth <= 4) {
+        return 'Term 1';
+    } else if (currentMonth >= 5 && currentMonth <= 8) {
+        return 'Term 2';
+    } else {
+        return 'Term 3';
+    }
+};
+
+const filterRecordsByTerm = (records, termFilter) => {
+    if (termFilter === 'all') {
+        return records;
+    }
+    
+    const currentTerm = getCurrentTermFromConfig();
+    
+    if (termFilter === 'current') {
+        return records.filter(record => record.term === currentTerm);
+    }
+    
+    // Specific term filter
+    return records.filter(record => record.term === termFilter);
+};
+
+const createTermFilterUI = () => {
+    const existingFilter = document.getElementById('termFilterContainer');
+    if (existingFilter) {
+        existingFilter.remove();
+    }
+    
+    const tableControls = document.querySelector('.table-controls');
+    if (!tableControls) return;
+    
+    const filterContainer = document.createElement('div');
+    filterContainer.id = 'termFilterContainer';
+    filterContainer.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 15px 0;
+        padding: 15px;
+        background: var(--card);
+        border-radius: 10px;
+        border: 1px solid var(--border);
+    `;
+    
+    const currentTerm = getCurrentTermFromConfig();
+    
+    filterContainer.innerHTML = `
+        <strong>📅 Filter by Term:</strong>
+        <select id="termFilterSelect" onchange="applyTermFilter()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);">
+            <option value="current">Current Term (${currentTerm})</option>
+            <option value="all">All Terms</option>
+            <option value="Term 1">Term 1</option>
+            <option value="Term 2">Term 2</option>
+            <option value="Term 3">Term 3</option>
+        </select>
+        <span id="filterStats" style="font-size: 0.9em; color: #666;">
+            Showing all records
+        </span>
+    `;
+    
+    tableControls.parentNode.insertBefore(filterContainer, tableControls.nextSibling);
+};
+
+window.applyTermFilter = () => {
+    const termFilterSelect = document.getElementById('termFilterSelect');
+    if (!termFilterSelect) return;
+    
+    currentTermFilter = termFilterSelect.value;
+    renderRecords();
+};
+
+   const renderRecords = () => {
+    const tbody = document.querySelector('#recordsTable tbody') || el('recordsBody');
+    if (!tbody) return;
+    
+    const allRecords = loadRecords();
+    const targets = loadTargets();
+    
+    // Apply term filter
+    const filteredRecords = filterRecordsByTerm(allRecords, currentTermFilter);
+    
+    if (filteredRecords.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="12" class="text-center" style="padding: 40px; color: #666;">
+                    No records found for the selected filter. 
+                    <a href="./data-entry.html" style="color: var(--primary);">Add your first record</a>
+                </td>
+            </tr>
+        `;
+        
+        // Update stats
+        updateFilterStats(0, allRecords.length);
+        return;
+    }
+    
+    const targetMap = {};
+    targets.forEach(target => {
+        const key = `${target.subject}|${target.grade}|${target.stream}|${target.term}|${target.examType}`;
+        targetMap[key] = target.score;
+    });
+    
+    tbody.innerHTML = filteredRecords.map((record, index) => {
+        // Find the original index in allRecords for deletion
+        const originalIndex = allRecords.findIndex(r => 
+            r.id === record.id || 
+            (r.timestamp === record.timestamp && r.subject === record.subject && r.grade === record.grade)
+        );
+        
+        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
+        const targetScore = targetMap[key] || null;
+        const deviation = targetScore !== null ? record.mean - targetScore : null;
+        const deviationStr = deviation !== null ? `${deviation >= 0 ? '+' : ''}${deviation.toFixed(1)}%` : '–';
+        const rubricBadge = formatRubricBadge(record.mean);
+        
+        return `
+            <tr>
+                <td>${record.teacher || '–'}</td>
+                <td>${record.subject || '–'}</td>
+                <td>${record.grade || '–'}</td>
+                <td>${record.stream || '–'}</td>
+                <td>${record.term || '–'}</td>
+                <td>${record.examType || '–'}</td>
+                <td>${record.year || '–'}</td>
+                <td style="font-weight: bold;">${record.mean.toFixed(1)}%</td>
+                <td>${targetScore !== null ? targetScore.toFixed(1) + '%' : '–'}</td>
+                <td style="color: ${deviation !== null ? (deviation >= 0 ? '#10b981' : '#ef4444') : '#666'}; font-weight: bold;">
+                    ${deviationStr}
+                </td>
+                <td>${rubricBadge}</td>
+                <td>
+                    <button onclick="deleteRecord(${originalIndex})" class="btn btn-danger small">Delete</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    // Update summary statistics with filtered data
+    const totalRecords = el('totalRecordsCount');
+    if (totalRecords) {
+        totalRecords.textContent = allRecords.length;
+    }
+    
+    const averageScore = el('averageScore');
+    if (averageScore && filteredRecords.length > 0) {
+        const avg = filteredRecords.reduce((sum, r) => sum + r.mean, 0) / filteredRecords.length;
+        averageScore.textContent = avg.toFixed(1) + '%';
+    }
+    
+    const recordsShown = el('recordsShown');
+    if (recordsShown) {
+        recordsShown.textContent = filteredRecords.length;
+    }
+    
+    // Update filter statistics
+    updateFilterStats(filteredRecords.length, allRecords.length);
+};
+
+const updateFilterStats = (filteredCount, totalCount) => {
+    const filterStats = document.getElementById('filterStats');
+    if (!filterStats) return;
+    
+    const currentTerm = getCurrentTermFromConfig();
+    
+    let statsText = '';
+    if (currentTermFilter === 'current') {
+        statsText = `Showing ${filteredCount} current term (${currentTerm}) records of ${totalCount} total`;
+    } else if (currentTermFilter === 'all') {
+        statsText = `Showing all ${filteredCount} records`;
+    } else {
+        statsText = `Showing ${filteredCount} ${currentTermFilter} records of ${totalCount} total`;
+    }
+    
+    filterStats.textContent = statsText;
+};
+
+// ==================== FIXED EXPORT FUNCTIONS ====================
 window.exportToExcel = () => {
     try {
         // Show loading state
@@ -2543,7 +2763,16 @@ window.exportToExcel = () => {
         
         // Check if XLSX is available
         if (typeof XLSX === 'undefined') {
-            showAlert('Excel export library not loaded. Please check your internet connection.', 'error');
+            // Try to load XLSX dynamically
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+            script.onload = () => {
+                window.exportToExcel(); // Retry after loading
+            };
+            script.onerror = () => {
+                showAlert('Excel export library not loaded. Please check your internet connection.', 'error');
+            };
+            document.head.appendChild(script);
             return;
         }
         
@@ -2556,25 +2785,44 @@ window.exportToExcel = () => {
             return;
         }
         
-        // Simple Excel Data
+        // Enhanced Excel Data with all fields
         const excelData = records.map(record => ({
-            'Year': record.year || '',
             'Teacher': record.teacher || '',
             'Subject': record.subject || '',
             'Grade': record.grade || '',
             'Stream': record.stream || '',
             'Term': record.term || '',
             'Exam Type': record.examType || '',
-            'Mean Score': record.mean
+            'Year': record.year || '',
+            'Mean Score': record.mean,
+            'Rubric': getRubric(record.mean).code,
+            'Timestamp': record.timestamp ? new Date(record.timestamp).toLocaleString() : ''
         }));
         
         const worksheet = XLSX.utils.json_to_sheet(excelData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Scores');
         
+        // Add summary sheet
+        const summaryData = [
+            ['SMARTSCORES EXPORT SUMMARY'],
+            [''],
+            ['Total Records:', records.length],
+            ['Export Date:', new Date().toLocaleString()],
+            ['Teacher:', getTeacherName()],
+            [''],
+            ['Performance Summary'],
+            ['Average Score:', (records.reduce((sum, r) => sum + r.mean, 0) / records.length).toFixed(1) + '%'],
+            ['Highest Score:', Math.max(...records.map(r => r.mean)).toFixed(1) + '%'],
+            ['Lowest Score:', Math.min(...records.map(r => r.mean)).toFixed(1) + '%']
+        ];
+        
+        const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+        XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+        
         const teacherName = getTeacherName() || 'Teacher';
         const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
-        const filename = `SmartScores_Export_${safeName}.xlsx`;
+        const filename = `SmartScores_Export_${safeName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
         
         XLSX.writeFile(workbook, filename);
         showAlert(`✅ Excel file exported successfully! ${records.length} records included.`, 'success');
