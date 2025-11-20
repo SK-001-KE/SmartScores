@@ -1224,6 +1224,60 @@ tbody tr:hover {
     margin-left: 5px;
 }
 
+/* Term Filter Styles */
+.term-filter-container {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 15px;
+  margin: 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.filter-header {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.9em;
+  min-width: 150px;
+}
+
+.filter-stats {
+  font-size: 0.9em;
+  color: #666;
+  font-style: italic;
+}
+
+/* Responsive design for mobile */
+@media (max-width: 768px) {
+  .term-filter-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .filter-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
 /* =========================================================
    ALERT & NOTIFICATION STYLES
 ========================================================= */
