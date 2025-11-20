@@ -1203,6 +1203,26 @@ tbody tr:hover {
   font-weight: bold;
   color: var(--primary);
 }
+/* Term Filter Styles */
+.term-filter-active {
+    background: var(--primary) !important;
+    color: white !important;
+}
+
+.filter-stats {
+    font-size: 0.9em;
+    color: #666;
+    margin-left: 10px;
+}
+
+.term-badge {
+    background: var(--primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    margin-left: 5px;
+}
 
 /* =========================================================
    ALERT & NOTIFICATION STYLES
