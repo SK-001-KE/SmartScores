@@ -54,10 +54,24 @@ const DEFAULT_SUBJECTS = [
 const DEFAULT_EXAM_TYPES = ['Opener Exam', 'Mid Term Exam', 'End Term Exam'];
 
 // Load teacher configuration
-const loadTeacherConfig = () => {
+// Add these functions to app.js if they don't exist
+
+// Load teacher configuration with cloud sync
+const loadTeacherConfig = async () => {
     try {
-        const savedConfig = localStorage.getItem(STORAGE_KEYS.TEACHER_CONFIG);
+        // Try to load from cloud first if available
+        if (typeof firebaseSync !== 'undefined') {
+            const cloudConfig = await firebaseSync.loadData('teacherConfig');
+            if (cloudConfig) {
+                console.log('✅ Loaded teacher config from cloud');
+                return { ...DEFAULT_CONFIG, ...cloudConfig };
+            }
+        }
+        
+        // Fallback to local storage
+        const savedConfig = localStorage.getItem('teacherConfig');
         if (savedConfig) {
+            console.log('📱 Loaded teacher config from local storage');
             return { ...DEFAULT_CONFIG, ...JSON.parse(savedConfig) };
         }
     } catch (error) {
@@ -66,10 +80,21 @@ const loadTeacherConfig = () => {
     return { ...DEFAULT_CONFIG };
 };
 
-// Save teacher configuration
-const saveTeacherConfig = (config) => {
+// Save teacher configuration with cloud sync
+const saveTeacherConfig = async (config) => {
     try {
-        localStorage.setItem(STORAGE_KEYS.TEACHER_CONFIG, JSON.stringify(config));
+        // Save to localStorage
+        localStorage.setItem('teacherConfig', JSON.stringify(config));
+        
+        // Save to cloud if available
+        if (typeof firebaseSync !== 'undefined') {
+            await firebaseSync.saveData('teacherConfig', config);
+            console.log('✅ Teacher config saved to cloud');
+        }
+        
+        // Update data entry forms throughout the app
+        updateDataEntryForms();
+        
         return true;
     } catch (error) {
         console.error('Error saving teacher config:', error);
