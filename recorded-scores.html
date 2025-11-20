@@ -318,6 +318,19 @@
             loadRecordsFallback();
         }
     });
+     if (window.renderRecords) {
+        // Create term filter UI
+        if (window.createTermFilterUI) {
+            setTimeout(() => {
+                window.createTermFilterUI();
+            }, 100);
+        }
+        
+        window.renderRecords();
+    } else {
+        console.error('renderRecords function not found, using fallback');
+        loadRecordsFallback();
+    }
 
     // Auto-refresh when page becomes visible
     document.addEventListener('visibilitychange', function() {
