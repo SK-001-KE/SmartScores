@@ -490,15 +490,39 @@
     }
 
     // Configuration Status Functions
-    function updateConfigurationStatus() {
-      try {
-        const config = window.loadTeacherConfig ? window.loadTeacherConfig() : loadTeacherConfigFallback();
-        const currentTerm = window.getCurrentTerm ? window.getCurrentTerm() : getCurrentTermFallback();
+   function updateConfigurationStatus() {
+    try {
+        console.log('🔄 Updating configuration status...');
+        
+        let config = null;
+        let attempts = 0;
+        
+        // Try multiple times to load configuration
+        while (attempts < 5 && !config) {
+            if (typeof window.loadTeacherConfig === 'function') {
+                config = window.loadTeacherConfig();
+            }
+            if (!config) {
+                // Wait before retrying (using Promise for async delay)
+                await new Promise(resolve => setTimeout(resolve, 300));
+                attempts++;
+            }
+        }
+        
+        if (!config) {
+            console.warn('Could not load teacher configuration');
+            showError('configStatusContent', 'Configuration not available');
+            return;
+        }
+        
+        const currentTerm = typeof window.getCurrentTerm === 'function' ? 
+            window.getCurrentTerm() : getCurrentTermFallback();
+        
         const container = document.getElementById('configStatusContent');
         const badge = document.getElementById('configStatusBadge');
         const statusSection = document.getElementById('currentConfigStatus');
 
-        if (!config || !container || !badge) return;
+        if (!container || !badge) return;
 
         const hasTermDates = config.termDates && 
                             config.termDates[currentTerm] && 
@@ -510,83 +534,84 @@
 
         // Update badge and section style
         if (isConfigured) {
-          badge.textContent = '✅ Configured';
-          statusSection.classList.remove('warning');
+            badge.textContent = '✅ Configured';
+            statusSection.classList.remove('warning');
         } else {
-          badge.textContent = '⚠️ Needs Setup';
-          statusSection.classList.add('warning');
+            badge.textContent = '⚠️ Needs Setup';
+            statusSection.classList.add('warning');
         }
 
-        // Update content
+        // Update content - KEEP YOUR EXISTING CONTENT CODE HERE
         if (isConfigured) {
-          const termDates = config.termDates[currentTerm];
-          const startDate = new Date(termDates.start).toLocaleDateString();
-          const endDate = new Date(termDates.end).toLocaleDateString();
-          const subjectCount = config.assignedSubjects.length;
-          
-          let classCount = 0;
-          let streamCount = 0;
-          config.assignedSubjects.forEach(subject => {
-            classCount += subject.classes ? subject.classes.length : 0;
-            streamCount += subject.streams ? subject.streams.length : 0;
-          });
+            const termDates = config.termDates[currentTerm];
+            const startDate = new Date(termDates.start).toLocaleDateString();
+            const endDate = new Date(termDates.end).toLocaleDateString();
+            const subjectCount = config.assignedSubjects.length;
+            
+            let classCount = 0;
+            let streamCount = 0;
+            config.assignedSubjects.forEach(subject => {
+                classCount += subject.classes ? subject.classes.length : 0;
+                streamCount += subject.streams ? subject.streams.length : 0;
+            });
 
-          container.innerHTML = `
-            <div class="config-summary">
-              <div class="summary-item">
-                <strong>Academic Year</strong>
-                <div>${config.academicYear || 'Not set'}</div>
-              </div>
-              <div class="summary-item">
-                <strong>Current Term</strong>
-                <div>${currentTerm}</div>
-              </div>
-              <div class="summary-item">
-                <strong>Term Period</strong>
-                <div>${startDate} to ${endDate}</div>
-              </div>
-              <div class="summary-item">
-                <strong>Subjects</strong>
-                <div>${subjectCount} assigned</div>
-              </div>
-              <div class="summary-item">
-                <strong>Classes</strong>
-                <div>${classCount} assigned</div>
-              </div>
-            </div>
-            <div class="config-actions">
-              <button onclick="location.href='./teacher-config.html'" class="btn btn-secondary btn-small">
-                ⚙️ Update Configuration
-              </button>
-            </div>
-          `;
+            container.innerHTML = `
+                <div class="config-summary">
+                    <div class="summary-item">
+                        <strong>Academic Year</strong>
+                        <div>${config.academicYear || 'Not set'}</div>
+                    </div>
+                    <div class="summary-item">
+                        <strong>Current Term</strong>
+                        <div>${currentTerm}</div>
+                    </div>
+                    <div class="summary-item">
+                        <strong>Term Period</strong>
+                        <div>${startDate} to ${endDate}</div>
+                    </div>
+                    <div class="summary-item">
+                        <strong>Subjects</strong>
+                        <div>${subjectCount} assigned</div>
+                    </div>
+                    <div class="summary-item">
+                        <strong>Classes</strong>
+                        <div>${classCount} assigned</div>
+                    </div>
+                </div>
+                <div class="config-actions">
+                    <button onclick="location.href='./teacher-config.html'" class="btn btn-secondary btn-small">
+                        ⚙️ Update Configuration
+                    </button>
+                </div>
+            `;
         } else {
-          container.innerHTML = `
-            <div style="text-align: center; padding: 20px 0;">
-              <div style="font-size: 3em; margin-bottom: 10px;">⚙️</div>
-              <h4 style="margin: 10px 0;">Configuration Required</h4>
-              <p style="margin-bottom: 20px; opacity: 0.9;">
-                ${!hasTermDates ? `Please set up ${currentTerm} dates in your configuration.` : ''}
-                ${!hasAssignedSubjects ? 'Please assign subjects and classes you teach.' : ''}
-              </p>
-              <div class="config-actions">
-                <button onclick="location.href='./teacher-config.html'" class="btn btn-primary">
-                  ⚙️ Configure Now
-                </button>
-                <button onclick="hideConfigReminder()" class="btn btn-secondary">
-                  Remind Me Later
-                </button>
-              </div>
-            </div>
-          `;
+            container.innerHTML = `
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="font-size: 3em; margin-bottom: 10px;">⚙️</div>
+                    <h4 style="margin: 10px 0;">Configuration Required</h4>
+                    <p style="margin-bottom: 20px; opacity: 0.9;">
+                        ${!hasTermDates ? `Please set up ${currentTerm} dates in your configuration.` : ''}
+                        ${!hasAssignedSubjects ? 'Please assign subjects and classes you teach.' : ''}
+                    </p>
+                    <div class="config-actions">
+                        <button onclick="location.href='./teacher-config.html'" class="btn btn-primary">
+                            ⚙️ Configure Now
+                        </button>
+                        <button onclick="hideConfigReminder()" class="btn btn-secondary">
+                            Remind Me Later
+                        </button>
+                    </div>
+                </div>
+            `;
         }
 
-      } catch (error) {
+        console.log('✅ Configuration status updated successfully');
+
+    } catch (error) {
         console.error('Error updating configuration status:', error);
         showError('configStatusContent', 'Error loading configuration status');
-      }
     }
-
+}
     function loadTeacherConfigFallback() {
       try {
         const savedConfig = localStorage.getItem('teacherConfig');
