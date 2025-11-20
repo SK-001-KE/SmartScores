@@ -60,7 +60,7 @@ class FirebaseSyncService {
   }
 
   shouldSyncToCloud(user) {
-    return user.uid !== 'local-user' && navigator.onLine && this.syncEnabled;
+    return user && user.uid !== 'local-user' && navigator.onLine && this.syncEnabled;
   }
 
   async syncToFirestore(userId, key, data, collectionName) {
@@ -69,8 +69,21 @@ class FirebaseSyncService {
       data: data,
       lastUpdated: new Date().toISOString(),
       syncVersion: Date.now(),
-      recordCount: Array.isArray(data) ? data.length : null
+      recordCount: Array.isArray(data) ? data.length : null,
+      dataType: this.getDataType(key)
     }, { merge: true });
+  }
+
+  // Helper to determine data type for better organization
+  getDataType(key) {
+    const typeMap = {
+      'smartScoresRecords': 'scores',
+      'smartScoresTargets': 'targets', 
+      'teacherConfig': 'configuration',
+      'learnerScores': 'learner_scores',
+      'teacherFullName': 'profile'
+    };
+    return typeMap[key] || 'general';
   }
 
   addToSyncQueue(userId, key, data, collectionName) {
@@ -89,11 +102,14 @@ class FirebaseSyncService {
     this.isSyncing = true;
     console.log(`🔄 Syncing ${this.syncQueue.length} queued items...`);
     
-    while (this.syncQueue.length > 0) {
-      const item = this.syncQueue[0];
+    // Create a copy of the queue to avoid modification during iteration
+    const queueCopy = [...this.syncQueue];
+    
+    for (const item of queueCopy) {
       try {
         await this.syncToFirestore(item.userId, item.key, item.data, item.collectionName);
-        this.syncQueue.shift(); // Remove successful item
+        // Remove successful item from the actual queue
+        this.syncQueue = this.syncQueue.filter(q => q.timestamp !== item.timestamp);
         console.log('✅ Synced queued item:', item.key);
       } catch (error) {
         console.log('❌ Failed to sync queued item, will retry later:', error);
@@ -137,7 +153,7 @@ class FirebaseSyncService {
   }
 
   shouldLoadFromCloud(user) {
-    return user && user.uid !== 'local-user' && navigator.onLine;
+    return user && user.uid !== 'local-user' && navigator.onLine && this.syncEnabled;
   }
 
   async loadFromFirestore(userId, key) {
@@ -145,7 +161,8 @@ class FirebaseSyncService {
     const snapshot = await getDoc(docRef);
     
     if (snapshot.exists()) {
-      return snapshot.data().data;
+      const data = snapshot.data();
+      return data.data;
     }
     return null;
   }
@@ -178,6 +195,16 @@ class FirebaseSyncService {
         console.error('❌ Error updating teacher name in records:', error);
         return false;
     }
+  }
+
+  // NEW: Sync teacher configuration specifically
+  async syncTeacherConfig(config) {
+    return await this.saveData('teacherConfig', config);
+  }
+
+  // NEW: Load teacher configuration specifically
+  async loadTeacherConfig(defaultConfig = {}) {
+    return await this.loadData('teacherConfig', defaultConfig);
   }
 
   // Enhanced versions of your existing functions
@@ -228,6 +255,13 @@ class FirebaseSyncService {
                 await this.saveTargets(targets);
             }
         }
+
+        // Sync teacher configuration
+        const localConfig = localStorage.getItem('teacherConfig');
+        if (localConfig) {
+            const config = JSON.parse(localConfig);
+            await this.syncTeacherConfig(config);
+        }
         
         console.log('✅ Existing data sync completed');
     } catch (error) {
@@ -235,15 +269,56 @@ class FirebaseSyncService {
     }
   }
 
+  // NEW: Check if user has cloud data available
+  async checkCloudDataAvailability() {
+    const user = firebaseAuth.getCurrentUser();
+    if (!this.shouldLoadFromCloud(user)) return false;
+
+    try {
+      const keys = ['smartScoresRecords', 'smartScoresTargets', 'teacherConfig'];
+      for (const key of keys) {
+        const data = await this.loadFromFirestore(user.uid, key);
+        if (data) return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking cloud data availability:', error);
+      return false;
+    }
+  }
+
   // Get sync status
   getSyncStatus() {
+    const user = firebaseAuth.getCurrentUser();
     return {
       isOnline: navigator.onLine,
-      isCloudUser: firebaseAuth.isCloudUser(),
+      isCloudUser: user && user.uid !== 'local-user',
       queueLength: this.syncQueue.length,
       isSyncing: this.isSyncing,
-      syncEnabled: this.syncEnabled
+      syncEnabled: this.syncEnabled,
+      userId: user ? user.uid : null
     };
+  }
+
+  // NEW: Force sync all data
+  async forceSyncAll() {
+    console.log('🔄 Force syncing all data to cloud...');
+    
+    // Sync records
+    const records = await this.loadRecords();
+    await this.saveRecords(records);
+    
+    // Sync targets  
+    const targets = await this.loadTargets();
+    await this.saveTargets(targets);
+    
+    // Sync teacher config
+    const config = localStorage.getItem('teacherConfig');
+    if (config) {
+      await this.syncTeacherConfig(JSON.parse(config));
+    }
+    
+    console.log('✅ Force sync completed');
   }
 }
 
