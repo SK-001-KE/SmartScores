@@ -2584,7 +2584,8 @@ window.downloadPDF = () => {
     }
 };
    // ==================== TERM FILTERING SYSTEM ====================
-let currentTermFilter = 'current'; // 'current', 'all', or specific term
+// ==================== FIXED TERM FILTERING SYSTEM ====================
+let currentTermFilter = 'current';
 
 const getCurrentTermFromConfig = () => {
     const config = loadTeacherConfig();
@@ -2622,67 +2623,19 @@ const filterRecordsByTerm = (records, termFilter) => {
         return records.filter(record => record.term === currentTerm);
     }
     
-    // Specific term filter
+    // Specific term filter - ensure exact match
     return records.filter(record => record.term === termFilter);
 };
 
-const createTermFilterUI = () => {
-    const existingFilter = document.getElementById('termFilterContainer');
-    if (existingFilter) {
-        existingFilter.remove();
-    }
-    
-    const tableControls = document.querySelector('.table-controls');
-    if (!tableControls) return;
-    
-    const filterContainer = document.createElement('div');
-    filterContainer.id = 'termFilterContainer';
-    filterContainer.style.cssText = `
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin: 15px 0;
-        padding: 15px;
-        background: var(--card);
-        border-radius: 10px;
-        border: 1px solid var(--border);
-    `;
-    
-    const currentTerm = getCurrentTermFromConfig();
-    
-    filterContainer.innerHTML = `
-        <strong>📅 Filter by Term:</strong>
-        <select id="termFilterSelect" onchange="applyTermFilter()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);">
-            <option value="current">Current Term (${currentTerm})</option>
-            <option value="all">All Terms</option>
-            <option value="Term 1">Term 1</option>
-            <option value="Term 2">Term 2</option>
-            <option value="Term 3">Term 3</option>
-        </select>
-        <span id="filterStats" style="font-size: 0.9em; color: #666;">
-            Showing all records
-        </span>
-    `;
-    
-    tableControls.parentNode.insertBefore(filterContainer, tableControls.nextSibling);
-};
-
-window.applyTermFilter = () => {
-    const termFilterSelect = document.getElementById('termFilterSelect');
-    if (!termFilterSelect) return;
-    
-    currentTermFilter = termFilterSelect.value;
-    renderRecords();
-};
-
-   const renderRecords = () => {
+// Enhanced renderRecords function with better filtering
+const renderRecords = () => {
     const tbody = document.querySelector('#recordsTable tbody') || el('recordsBody');
     if (!tbody) return;
     
     const allRecords = loadRecords();
     const targets = loadTargets();
     
-    // Apply term filter
+    // Apply term filter - FIXED
     const filteredRecords = filterRecordsByTerm(allRecords, currentTermFilter);
     
     if (filteredRecords.length === 0) {
@@ -2695,7 +2648,6 @@ window.applyTermFilter = () => {
             </tr>
         `;
         
-        // Update stats
         updateFilterStats(0, allRecords.length);
         return;
     }
@@ -2707,10 +2659,12 @@ window.applyTermFilter = () => {
     });
     
     tbody.innerHTML = filteredRecords.map((record, index) => {
-        // Find the original index in allRecords for deletion
+        // Find the original index in allRecords for deletion - FIXED
         const originalIndex = allRecords.findIndex(r => 
-            r.id === record.id || 
-            (r.timestamp === record.timestamp && r.subject === record.subject && r.grade === record.grade)
+            r.id === record.id && 
+            r.subject === record.subject && 
+            r.grade === record.grade &&
+            r.term === record.term
         );
         
         const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
@@ -2735,13 +2689,20 @@ window.applyTermFilter = () => {
                 </td>
                 <td>${rubricBadge}</td>
                 <td>
-                    <button onclick="deleteRecord(${originalIndex})" class="btn btn-danger small">Delete</button>
+                    <button onclick="deleteRecord(${originalIndex})" class="btn btn-danger small" ${originalIndex === -1 ? 'disabled' : ''}>
+                        ${originalIndex === -1 ? 'N/A' : 'Delete'}
+                    </button>
                 </td>
             </tr>
         `;
     }).join('');
     
-    // Update summary statistics with filtered data
+    // Update summary statistics
+    updateSummaryStats(filteredRecords, allRecords);
+};
+
+// Add this helper function for stats
+const updateSummaryStats = (filteredRecords, allRecords) => {
     const totalRecords = el('totalRecordsCount');
     if (totalRecords) {
         totalRecords.textContent = allRecords.length;
@@ -2758,7 +2719,6 @@ window.applyTermFilter = () => {
         recordsShown.textContent = filteredRecords.length;
     }
     
-    // Update filter statistics
     updateFilterStats(filteredRecords.length, allRecords.length);
 };
 
