@@ -321,7 +321,41 @@ class FirebaseSyncService {
     console.log('✅ Force sync completed');
   }
 }
-
+// Add this method to your FirebaseSyncService class in firebase-sync.js
+async clearAllUserData() {
+  const user = firebaseAuth.getCurrentUser();
+  
+  try {
+    // Clear local storage
+    localStorage.removeItem('smartScoresRecords');
+    localStorage.removeItem('smartScoresTargets');
+    localStorage.removeItem('teacherConfig');
+    localStorage.removeItem('learnerScores');
+    
+    console.log('✅ Cleared local data');
+    
+    // Clear cloud data if user exists and is cloud user
+    if (this.shouldSyncToCloud(user)) {
+      try {
+        // Save empty arrays to cloud
+        await this.saveRecords([]);
+        await this.saveTargets([]);
+        await this.syncTeacherConfig({});
+        
+        console.log('✅ Cleared cloud data');
+        return { success: true, cloudCleared: true };
+      } catch (cloudError) {
+        console.error('Error clearing cloud data:', cloudError);
+        return { success: true, cloudCleared: false, error: cloudError };
+      }
+    }
+    
+    return { success: true, cloudCleared: false };
+  } catch (error) {
+    console.error('Error in clearAllUserData:', error);
+    return { success: false, error: error };
+  }
+}
 // Create and export singleton instance
 const firebaseSync = new FirebaseSyncService();
 export default firebaseSync;
