@@ -2727,44 +2727,44 @@ const renderRecords = () => {
         targetMap[key] = target.score;
     });
     
-    tbody.innerHTML = filteredRecords.map((record, index) => {
-        // Find the original index in allRecords for deletion - FIXED
-        const originalIndex = allRecords.findIndex(r => 
-            r.id === record.id && 
-            r.subject === record.subject && 
-            r.grade === record.grade &&
-            r.term === record.term
-        );
-        
-        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
-        const targetScore = targetMap[key] || null;
-        const deviation = targetScore !== null ? record.mean - targetScore : null;
-        const deviationStr = deviation !== null ? `${deviation >= 0 ? '+' : ''}${deviation.toFixed(1)}%` : '–';
-        const rubricBadge = formatRubricBadge(record.mean);
-        
-        return `
-            <tr>
-                <td>${record.teacher || '–'}</td>
-                <td>${record.subject || '–'}</td>
-                <td>${record.grade || '–'}</td>
-                <td>${record.stream || '–'}</td>
-                <td>${record.term || '–'}</td>
-                <td>${record.examType || '–'}</td>
-                <td>${record.year || '–'}</td>
-                <td style="font-weight: bold;">${record.mean.toFixed(1)}%</td>
-                <td>${targetScore !== null ? targetScore.toFixed(1) + '%' : '–'}</td>
-                <td style="color: ${deviation !== null ? (deviation >= 0 ? '#10b981' : '#ef4444') : '#666'}; font-weight: bold;">
-                    ${deviationStr}
-                </td>
-                <td>${rubricBadge}</td>
-                <td>
-                    <button onclick="deleteRecord(${originalIndex})" class="btn btn-danger small" ${originalIndex === -1 ? 'disabled' : ''}>
-                        ${originalIndex === -1 ? 'N/A' : 'Delete'}
-                    </button>
-                </td>
-            </tr>
-        `;
-    }).join('');
+tbody.innerHTML = filteredRecords.map((record, index) => {
+    // Find the original index in allRecords for deletion - FIXED
+    const originalIndex = allRecords.findIndex(r => 
+        r.id === record.id && 
+        r.subject === record.subject && 
+        r.grade === record.grade &&
+        r.term === record.term
+    );
+    
+    const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
+    const targetScore = targetMap[key] || null;
+    const deviation = targetScore !== null ? record.mean - targetScore : null;
+    const deviationStr = deviation !== null ? `${deviation >= 0 ? '+' : ''}${deviation.toFixed(1)}%` : '–';
+    const rubricBadge = formatRubricBadge(record.mean);
+    
+    return `
+        <tr>
+            <td>${record.teacher || '–'}</td>
+            <td>${record.subject || '–'}</td>
+            <td>${record.grade || '–'}</td>
+            <td>${record.stream || '–'}</td>
+            <td>${record.term || '–'}</td>
+            <td>${record.examType || '–'}</td>
+            <td>${record.year || '–'}</td>
+            <td style="font-weight: bold;">${record.mean.toFixed(1)}%</td>
+            <td>${targetScore !== null ? targetScore.toFixed(1) + '%' : '–'}</td>
+            <td style="color: ${deviation !== null ? (deviation >= 0 ? '#10b981' : '#ef4444') : '#666'}; font-weight: bold;">
+                ${deviationStr}
+            </td>
+            <td>${rubricBadge}</td>
+            <td>
+                <button onclick="deleteRecord(${originalIndex})" class="btn btn-danger small" ${originalIndex === -1 ? 'disabled' : ''}>
+                    ${originalIndex === -1 ? 'N/A' : 'Delete'}
+                </button>
+            </td>
+        </tr>
+    `;
+}).join('');
     
     // Update summary statistics
     updateSummaryStats(filteredRecords, allRecords);
