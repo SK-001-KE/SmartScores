@@ -1656,19 +1656,45 @@ window.deleteTarget = (index) => {
 };
 
 // ==================== RECORD MANAGEMENT ====================
+// ==================== FIXED DELETE FUNCTION ====================
 window.deleteRecord = (index) => {
-    if (confirm('Are you sure you want to delete this record?')) {
+    console.log('Delete clicked for index:', index); // Debug log
+    
+    if (confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
         const records = loadRecords();
+        
+        // Validate index
         if (index >= 0 && index < records.length) {
+            const deletedRecord = records[index];
             records.splice(index, 1);
+            
             if (saveRecords(records)) {
-                showAlert('Record deleted successfully', 'success');
+                showAlert(`Record deleted: ${deletedRecord.subject} - ${deletedRecord.grade}`, 'success');
+                
+                // Re-render everything
                 renderAll();
+                
+                // Special handling for recorded-scores page
+                if (window.location.pathname.includes('recorded-scores.html')) {
+                    setTimeout(() => {
+                        renderRecords();
+                        if (window.applyTermFilter) {
+                            applyTermFilter(); // Re-apply current filter
+                        }
+                    }, 100);
+                }
+            } else {
+                showAlert('Error deleting record from storage', 'error');
             }
+        } else {
+            console.error('Invalid index for deletion:', index, 'Records length:', records.length);
+            showAlert('Error: Could not find record to delete', 'error');
+            
+            // Force refresh as fallback
+            renderAll();
         }
     }
 };
-
 // ==================== SEARCH & FILTER ====================
 window.filterRecords = () => {
     const searchTerm = (el('searchInput')?.value || '').toLowerCase();
