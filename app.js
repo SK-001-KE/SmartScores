@@ -1135,6 +1135,26 @@ const calculateClassStatistics = (learners) => {
     
     return stats;
 };
+   // ==================== ENSURE TERM FILTER UI ====================
+const ensureTermFilterUI = () => {
+    // Only create on recorded-scores page
+    if (!window.location.pathname.includes('recorded-scores.html')) return;
+    
+    // Check if filter already exists
+    if (!document.getElementById('termFilterContainer')) {
+        createTermFilterUI();
+    }
+};
+
+// Update your DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', async () => {
+    // Existing code...
+    
+    // Ensure term filter UI is created for recorded-scores page
+    ensureTermFilterUI();
+    
+    // Rest of your initialization code...
+});
 
 // ==================== DATA MIGRATION ====================
 const migrateExistingData = async () => {
