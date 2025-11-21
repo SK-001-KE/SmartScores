@@ -1584,6 +1584,46 @@
         }, 3000);
       }
     }
+    // Clear All Data Function with Cloud Support
+async function clearAllData() {
+    if (confirm('⚠️ ARE YOU SURE?\n\nThis will delete ALL your records and targets permanently. This action cannot be undone.')) {
+        if (confirm('❌ FINAL WARNING: This will delete ALL your data. Press OK to confirm deletion.')) {
+            try {
+                // 1. Clear from localStorage
+                localStorage.removeItem('smartScoresRecords');
+                localStorage.removeItem('smartScoresTargets');
+                localStorage.removeItem('teacherConfig');
+                localStorage.removeItem('learnerScores');
+                
+                console.log('✅ Cleared local data');
+                
+                // 2. Clear from Firebase (if available)
+                if (typeof firebaseSync !== 'undefined' && typeof firebaseSync.clearAllUserData !== 'undefined') {
+                    const result = await firebaseSync.clearAllUserData();
+                    if (result.success) {
+                        console.log('✅ Cleared cloud data');
+                        alert('All data has been cleared successfully from both local storage and cloud.');
+                    } else {
+                        console.log('❌ Cloud clear failed, but local data cleared');
+                        alert('Data cleared locally, but there was an issue clearing cloud data.');
+                    }
+                } else {
+                    console.log('ℹ️ Firebase sync not available, cleared local data only');
+                    alert('All local data has been cleared successfully.');
+                }
+                
+                // Refresh the page to show empty state
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error clearing data:', error);
+                alert('Error clearing data: ' + error.message);
+            }
+        }
+    }
+}
 
     // ===== INITIALIZATION =====
     function initializeLearnerPage() {
