@@ -2893,26 +2893,46 @@ window.exportBackup = () => {
     showAlert('Backup file downloaded successfully!', 'success');
 };
 
-window.clearAllData = () => {
-    if (confirm('⚠️ ARE YOU SURE?\n\nThis will delete ALL your records and targets permanently. This action cannot be undone.')) {
-        if (confirm('❌ FINAL WARNING: This will delete ALL your data. Press OK to confirm deletion.')) {
-            localStorage.removeItem(STORAGE_KEYS.RECORDS);
-            localStorage.removeItem(STORAGE_KEYS.TARGETS);
-            showAlert('All data has been cleared successfully.', 'success');
-            
-            // Reset term filter
-            currentTermFilter = 'current';
-            
-            // Re-render everything
-            setTimeout(() => {
-                renderAll();
-                if (window.location.pathname.includes('recorded-scores.html')) {
-                    renderRecords();
-                }
-            }, 500);
+// Clear All Data Function - UPDATED to clear both local and cloud data
+async function clearAllData() {
+  if (confirm('⚠️ ARE YOU SURE?\n\nThis will delete ALL your records and targets permanently. This action cannot be undone.')) {
+    if (confirm('❌ FINAL WARNING: This will delete ALL your data. Press OK to confirm deletion.')) {
+      try {
+        // 1. Clear from localStorage
+        localStorage.removeItem('smartScoresRecords');
+        localStorage.removeItem('smartScoresTargets');
+        localStorage.removeItem('teacherConfig');
+        localStorage.removeItem('learnerScores');
+        
+        console.log('✅ Cleared local data');
+        
+        // 2. Clear from Firebase (if user is logged in and using cloud sync)
+        if (typeof firebaseSync !== 'undefined') {
+          // Save empty arrays to Firebase to overwrite existing data
+          await firebaseSync.saveRecords([]);
+          await firebaseSync.saveTargets([]);
+          await firebaseSync.syncTeacherConfig({});
+          
+          console.log('✅ Cleared cloud data');
+        } else {
+          console.log('ℹ️ Firebase sync not available, cleared local data only');
         }
+        
+        // Show success message
+        alert('All data has been cleared successfully from both local storage and cloud.');
+        
+        // Refresh the page to show empty state
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+        
+      } catch (error) {
+        console.error('Error clearing data:', error);
+        alert('Data cleared locally, but there was an issue clearing cloud data: ' + error.message);
+      }
     }
-};
+  }
+}
 
 // ==================== MISSING FUNCTION IMPLEMENTATIONS ====================
 const updateLearnerRecordsCount = (count) => {
