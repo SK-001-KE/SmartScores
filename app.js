@@ -1676,9 +1676,9 @@ window.deleteTarget = (index) => {
 };
 
 // ==================== RECORD MANAGEMENT ====================
-// ==================== FIXED DELETE FUNCTION ====================
-window.deleteRecord = (index) => {
-    console.log('Delete clicked for index:', index); // Debug log
+// ==================== FIXED DELETE FUNCTION WITH CLOUD SYNC ====================
+window.deleteRecord = async (index) => {
+    console.log('Delete clicked for index:', index);
     
     if (confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
         const records = loadRecords();
@@ -1686,32 +1686,55 @@ window.deleteRecord = (index) => {
         // Validate index
         if (index >= 0 && index < records.length) {
             const deletedRecord = records[index];
-            records.splice(index, 1);
             
-            if (saveRecords(records)) {
-                showAlert(`Record deleted: ${deletedRecord.subject} - ${deletedRecord.grade}`, 'success');
+            try {
+                // 1. Remove from local storage
+                records.splice(index, 1);
+                const localSuccess = saveRecords(records);
                 
-                // Re-render everything
-                renderAll();
-                
-                // Special handling for recorded-scores page
-                if (window.location.pathname.includes('recorded-scores.html')) {
-                    setTimeout(() => {
-                        renderRecords();
-                        if (window.applyTermFilter) {
-                            applyTermFilter(); // Re-apply current filter
+                if (localSuccess) {
+                    console.log('✅ Record deleted locally:', deletedRecord);
+                    
+                    // 2. Delete from Firebase if cloud sync is available
+                    if (typeof firebaseSync !== 'undefined') {
+                        try {
+                            // Save the updated records array to Firebase (which effectively deletes the record)
+                            await firebaseSync.saveRecords(records);
+                            console.log('✅ Record deleted from cloud');
+                            showAlert(`Record deleted: ${deletedRecord.subject} - ${deletedRecord.grade}`, 'success');
+                        } catch (cloudError) {
+                            console.error('❌ Error deleting from cloud:', cloudError);
+                            showAlert('Record deleted locally but cloud sync failed', 'warning');
                         }
-                    }, 100);
+                    } else {
+                        showAlert(`Record deleted: ${deletedRecord.subject} - ${deletedRecord.grade}`, 'success');
+                    }
+                    
+                    // 3. Re-render everything
+                    await renderAll();
+                    
+                    // 4. Special handling for recorded-scores page
+                    if (window.location.pathname.includes('recorded-scores.html')) {
+                        setTimeout(() => {
+                            renderRecords();
+                            if (window.applyTermFilter) {
+                                applyTermFilter(); // Re-apply current filter
+                            }
+                        }, 100);
+                    }
+                } else {
+                    throw new Error('Failed to save records after deletion');
                 }
-            } else {
-                showAlert('Error deleting record from storage', 'error');
+            } catch (error) {
+                console.error('Error in deleteRecord:', error);
+                showAlert('Error deleting record: ' + error.message, 'error');
             }
         } else {
             console.error('Invalid index for deletion:', index, 'Records length:', records.length);
             showAlert('Error: Could not find record to delete', 'error');
             
             // Force refresh as fallback
-            renderAll();
+            await renderAll();
         }
     }
 };
