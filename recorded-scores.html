@@ -10,6 +10,9 @@
   <script src="./auth.js" defer></script>
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./firebase-sync.js"></script>
+  <!-- Add these to your head section -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
   <!-- TOP NAVIGATION BAR -->
@@ -421,6 +424,161 @@
             localStorage.setItem('themeMode', newTheme);
         }
     }
+     // Clear All Data Function
+  function clearAllData() {
+    if (confirm('⚠️ ARE YOU SURE?\n\nThis will delete ALL your records and targets permanently. This action cannot be undone.')) {
+      if (confirm('❌ FINAL WARNING: This will delete ALL your data. Press OK to confirm deletion.')) {
+        localStorage.removeItem('smartScoresRecords');
+        localStorage.removeItem('smartScoresTargets');
+        
+        // Show success message
+        alert('All data has been cleared successfully.');
+        
+        // Refresh the page to show empty state
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }
+    }
+  }
+
+  // Export to Excel Function
+  function exportToExcel() {
+    try {
+      // Check if XLSX library is available
+      if (typeof XLSX === 'undefined') {
+        alert('Excel export feature requires the SheetJS library. Please ensure it is loaded.');
+        return;
+      }
+      
+      const records = JSON.parse(localStorage.getItem('smartScoresRecords') || '[]');
+      
+      if (records.length === 0) {
+        alert('No records to export.');
+        return;
+      }
+      
+      // Prepare data for Excel
+      const excelData = records.map(record => ({
+        'Teacher': record.teacher || '',
+        'Subject': record.subject || '',
+        'Grade': record.grade || '',
+        'Stream': record.stream || '',
+        'Term': record.term || '',
+        'Exam Type': record.examType || '',
+        'Year': record.year || '',
+        'Mean Score': record.mean,
+        'Timestamp': record.timestamp || ''
+      }));
+      
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Scores');
+      
+      const teacherName = localStorage.getItem('teacherFullName') || 'Teacher';
+      const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
+      const filename = `SmartScores_Export_${safeName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      
+      XLSX.writeFile(workbook, filename);
+      alert(`Excel file exported successfully! ${records.length} records included.`);
+      
+    } catch (error) {
+      console.error('Excel Export Error:', error);
+      alert('Error exporting Excel file: ' + error.message);
+    }
+  }
+
+  // Download PDF Function
+  function downloadPDF() {
+    try {
+      // Check if jsPDF is available
+      if (typeof jspdf === 'undefined') {
+        alert('PDF export feature requires the jsPDF library. Please ensure it is loaded.');
+        return;
+      }
+      
+      const { jsPDF } = jspdf;
+      const doc = new jsPDF();
+      const records = JSON.parse(localStorage.getItem('smartScoresRecords') || '[]');
+      const teacherName = localStorage.getItem('teacherFullName') || 'Teacher';
+      
+      let y = 20;
+      
+      // Header
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(139, 0, 0);
+      doc.text('SmartScores Performance Report', 105, y, { align: 'center' });
+      y += 10;
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Teacher: ${teacherName} | Generated: ${new Date().toLocaleDateString()}`, 105, y, { align: 'center' });
+      y += 15;
+      
+      if (records.length === 0) {
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text('No records available.', 20, y);
+      } else {
+        // Simple table header
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255);
+        doc.setFillColor(139, 0, 0);
+        doc.rect(10, y, 190, 8, 'F');
+        doc.text('Subject', 12, y + 5);
+        doc.text('Grade', 70, y + 5);
+        doc.text('Term', 100, y + 5);
+        doc.text('Mean Score', 150, y + 5);
+        y += 8;
+        
+        // Table data
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0, 0, 0);
+        
+        records.slice(0, 30).forEach((record, index) => { // Limit to 30 records
+          if (y > 280) { // New page if near bottom
+            doc.addPage();
+            y = 20;
+          }
+          
+          if (index % 2 === 0) {
+            doc.setFillColor(245, 245, 245);
+            doc.rect(10, y, 190, 6, 'F');
+          }
+          
+          doc.text(record.subject || '', 12, y + 4);
+          doc.text(record.grade || '', 70, y + 4);
+          doc.text(record.term || '', 100, y + 4);
+          doc.text(record.mean.toFixed(1) + '%', 150, y + 4);
+          
+          y += 6;
+        });
+        
+        // Footer
+        y = 287;
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Total Records: ${records.length} | SmartScores v3.0`, 105, y, { align: 'center' });
+      }
+      
+      const safeName = teacherName.replace(/[^a-zA-Z0-9]/g, '_');
+      const filename = `SmartScores_Report_${safeName}.pdf`;
+      
+      doc.save(filename);
+      alert(`PDF exported successfully! ${records.length} records included.`);
+      
+    } catch (error) {
+      console.error('PDF Export Error:', error);
+      alert('Error exporting PDF: ' + error.message);
+    }
+  }
+
+  // Make functions available globally
+  window.clearAllData = clearAllData;
+  window.exportToExcel = exportToExcel;
+  window.downloadPDF = downloadPDF;
   </script>
 </body>
 </html>
