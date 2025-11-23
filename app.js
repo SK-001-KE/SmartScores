@@ -102,31 +102,63 @@ const saveTeacherConfig = async (config) => {
     }
 };
 
-// Get current term based on teacher-defined dates
-const getCurrentTerm = () => {
+// ==================== ENHANCED TERM DETECTION & VALIDATION ====================
+
+function getCurrentTerm(date = new Date()) {
     const config = loadTeacherConfig();
-    const now = new Date();
     
+    // 1. Check teacher-configured dates first
     for (const [term, dates] of Object.entries(config.termDates)) {
         if (dates.start && dates.end) {
             const start = new Date(dates.start);
             const end = new Date(dates.end);
-            if (now >= start && now <= end) {
+            if (date >= start && date <= end) {
                 return term;
             }
         }
     }
     
-    // Fallback to month-based detection if dates not configured
-    const currentMonth = now.getMonth() + 1;
-    if (currentMonth >= 1 && currentMonth <= 4) {
+    // 2. Fallback: Jan-Mar=Term1, May-Jul=Term2, Sep-Oct=Term3
+    const currentMonth = date.getMonth() + 1;
+    if (currentMonth >= 1 && currentMonth <= 3) {
         return 'Term 1';
-    } else if (currentMonth >= 5 && currentMonth <= 8) {
+    } else if (currentMonth >= 5 && currentMonth <= 7) {
         return 'Term 2';
-    } else {
+    } else if (currentMonth >= 9 && currentMonth <= 10) {
         return 'Term 3';
+    } else {
+        // Default to current term based on academic flow
+        return 'Term 1';
     }
-};
+}
+
+function validateTermDates(termDates) {
+    const errors = [];
+    const terms = ['Term 1', 'Term 2', 'Term 3'];
+    
+    for (const term of terms) {
+        const dates = termDates[term];
+        if (dates.start && dates.end) {
+            const start = new Date(dates.start);
+            const end = new Date(dates.end);
+            
+            // Check if start is before end
+            if (start >= end) {
+                errors.push(`${term}: Start date must be before end date`);
+            }
+            
+            // Check if dates are in the correct year
+            const currentYear = new Date().getFullYear();
+            if (start.getFullYear() !== currentYear || end.getFullYear() !== currentYear) {
+                errors.push(`${term}: Dates must be in the current calendar year (${currentYear})`);
+            }
+        }
+    }
+    
+    // Check for overlaps (simplified - could be enhanced)
+    return errors;
+}
+
 
 // Get all available subjects (default + custom)
 const getAllSubjects = () => {
@@ -255,6 +287,61 @@ const updateDataEntryForms = () => {
         }
     }
 };
+// ==================== CONFIGURATION MANAGEMENT ====================
+
+// Load teacher configuration with cloud sync
+const loadTeacherConfig = async () => {
+    try {
+        // Try to load from cloud first if available
+        if (typeof firebaseSync !== 'undefined') {
+            const cloudConfig = await firebaseSync.loadData('teacherConfig');
+            if (cloudConfig) {
+                console.log('✅ Loaded teacher config from cloud');
+                return { ...DEFAULT_CONFIG, ...cloudConfig };
+            }
+        }
+        
+        // Fallback to local storage
+        const savedConfig = localStorage.getItem('teacherConfig');
+        if (savedConfig) {
+            console.log('📱 Loaded teacher config from local storage');
+            return { ...DEFAULT_CONFIG, ...JSON.parse(savedConfig) };
+        }
+    } catch (error) {
+        console.error('Error loading teacher config:', error);
+    }
+    return { ...DEFAULT_CONFIG };
+};
+
+// Save teacher configuration with cloud sync
+const saveTeacherConfig = async (config) => {
+    try {
+        // Validate term dates
+        const dateErrors = validateTermDates(config.termDates);
+        if (dateErrors.length > 0) {
+            throw new Error('Term date validation failed: ' + dateErrors.join(', '));
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('teacherConfig', JSON.stringify(config));
+        
+        // Save to cloud if available
+        if (typeof firebaseSync !== 'undefined') {
+            await firebaseSync.saveData('teacherConfig', config);
+            console.log('✅ Teacher config saved to cloud');
+        }
+        
+        // Update data entry forms throughout the app
+        updateDataEntryForms();
+        
+        return true;
+    } catch (error) {
+        console.error('Error saving teacher config:', error);
+        showAlert('Error saving configuration: ' + error.message, 'error');
+        return false;
+    }
+};
+
 
 // Display term periods based on teacher configuration
 const displayTermPeriods = () => {
