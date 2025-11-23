@@ -1,1749 +1,696 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-   <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="module" src="./firebase-config.js"></script>
-    <script type="module" src="./firebase-sync.js"></script>
-    <script type="module" src="./firebase-auth.js"></script>
-    <title>Teacher Configuration - SmartScores</title>
-    <style>
-        /* CSS Variables */
-        :root {
-            --primary: #8B0000;
-            --gradient-primary: linear-gradient(135deg, #8B0000, #B22222);
-            --gradient-nav: linear-gradient(135deg, rgba(139, 0, 0, 0.9), rgba(178, 34, 34, 0.9));
-            --bg: #f8f9fa;
-            --card: #ffffff;
-            --text: #333333;
-            --border: #e0e0e0;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-            --success: #38a169;
-            --glass-border: rgba(255, 255, 255, 0.2);
-        }
-
-        [data-theme="dark"] {
-            --bg: #1a202c;
-            --card: #2d3748;
-            --text: #e2e8f0;
-            --border: #4a5568;
-        }
-
-        /* Base Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-        }
-
-        .content {
-            padding-top: 80px;
-        }
-
-        /* Navigation */
-        .top-nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: var(--gradient-nav);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--glass-border);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
-        }
-
-        .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: white;
-            font-weight: bold;
-            font-size: 1.2rem;
-            text-decoration: none;
-        }
-
-        .logo-small {
-            height: 30px;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 20px;
-        }
-
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            transition: background 0.3s;
-        }
-
-        .nav-links a:hover, .nav-links a.active {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .nav-user {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: white;
-        }
-
-        .user-avatar {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-nav {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: background 0.3s;
-        }
-
-        .btn-nav:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        /* Configuration Styles */
-        .config-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .config-section {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-        }
-        
-        .config-section h2 {
-            color: var(--primary);
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--border);
-        }
-        
-        .config-form {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .form-group label {
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text);
-        }
-        
-        .form-group input,
-        .form-group select {
-            padding: 12px 15px;
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            background: var(--bg);
-            color: var(--text);
-            font-size: 1em;
-            transition: all 0.3s ease;
-        }
-        
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
-        }
-        
-        .form-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            background: var(--primary);
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-            font-size: 1em;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        
-        .btn-primary {
-            background: var(--gradient-primary);
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(135deg, #4a5568, #718096);
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, #38a169, #2f855a);
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, #e53e3e, #c53030);
-        }
-        
-        .btn-small {
-            padding: 8px 16px;
-            font-size: 0.9em;
-        }
-        
-        .config-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background: var(--card);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-        }
-        
-        .config-table th {
-            background: var(--gradient-primary);
-            color: white;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-        }
-        
-        .config-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text);
-        }
-        
-        .config-table tr:last-child td {
-            border-bottom: none;
-        }
-        
-        .config-table tr:hover {
-            background: rgba(139, 0, 0, 0.05);
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text);
-            opacity: 0.7;
-        }
-        
-        .empty-icon {
-            font-size: 3em;
-            margin-bottom: 15px;
-            opacity: 0.5;
-        }
-        
-        .term-dates-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .term-date-card {
-            background: var(--card);
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            padding: 20px;
-            transition: all 0.3s ease;
-        }
-        
-        .term-date-card:hover {
-            border-color: var(--primary);
-        }
-        
-        .term-date-card h3 {
-            margin-bottom: 15px;
-            color: var(--primary);
-        }
-        
-        .date-inputs {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        
-        .current-term-indicator {
-            display: inline-block;
-            background: var(--success);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.8em;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-        
-        .current-term-message {
-            background: rgba(56, 161, 105, 0.1);
-            border: 1px solid var(--success);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .current-term-message::before {
-            content: "ℹ️";
-            font-size: 1.2em;
-        }
-        
-        /* Custom dropdown styles */
-        .dropdown-container {
-            position: relative;
-        }
-        
-        .dropdown-button {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            background: var(--bg);
-            color: var(--text);
-            font-size: 1em;
-            text-align: left;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .dropdown-content {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            box-shadow: var(--shadow-lg);
-            z-index: 10;
-            max-height: 200px;
-            overflow-y: auto;
-            display: none;
-        }
-        
-        .dropdown-content.show {
-            display: block;
-        }
-        
-        .dropdown-option {
-            padding: 10px 15px;
-            cursor: pointer;
-        }
-        
-        .dropdown-option:hover {
-            background: rgba(139, 0, 0, 0.05);
-        }
-        
-        .dropdown-option.selected {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .selected-item {
-            background: var(--primary);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.9em;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 8px;
-        }
-        
-        .selected-item button {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 1em;
-            padding: 0;
-            display: flex;
-            align-items: center;
-        }
-
-        /* Hide previous terms */
-        .previous-term {
-            display: none;
-        }
-        
-        /* Mobile Styles */
-        .mobile-sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 320px;
-            height: 100vh;
-            background: var(--gradient-nav);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid var(--glass-border);
-            padding-top: 80px;
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-            overflow-y: auto;
-        }
-        
-        .mobile-sidebar.closed {
-            transform: translateX(-100%);
-        }
-        
-        .mobile-sidebar:not(.closed) {
-            transform: translateX(0);
-        }
-        
-        .mobile-sidebar a, .mobile-sidebar button {
-            display: block;
-            color: white;
-            text-decoration: none;
-            padding: 15px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            transition: background 0.3s;
-        }
-        
-        .mobile-sidebar a:hover, .mobile-sidebar button:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .mobile-sidebar a.active {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .logout-btn {
-            width: 100%;
-            text-align: left;
-            background: none;
-            border: none;
-            font-size: 1em;
-        }
-        
-        .mobile-menu-toggle {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            background: var(--gradient-primary);
-            color: white;
-            border: none;
-            padding: 12px 14px;
-            border-radius: 12px;
-            z-index: 1001;
-            cursor: pointer;
-            font-size: 1.1em;
-            transition: all 0.3s ease;
-            display: none;
-            box-shadow: var(--shadow-lg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-        }
-        
-        /* Alert Styles */
-        .custom-alert {
-            position: fixed;
-            top: 100px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            z-index: 10000;
-            animation: slideIn 0.3s ease;
-        }
-        
-        .alert-success {
-            background: var(--success);
-        }
-        
-        .alert-error {
-            background: #e53e3e;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        /* Responsive Styles */
-        @media (max-width: 768px) {
-            .mobile-menu-toggle {
-                display: block;
-            }
-            
-            .nav-links {
-                display: none;
-            }
-            
-            .config-container {
-                padding: 15px;
-            }
-            
-            .config-section {
-                padding: 20px;
-            }
-            
-            .config-form {
-                grid-template-columns: 1fr;
-            }
-            
-            .date-inputs {
-                grid-template-columns: 1fr;
-            }
-            
-            .form-actions {
-                flex-direction: column;
-            }
-            
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .config-table {
-                font-size: 0.9em;
-            }
-            
-            .config-table th,
-            .config-table td {
-                padding: 10px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartScores - Teacher Configuration</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+  <script src="./auth.js" defer></script>
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="./firebase-sync.js"></script>
+  
+  <style>
+    .config-section {
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: var(--card);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    
+    .config-section h3 {
+      margin-bottom: 1rem;
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 0.5rem;
+    }
+    
+    .assignment-row {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1.5fr 2fr 1fr;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 15px;
+      padding: 15px;
+      background: rgba(139, 0, 0, 0.05);
+      border-radius: 8px;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .term-checkboxes {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .term-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .term-checkbox input[type="checkbox"] {
+      margin: 0;
+    }
+    
+    .delete-assignment {
+      background: #e53e3e;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    
+    .delete-assignment:hover {
+      background: #c53030;
+    }
+    
+    .date-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    
+    .date-group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .date-group label {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--text);
+    }
+    
+    .term-toggle {
+      margin: 1rem 0;
+      padding: 10px;
+      background: var(--bg);
+      border-radius: 5px;
+      border: 1px solid var(--border);
+    }
+    
+    .toggle-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    
+    .toggle-btn:hover {
+      background: var(--primary-dark);
+    }
+    
+    .previous-terms {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    
+    .config-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 1rem;
+    }
+    
+    .empty-assignments {
+      text-align: center;
+      padding: 2rem;
+      color: var(--secondary);
+      font-style: italic;
+    }
+    
+    @media (max-width: 768px) {
+      .assignment-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      
+      .date-inputs {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileMenu()">☰</button>
-    
-    <!-- Mobile Sidebar Navigation -->
-    <div class="mobile-sidebar closed" id="mobileSidebar">
-        <a href="index.html">📊 Dashboard</a>
-        <a href="data-entry.html">➕ Data Entry</a>
-        <a href="recorded-scores.html">📝 Recorded Scores</a>
-        <a href="set-targets.html">🎯 Set Targets</a>
-        <a href="ai-insights.html">🤖 AI Insights</a>
-        <a href="averages.html">📈 Averages</a>
-        <a href="trends.html">📉 Trends</a>
-        <a href="learner-scores.html">👥 Learner Scores</a>
-        <a href="teacher-config.html" class="active">⚙️ Teacher Config</a>
-        <a href="profile.html">👤 Profile</a>
-        <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+  <!-- TOP NAVIGATION BAR -->
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <img src="./icon-192x192.png" class="logo-small" style="height:32px;margin-right:10px;border-radius:6px;">
+      <span>SmartScores</span>
     </div>
     
-    <!-- Desktop Navigation -->
-    <nav class="top-nav">
-        <a href="index.html" class="nav-brand">
-            <div class="logo-small">📊</div>
-            SmartScores
-        </a>
-        
-        <div class="nav-links">
-            <a href="index.html">📊 Dashboard</a>
-            <a href="data-entry.html">➕ Data Entry</a>
-            <a href="recorded-scores.html">📝 Recorded Scores</a>
-            <a href="set-targets.html">🎯 Set Targets</a>
-            <a href="ai-insights.html">🤖 AI Insights</a>
-            <a href="averages.html">📈 Averages</a>
-            <a href="trends.html">📉 Trends</a>
-            <a href="learner-scores.html">👥 Learner Scores</a>
-            <a href="teacher-config.html" class="active">⚙️ Teacher Config</a>
-        </div>
-        
-        <div class="nav-user">
-            <div class="user-info">
-                <div class="user-avatar">KT</div>
-                <span class="teacher-name" id="teacherName">Teacher</span>
-            </div>
-            <div class="nav-buttons">
-                <button class="btn-nav theme-toggle" onclick="toggleDarkMode()">
-                    🌙
-                </button>
-                <a href="profile.html" class="btn-nav">👤 Profile</a>
-                <button class="btn-nav logout" onclick="logout()">🚪 Logout</button>
-            </div>
-        </div>
-    </nav>
+    <div class="nav-links">
+      <a href="./index.html" class="nav-link">📊 Dashboard</a>
+      <a href="./data-entry.html" class="nav-link">📝 Data Entry</a>
+      <a href="./recorded-scores.html" class="nav-link">📋 Scores</a>
+      <a href="./ai-insights.html" class="nav-link">🤖 AI Insights</a>
+      <a href="./averages.html" class="nav-link">📈 Averages</a>
+      <a href="./trends.html" class="nav-link">📊 Trends</a>
+      <a href="./grade-distribution.html" class="nav-link">📈 Distribution</a>
+      <a href="./set-targets.html" class="nav-link">🎯 Targets</a>
+      <a href="./learner-scores.html" class="nav-link">👨‍🎓 Learner Scores</a>
+      <a href="./teacher-config.html" class="nav-link active">⚙️ Configuration</a>
+    </div>
     
-    <!-- Main Content -->
-    <div class="content">
-        <div class="config-container">
-            <h1>Teacher Configuration</h1>
-            <p>Set up your teaching subjects, classes, and academic calendar.</p>
-            
-            <!-- Current Term Information Message -->
-            <div class="current-term-message" id="currentTermMessage">
-                <div>
-                    <strong>Current Term: <span id="currentTermName">Term 1</span></strong>
-                    <div id="currentTermDates">Term dates will appear here once configured</div>
-                </div>
-            </div>
-            
-            <!-- Academic Year Section -->
-            <div class="config-section">
-                <h2>Academic Year</h2>
-                <div class="config-form">
-                    <div class="form-group">
-                        <label for="academicYear">Academic Year</label>
-                        <input type="number" id="academicYear" min="2020" max="2030" value="2025">
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Term Dates Section -->
-            <div class="config-section">
-                <h2>Term Dates</h2>
-                <p>Set the start and end dates for each term. The system will automatically determine the current term.</p>
-                
-                <div class="term-dates-grid">
-                    <div class="term-date-card" id="term1Card">
-                        <h3>Term 1 <span class="current-term-indicator" id="term1Indicator">Current</span></h3>
-                        <div class="date-inputs">
-                            <div class="form-group">
-                                <label for="term1Start">Start Date</label>
-                                <input type="date" id="term1Start">
-                            </div>
-                            <div class="form-group">
-                                <label for="term1End">End Date</label>
-                                <input type="date" id="term1End">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="term-date-card previous-term" id="term2Card">
-                        <h3>Term 2 <span class="current-term-indicator" id="term2Indicator" style="display: none;">Current</span></h3>
-                        <div class="date-inputs">
-                            <div class="form-group">
-                                <label for="term2Start">Start Date</label>
-                                <input type="date" id="term2Start">
-                            </div>
-                            <div class="form-group">
-                                <label for="term2End">End Date</label>
-                                <input type="date" id="term2End">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="term-date-card previous-term" id="term3Card">
-                        <h3>Term 3 <span class="current-term-indicator" id="term3Indicator" style="display: none;">Current</span></h3>
-                        <div class="date-inputs">
-                            <div class="form-group">
-                                <label for="term3Start">Start Date</label>
-                                <input type="date" id="term3Start">
-                            </div>
-                            <div class="form-group">
-                                <label for="term3End">End Date</label>
-                                <input type="date" id="term3End">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-actions">
-                    <button class="btn btn-secondary" onclick="togglePreviousTerms()" id="toggleTermsBtn">
-                        📋 Show Previous Terms
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Subject Assignment Section -->
-            <div class="config-section">
-                <h2>Subject Assignments</h2>
-                <p>Add the subjects you teach and specify the classes and streams for each subject.</p>
-                
-                <div class="config-form">
-                    <div class="form-group">
-                        <label for="subject">Subject</label>
-                        <select id="subject">
-                            <option value="">Select Subject</option>
-                            <option value="Mathematics">Mathematics</option>
-                            <option value="English">English</option>
-                            <option value="Kiswahili">Kiswahili</option>
-                            <option value="Science">Science</option>
-                            <option value="Social Studies">Social Studies</option>
-                            <option value="CRE">CRE</option>
-                            <option value="Agriculture">Agriculture</option>
-                            <option value="ICT">ICT</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="classes">Class</label>
-                        <div class="dropdown-container">
-                            <button class="dropdown-button" id="classesDropdownBtn" onclick="toggleDropdown('classesDropdown')">
-                                <span id="classesButtonText">Select Class</span>
-                                <span>▼</span>
-                            </button>
-                            <div class="dropdown-content" id="classesDropdown">
-                                <!-- Options will be populated by JavaScript -->
-                            </div>
-                            <div id="selectedClassContainer">
-                                <!-- Selected class will appear here -->
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="streams">Stream</label>
-                        <div class="dropdown-container">
-                            <button class="dropdown-button" id="streamsDropdownBtn" onclick="toggleDropdown('streamsDropdown')">
-                                <span id="streamsButtonText">Select Stream</span>
-                                <span>▼</span>
-                            </button>
-                            <div class="dropdown-content" id="streamsDropdown">
-                                <!-- Options will be populated by JavaScript -->
-                            </div>
-                            <div id="selectedStreamContainer">
-                                <!-- Selected stream will appear here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-actions">
-                    <button class="btn btn-primary" onclick="addSubjectAssignment()">
-                        ➕ Add Subject Assignment
-                    </button>
-                    <button class="btn btn-secondary" onclick="clearSubjectForm()">
-                        🗑️ Clear Form
-                    </button>
-                </div>
-                
-                <!-- Subject Assignments Table -->
-                <div class="table-container">
-                    <table class="config-table" id="subjectAssignmentsTable">
-                        <thead>
-                            <tr>
-                                <th>Subject</th>
-                                <th>Class</th>
-                                <th>Stream</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="subjectAssignmentsBody">
-                            <!-- Table rows will be populated here -->
-                        </tbody>
-                    </table>
-                    
-                    <div class="empty-state" id="emptySubjects">
-                        <div class="empty-icon">📚</div>
-                        <p>No subject assignments yet. Add your first assignment above.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Custom Items Section -->
-            <div class="config-section">
-                <h2>Custom Items</h2>
-                <p>Add custom subjects, exam types, or streams if they're not in the default lists.</p>
-                
-                <div class="config-form">
-                    <div class="form-group">
-                        <label for="customType">Type</label>
-                        <select id="customType">
-                            <option value="subject">Custom Subject</option>
-                            <option value="examType">Custom Exam Type</option>
-                            <option value="stream">Custom Stream</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="customName">Name</label>
-                        <input type="text" id="customName" placeholder="Enter custom item name">
-                    </div>
-                </div>
-                
-                <div class="form-actions">
-                    <button class="btn btn-primary" onclick="addCustomItem()">
-                        ➕ Add Custom Item
-                    </button>
-                    <button class="btn btn-secondary" onclick="clearCustomForm()">
-                        🗑️ Clear Form
-                    </button>
-                </div>
-                
-                <!-- Custom Items Tables -->
-                <div class="table-container">
-                    <table class="config-table" id="customSubjectsTable">
-                        <thead>
-                            <tr>
-                                <th>Custom Subjects</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="customSubjectsBody">
-                            <!-- Table rows will be populated here -->
-                        </tbody>
-                    </table>
-                    
-                    <div class="empty-state" id="emptyCustomSubjects">
-                        <div class="empty-icon">📝</div>
-                        <p>No custom subjects yet. Add your first custom subject above.</p>
-                    </div>
-                </div>
-                
-                <div class="table-container">
-                    <table class="config-table" id="customExamTypesTable">
-                        <thead>
-                            <tr>
-                                <th>Custom Exam Types</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="customExamTypesBody">
-                            <!-- Table rows will be populated here -->
-                        </tbody>
-                    </table>
-                    
-                    <div class="empty-state" id="emptyCustomExamTypes">
-                        <div class="empty-icon">📝</div>
-                        <p>No custom exam types yet. Add your first custom exam type above.</p>
-                    </div>
-                </div>
-                
-                <div class="table-container">
-                    <table class="config-table" id="customStreamsTable">
-                        <thead>
-                            <tr>
-                                <th>Custom Streams</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="customStreamsBody">
-                            <!-- Table rows will be populated here -->
-                        </tbody>
-                    </table>
-                    
-                    <div class="empty-state" id="emptyCustomStreams">
-                        <div class="empty-icon">📝</div>
-                        <p>No custom streams yet. Add your first custom stream above.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Save Configuration -->
-            <div class="config-section">
-                <div class="form-actions">
-                    <button class="btn btn-success" onclick="saveConfiguration()">
-                        💾 Save Configuration
-                    </button>
-                    <button class="btn btn-secondary" onclick="resetConfiguration()">
-                        🔄 Reset to Defaults
-                    </button>
-                </div>
-            </div>
-        </div>
+    <div class="nav-user">
+      <span id="teacherName" class="teacher-name">Loading...</span>
+      <button onclick="logout()" class="btn btn-danger btn-small">🚪 Logout</button>
+    </div>
+  </nav>
+
+  <!-- MOBILE MENU TOGGLE -->
+  <button id="mobileMenuToggle" class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+
+  <!-- MOBILE SIDEBAR -->
+  <aside id="mobileSidebar" class="mobile-sidebar closed">
+    <a href="./index.html">📊 Dashboard</a>
+    <a href="./data-entry.html">📝 Data Entry</a>
+    <a href="./recorded-scores.html">📋 Recorded Scores</a>
+    <a href="./ai-insights.html">🤖 AI Insights</a>
+    <a href="./averages.html">📈 Averages</a>
+    <a href="./trends.html">📊 Trends</a>
+    <a href="./grade-distribution.html">📈 Grade Distribution</a>
+    <a href="./set-targets.html">🎯 Set Targets</a>
+    <a href="./learner-scores.html">👨‍🎓 Learner Scores</a>
+    <a href="./teacher-config.html" class="active">⚙️ Configuration</a>
+    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+  </aside>
+
+  <button onclick="toggleDarkMode()" class="floating-top-btn">🌙</button>
+
+  <div class="content">
+    <div class="page-header">
+      <h1>Teacher Configuration</h1>
+      <p>Set up your teaching assignments, term dates, and custom options</p>
+      <p class="teacher-info">Teacher: <span id="currentTeacher">Loading...</span></p>
     </div>
 
-<script>
-    // Configuration data
-    let teacherConfig = {
-        academicYear: new Date().getFullYear(),
-        termDates: {
-            'Term 1': { start: '', end: '' },
-            'Term 2': { start: '', end: '' },
-            'Term 3': { start: '', end: '' }
-        },
-        assignedSubjects: [],
-        customSubjects: [],
-        customExamTypes: [],
-        customStreams: []
-    };
-    
-    // Selected class and stream (single selection)
-    let selectedClass = null;
-    let selectedStream = null;
-    
-    // DOM elements
-    const subjectAssignmentsBody = document.getElementById('subjectAssignmentsBody');
-    const customSubjectsBody = document.getElementById('customSubjectsBody');
-    const customExamTypesBody = document.getElementById('customExamTypesBody');
-    const customStreamsBody = document.getElementById('customStreamsBody');
-    
-    // Initialize the page
-    document.addEventListener('DOMContentLoaded', async function() {
-        await initializeConfiguration();
-        renderConfiguration();
-        updateCurrentTermIndicator();
-        populateDropdowns();
-        setupSyncStatus();
+    <!-- ACADEMIC YEAR & TERM DATES -->
+    <section class="config-section">
+      <h3>📅 Academic Year & Term Dates</h3>
+      
+      <div class="form-group">
+        <label>Academic Year</label>
+        <input type="number" id="academicYear" min="2025" max="2030" value="2025" readonly>
+        <small>Calendar year (automatically set to current year)</small>
+      </div>
+      
+      <div class="date-inputs">
+        <div class="date-group">
+          <label>Term 1 Start Date</label>
+          <input type="date" id="term1Start" class="term-date">
+          <small>Default: January</small>
+        </div>
+        <div class="date-group">
+          <label>Term 1 End Date</label>
+          <input type="date" id="term1End" class="term-date">
+          <small>Default: March</small>
+        </div>
+      </div>
+      
+      <div class="date-inputs">
+        <div class="date-group">
+          <label>Term 2 Start Date</label>
+          <input type="date" id="term2Start" class="term-date">
+          <small>Default: May</small>
+        </div>
+        <div class="date-group">
+          <label>Term 2 End Date</label>
+          <input type="date" id="term2End" class="term-date">
+          <small>Default: July</small>
+        </div>
+      </div>
+      
+      <div class="date-inputs">
+        <div class="date-group">
+          <label>Term 3 Start Date</label>
+          <input type="date" id="term3Start" class="term-date">
+          <small>Default: September</small>
+        </div>
+        <div class="date-group">
+          <label>Term 3 End Date</label>
+          <input type="date" id="term3End" class="term-date">
+          <small>Default: October</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEACHING ASSIGNMENTS -->
+    <section class="config-section">
+      <h3>👨‍🏫 Teaching Assignments</h3>
+      <p>Configure which subjects you teach for specific classes, streams, and terms.</p>
+      
+      <div class="term-toggle">
+        <strong>Display:</strong>
+        <button class="toggle-btn" onclick="togglePreviousTerms()">Show Previous Terms</button>
+      </div>
+      
+      <div id="assignmentsContainer">
+        <!-- Assignments will be populated here -->
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>Subject</label>
+          <select id="newAssignmentSubject">
+            <option value="">Select Subject</option>
+          </select>
+        </div>
         
-        // Set current year as default
-        document.getElementById('academicYear').value = new Date().getFullYear();
+        <div class="form-group">
+          <label>Class/Grade</label>
+          <select id="newAssignmentClass">
+            <option value="">Select Class</option>
+          </select>
+        </div>
         
-        // Close mobile sidebar when clicking outside
-        document.addEventListener('click', function(event) {
-            const mobileSidebar = document.getElementById('mobileSidebar');
-            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-            
-            if (!mobileSidebar.classList.contains('closed') && 
-                !mobileSidebar.contains(event.target) && 
-                !mobileMenuToggle.contains(event.target)) {
-                mobileSidebar.classList.add('closed');
-            }
-            
-            // Close dropdowns when clicking outside
-            if (!event.target.closest('.dropdown-container')) {
-                closeAllDropdowns();
-            }
-        });
+        <div class="form-group">
+          <label>Stream</label>
+          <select id="newAssignmentStream">
+            <option value="">Select Stream</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Terms</label>
+          <div class="term-checkboxes">
+            <label class="term-checkbox">
+              <input type="checkbox" name="newAssignmentTerms" value="Term 1"> Term 1
+            </label>
+            <label class="term-checkbox">
+              <input type="checkbox" name="newAssignmentTerms" value="Term 2"> Term 2
+            </label>
+            <label class="term-checkbox">
+              <input type="checkbox" name="newAssignmentTerms" value="Term 3"> Term 3
+            </label>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <button onclick="addAssignment()" class="btn btn-primary">Add Assignment</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CUSTOM OPTIONS -->
+    <section class="config-section">
+      <h3>⚙️ Custom Options</h3>
+      
+      <div class="form-group">
+        <label>Custom Subjects</label>
+        <input type="text" id="customSubject" placeholder="Enter custom subject name">
+        <button onclick="addCustomSubject()" class="btn btn-secondary">Add Subject</button>
+        <div id="customSubjectsList" class="tag-list"></div>
+      </div>
+      
+      <div class="form-group">
+        <label>Custom Exam Types</label>
+        <input type="text" id="customExamType" placeholder="Enter custom exam type">
+        <button onclick="addCustomExamType()" class="btn btn-secondary">Add Exam Type</button>
+        <div id="customExamTypesList" class="tag-list"></div>
+      </div>
+      
+      <div class="form-group">
+        <label>Custom Streams</label>
+        <input type="text" id="customStream" placeholder="Enter custom stream name">
+        <button onclick="addCustomStream()" class="btn btn-secondary">Add Stream</button>
+        <div id="customStreamsList" class="tag-list"></div>
+      </div>
+    </section>
+
+    <!-- CONFIGURATION ACTIONS -->
+    <section class="config-section">
+      <h3>💾 Save Configuration</h3>
+      
+      <div class="config-actions">
+        <button onclick="saveConfiguration()" class="btn btn-primary">💾 Save Configuration</button>
+        <button onclick="clearAllConfiguration()" class="btn btn-danger">🗑️ Reset Configuration</button>
+        <button onclick="loadConfiguration()" class="btn btn-secondary">🔄 Reload Configuration</button>
+      </div>
+      
+      <div id="configStatus" style="margin-top: 1rem;"></div>
+    </section>
+  </div>
+
+  <footer>SmartScores v3.0 © Kariuki 2025</footer>
+
+  <script>
+    let showPreviousTerms = false;
+    
+    // Initialize configuration page
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🎯 Teacher Configuration page loaded');
+      
+      // Load current configuration
+      loadConfiguration();
+      
+      // Populate dropdowns
+      populateDropdowns();
+      
+      // Update teacher name
+      const teacherName = window.getTeacherName ? window.getTeacherName() : localStorage.getItem('teacherFullName') || 'Guest Teacher';
+      document.getElementById('currentTeacher').textContent = teacherName;
+      document.getElementById('teacherName').textContent = teacherName;
     });
     
-    // Enhanced initialization with cloud sync
-    async function initializeConfiguration() {
-        try {
-            console.log('🔄 Initializing teacher configuration...');
-            
-            // Set teacher name
-            const teacherName = localStorage.getItem('teacherFullName') || 'Teacher';
-            document.getElementById('teacherName').textContent = teacherName;
-            
-            // Load configuration with cloud priority
-            await loadConfiguration();
-            
-            // Migrate existing local data to cloud if needed
-            await migrateLocalConfigToCloud();
-            
-            console.log('✅ Configuration initialized successfully');
-            
-        } catch (error) {
-            console.error('❌ Error initializing configuration:', error);
-            showAlert('Error loading configuration. Using local data.', 'error');
-        }
+    // Load and display current configuration
+    async function loadConfiguration() {
+      try {
+        const config = await loadTeacherConfig();
+        
+        // Set academic year
+        document.getElementById('academicYear').value = config.academicYear;
+        
+        // Set term dates
+        const termDates = config.termDates || {};
+        document.getElementById('term1Start').value = termDates['Term 1']?.start || '';
+        document.getElementById('term1End').value = termDates['Term 1']?.end || '';
+        document.getElementById('term2Start').value = termDates['Term 2']?.start || '';
+        document.getElementById('term2End').value = termDates['Term 2']?.end || '';
+        document.getElementById('term3Start').value = termDates['Term 3']?.start || '';
+        document.getElementById('term3End').value = termDates['Term 3']?.end || '';
+        
+        // Display assignments
+        displayAssignments(config.assignedSubjects || []);
+        
+        // Display custom options
+        displayCustomOptions(config);
+        
+        showStatus('Configuration loaded successfully', 'success');
+      } catch (error) {
+        console.error('Error loading configuration:', error);
+        showStatus('Error loading configuration: ' + error.message, 'error');
+      }
     }
     
-    // Migrate local config to cloud
-    async function migrateLocalConfigToCloud() {
-        if (typeof firebaseSync === 'undefined') return;
-        
-        const user = firebaseAuth ? firebaseAuth.getCurrentUser() : null;
-        if (!user || user.uid === 'local-user') return;
-        
-        // Check if we've already migrated
-        const migrationKey = `config_migrated_${user.uid}`;
-        if (localStorage.getItem(migrationKey)) return;
-        
-        console.log('🔄 Checking for local config to migrate to cloud...');
-        
-        // Check if we have local config but no cloud config
-        const localConfig = localStorage.getItem('teacherConfig');
-        if (localConfig) {
-            const parsedConfig = JSON.parse(localConfig);
-            if (Object.keys(parsedConfig).length > 0) {
-                console.log('📦 Migrating local teacher config to cloud...');
-                await firebaseSync.syncTeacherConfig(parsedConfig);
-                localStorage.setItem(migrationKey, 'true');
-                console.log('✅ Teacher config migrated to cloud');
+    // Save configuration
+    async function saveConfiguration() {
+      try {
+        const config = {
+          academicYear: parseInt(document.getElementById('academicYear').value),
+          termDates: {
+            'Term 1': {
+              start: document.getElementById('term1Start').value,
+              end: document.getElementById('term1End').value
+            },
+            'Term 2': {
+              start: document.getElementById('term2Start').value,
+              end: document.getElementById('term2End').value
+            },
+            'Term 3': {
+              start: document.getElementById('term3Start').value,
+              end: document.getElementById('term3End').value
             }
-        }
-    }
-    
-    // Setup sync status indicator
-    function setupSyncStatus() {
-        if (typeof firebaseSync === 'undefined') return;
-        
-        const updateStatus = () => {
-            const statusDiv = document.getElementById('syncStatus');
-            if (!statusDiv) return;
-            
-            const status = firebaseSync.getSyncStatus();
-            const user = firebaseAuth ? firebaseAuth.getCurrentUser() : null;
-            
-            let statusText = '';
-            let statusColor = '#666';
-            
-            if (!user) {
-                statusText = '🔓';
-                statusColor = '#6B7280';
-            } else if (user.uid === 'local-user') {
-                statusText = '📱';
-                statusColor = '#F59E0B';
-            } else if (!status.isOnline) {
-                statusText = '📴';
-                statusColor = '#EF4444';
-            } else if (status.queueLength > 0) {
-                statusText = `🔄`;
-                statusColor = '#F59E0B';
-            } else {
-                statusText = '☁️';
-                statusColor = '#10B981';
-            }
-            
-            statusDiv.textContent = statusText;
-            statusDiv.style.background = statusColor;
-            statusDiv.title = `Sync Status: ${statusText}\nOnline: ${status.isOnline}\nQueue: ${status.queueLength}`;
+          },
+          assignedSubjects: await getAssignmentsFromUI(),
+          customSubjects: getCustomSubjects(),
+          customExamTypes: getCustomExamTypes(),
+          customStreams: getCustomStreams()
         };
         
-        // Update initially and set up interval
-        updateStatus();
-        setInterval(updateStatus, 5000);
-        
-        // Update on network events
-        window.addEventListener('online', updateStatus);
-        window.addEventListener('offline', updateStatus);
+        const success = await saveTeacherConfig(config);
+        if (success) {
+          showStatus('Configuration saved successfully!', 'success');
+        } else {
+          showStatus('Error saving configuration', 'error');
+        }
+      } catch (error) {
+        console.error('Error saving configuration:', error);
+        showStatus('Error saving configuration: ' + error.message, 'error');
+      }
     }
     
-    // Enhanced load configuration with cloud sync
-    async function loadConfiguration() {
-        try {
-            console.log('📥 Loading teacher configuration...');
-            
-            // Try to load from cloud first if available
-            if (typeof firebaseSync !== 'undefined') {
-                try {
-                    const cloudConfig = await firebaseSync.loadTeacherConfig();
-                    if (cloudConfig && Object.keys(cloudConfig).length > 0) {
-                        teacherConfig = { ...teacherConfig, ...cloudConfig };
-                        console.log('✅ Loaded teacher config from cloud:', cloudConfig);
-                        showAlert('Configuration loaded from cloud!', 'success');
-                        return;
-                    }
-                } catch (cloudError) {
-                    console.warn('⚠️ Cloud load failed, using local fallback:', cloudError);
-                }
-            }
-            
-            // Fallback to local storage
-            const savedConfig = localStorage.getItem('teacherConfig');
-            if (savedConfig) {
-                const parsedConfig = JSON.parse(savedConfig);
-                teacherConfig = { ...teacherConfig, ...parsedConfig };
-                console.log('📱 Loaded teacher config from local storage:', parsedConfig);
-            } else {
-                console.log('ℹ️ No saved configuration found, using defaults');
-            }
-            
-        } catch (error) {
-            console.error('❌ Error loading teacher config:', error);
-            throw error;
-        }
-    }
-    
-    // Enhanced save configuration with cloud sync
-    async function saveConfiguration() {
-        try {
-            console.log('💾 Saving teacher configuration...');
-            
-            // Update configuration from form fields
-            updateConfigurationFromForm();
-            
-            // Validate configuration
-            if (!validateConfiguration()) {
-                showAlert('Please fill in required fields correctly.', 'error');
-                return;
-            }
-            
-            // Save to localStorage first (immediate)
-            localStorage.setItem('teacherConfig', JSON.stringify(teacherConfig));
-            console.log('✅ Saved to local storage');
-            
-            // Save to cloud if available
-            let cloudSaveSuccess = false;
-            if (typeof firebaseSync !== 'undefined') {
-                try {
-                    await firebaseSync.syncTeacherConfig(teacherConfig);
-                    cloudSaveSuccess = true;
-                    console.log('✅ Saved to cloud');
-                } catch (cloudError) {
-                    console.error('❌ Cloud save failed:', cloudError);
-                    // Continue with local save only
-                }
-            }
-            
-            // Show appropriate success message
-            if (cloudSaveSuccess) {
-                showAlert('Configuration saved successfully to cloud! ☁️', 'success');
-            } else {
-                showAlert('Configuration saved locally (cloud unavailable) 📱', 'info');
-            }
-            
-            // Update data entry forms throughout the app
-            if (typeof updateDataEntryForms !== 'undefined') {
-                updateDataEntryForms();
-            }
-            
-            // Re-render the configuration
-            renderConfiguration();
-            
-        } catch (error) {
-            console.error('❌ Error saving teacher config:', error);
-            showAlert('Error saving configuration: ' + error.message, 'error');
-        }
-    }
-    
-    // Validate configuration before saving
-    function validateConfiguration() {
-        // Check if academic year is valid
-        const academicYear = document.getElementById('academicYear').value;
-        if (!academicYear || academicYear < 2020 || academicYear > 2030) {
-            showAlert('Please enter a valid academic year (2020-2030)', 'error');
-            return false;
-        }
-        
-        // Check term dates for logical consistency
-        const term1Start = document.getElementById('term1Start').value;
-        const term1End = document.getElementById('term1End').value;
-        
-        if (term1Start && term1End) {
-            const start = new Date(term1Start);
-            const end = new Date(term1End);
-            if (start >= end) {
-                showAlert('Term 1 end date must be after start date', 'error');
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    
-    // Populate dropdown options (your existing function)
+    // Populate dropdowns with available options
     function populateDropdowns() {
-        // Classes dropdown
-        const classesDropdown = document.getElementById('classesDropdown');
-        const classes = ['Foundation Class', 'PP1', 'PP2', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 
-                        'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9'];
-        
-        classesDropdown.innerHTML = classes.map(className => `
-            <div class="dropdown-option" onclick="selectItem('class', '${className}')">
-                ${className}
-            </div>
-        `).join('');
-        
-        // Streams dropdown
-        const streamsDropdown = document.getElementById('streamsDropdown');
-        const streams = ['Faith', 'Glory', 'Joy', 'Love', 'Peace', 'Unity'];
-        
-        streamsDropdown.innerHTML = streams.map(stream => `
-            <div class="dropdown-option" onclick="selectItem('stream', '${stream}')">
-                ${stream}
-            </div>
-        `).join('');
+      // Populate subject dropdown
+      const subjectSelect = document.getElementById('newAssignmentSubject');
+      const allSubjects = window.getAllSubjects ? window.getAllSubjects() : [
+        'Mathematics', 'English', 'Kiswahili', 'Science', 'Social Studies', 
+        'CRE', 'Pre-technical Studies', 'Creative Arts', 'Agriculture'
+      ];
+      
+      allSubjects.forEach(subject => {
+        const option = document.createElement('option');
+        option.value = subject;
+        option.textContent = subject;
+        subjectSelect.appendChild(option);
+      });
+      
+      // Populate class dropdown
+      const classSelect = document.getElementById('newAssignmentClass');
+      const defaultClasses = [
+        'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9'
+      ];
+      
+      defaultClasses.forEach(className => {
+        const option = document.createElement('option');
+        option.value = className;
+        option.textContent = className;
+        classSelect.appendChild(option);
+      });
+      
+      // Populate stream dropdown
+      const streamSelect = document.getElementById('newAssignmentStream');
+      const allStreams = window.getAllStreams ? window.getAllStreams() : [
+        'Faith', 'Glory', 'Joy', 'Love', 'Peace', 'Unity'
+      ];
+      
+      allStreams.forEach(stream => {
+        const option = document.createElement('option');
+        option.value = stream;
+        option.textContent = stream;
+        streamSelect.appendChild(option);
+      });
     }
     
-    // Toggle dropdown visibility
-    function toggleDropdown(dropdownId) {
-        const dropdown = document.getElementById(dropdownId);
-        const isShowing = dropdown.classList.contains('show');
-        
-        closeAllDropdowns();
-        
-        if (!isShowing) {
-            dropdown.classList.add('show');
-        }
-    }
-    
-    // Close all dropdowns
-    function closeAllDropdowns() {
-        document.querySelectorAll('.dropdown-content').forEach(dropdown => {
-            dropdown.classList.remove('show');
-        });
-    }
-    
-    // Select an item from dropdown
-    function selectItem(type, value) {
-        if (type === 'class') {
-            selectedClass = value;
-            updateSelectedItem('selectedClassContainer', selectedClass, 'class');
-            document.getElementById('classesButtonText').textContent = value;
-        } else if (type === 'stream') {
-            selectedStream = value;
-            updateSelectedItem('selectedStreamContainer', selectedStream, 'stream');
-            document.getElementById('streamsButtonText').textContent = value;
-        }
-        
-        // Close dropdown after selection
-        closeAllDropdowns();
-    }
-    
-    // Update selected item display
-    function updateSelectedItem(containerId, item, type) {
-        const container = document.getElementById(containerId);
-        
-        if (!item) {
-            container.innerHTML = '';
-            return;
+    // Display assignments in the UI
+    function displayAssignments(assignments) {
+      const container = document.getElementById('assignmentsContainer');
+      const currentTerm = window.getCurrentTerm ? window.getCurrentTerm() : 'Term 1';
+      
+      if (assignments.length === 0) {
+        container.innerHTML = '<div class="empty-assignments">No assignments configured yet</div>';
+        return;
+      }
+      
+      let html = '';
+      
+      assignments.forEach((assignment, index) => {
+        // Filter based on term display setting
+        if (!showPreviousTerms && assignment.terms && !assignment.terms.includes(currentTerm)) {
+          return; // Skip assignments not for current term
         }
         
-        container.innerHTML = `
-            <div class="selected-item">
-                ${item}
-                <button onclick="removeSelectedItem('${type}')">×</button>
+        html += `
+          <div class="assignment-row">
+            <div>
+              <strong>${assignment.subject}</strong>
+              <div>${assignment.class} • ${assignment.stream}</div>
             </div>
+            <div>
+              <strong>Terms:</strong>
+              <div>${(assignment.terms || []).join(', ')}</div>
+            </div>
+            <div class="config-actions">
+              <button onclick="deleteAssignment(${index})" class="delete-assignment">Delete</button>
+            </div>
+          </div>
         `;
+      });
+      
+      container.innerHTML = html || '<div class="empty-assignments">No assignments match current filter</div>';
     }
     
-    // Remove selected item
-    function removeSelectedItem(type) {
-        if (type === 'class') {
-            selectedClass = null;
-            updateSelectedItem('selectedClassContainer', null, 'class');
-            document.getElementById('classesButtonText').textContent = 'Select Class';
-        } else if (type === 'stream') {
-            selectedStream = null;
-            updateSelectedItem('selectedStreamContainer', null, 'stream');
-            document.getElementById('streamsButtonText').textContent = 'Select Stream';
-        }
+    // Get assignments from UI (for saving)
+    async function getAssignmentsFromUI() {
+      const config = await loadTeacherConfig();
+      return config.assignedSubjects || [];
     }
     
-    // Toggle previous terms visibility
-    function togglePreviousTerms() {
-        const previousTerms = document.querySelectorAll('.previous-term');
-        const toggleBtn = document.getElementById('toggleTermsBtn');
+    // Add new assignment
+    function addAssignment() {
+      const subject = document.getElementById('newAssignmentSubject').value;
+      const className = document.getElementById('newAssignmentClass').value;
+      const stream = document.getElementById('newAssignmentStream').value;
+      const termCheckboxes = document.querySelectorAll('input[name="newAssignmentTerms"]:checked');
+      const terms = Array.from(termCheckboxes).map(cb => cb.value);
+      
+      if (!subject || !className || !stream || terms.length === 0) {
+        showStatus('Please fill all assignment fields and select at least one term', 'error');
+        return;
+      }
+      
+      // Add assignment to configuration
+      loadTeacherConfig().then(config => {
+        const newAssignment = {
+          subject,
+          class: className,
+          stream,
+          terms
+        };
         
-        const isHidden = previousTerms[0].style.display === 'none' || 
-                        previousTerms[0].classList.contains('previous-term');
+        config.assignedSubjects = config.assignedSubjects || [];
+        config.assignedSubjects.push(newAssignment);
         
-        if (isHidden) {
-            previousTerms.forEach(term => {
-                term.style.display = 'block';
-                term.classList.remove('previous-term');
-            });
-            toggleBtn.innerHTML = '📋 Hide Previous Terms';
-        } else {
-            previousTerms.forEach(term => {
-                term.style.display = 'none';
-                term.classList.add('previous-term');
-            });
-            toggleBtn.innerHTML = '📋 Show Previous Terms';
-        }
-    }
-    
-    // Load configuration from localStorage and cloud
-    async function loadConfiguration() {
-        try {
-            // Try to load from cloud first if available
-            if (typeof firebaseSync !== 'undefined') {
-                const cloudConfig = await firebaseSync.loadData('teacherConfig');
-                if (cloudConfig) {
-                    teacherConfig = { ...teacherConfig, ...cloudConfig };
-                    console.log('✅ Loaded teacher config from cloud');
-                    return;
-                }
-            }
-            
-            // Fallback to local storage
-            const savedConfig = localStorage.getItem('teacherConfig');
-            if (savedConfig) {
-                teacherConfig = JSON.parse(savedConfig);
-                console.log('📱 Loaded teacher config from local storage');
-            }
-        } catch (error) {
-            console.error('Error loading teacher config:', error);
-            // Ensure we have a valid config object
-            teacherConfig = { ...teacherConfig };
-        }
-    }
-    
-    // Save configuration to localStorage and cloud
-    async function saveConfiguration() {
-        // Update configuration from form fields
-        updateConfigurationFromForm();
-        
-        try {
-            // Save to localStorage
-            localStorage.setItem('teacherConfig', JSON.stringify(teacherConfig));
-            
-            // Save to cloud if available
-            if (typeof firebaseSync !== 'undefined') {
-                await firebaseSync.saveData('teacherConfig', teacherConfig);
-                console.log('✅ Teacher config saved to cloud');
-            }
-            
-            // Show success message
-            showAlert('Configuration saved successfully!', 'success');
-            
-            // Update data entry forms throughout the app
-            if (typeof updateDataEntryForms !== 'undefined') {
-                updateDataEntryForms();
-            }
-            
-            // Re-render the configuration
-            renderConfiguration();
-            
-        } catch (error) {
-            console.error('Error saving teacher config:', error);
-            showAlert('Error saving configuration: ' + error.message, 'error');
-        }
-    }
-    
-    // Update configuration from form fields
-    function updateConfigurationFromForm() {
-        // Academic year
-        teacherConfig.academicYear = document.getElementById('academicYear').value;
-        
-        // Term dates
-        teacherConfig.termDates['Term 1'].start = document.getElementById('term1Start').value;
-        teacherConfig.termDates['Term 1'].end = document.getElementById('term1End').value;
-        teacherConfig.termDates['Term 2'].start = document.getElementById('term2Start').value;
-        teacherConfig.termDates['Term 2'].end = document.getElementById('term2End').value;
-        teacherConfig.termDates['Term 3'].start = document.getElementById('term3Start').value;
-        teacherConfig.termDates['Term 3'].end = document.getElementById('term3End').value;
-    }
-    
-    // Render configuration to the page
-    function renderConfiguration() {
-        // Academic year
-        document.getElementById('academicYear').value = teacherConfig.academicYear;
-        
-        // Term dates
-        document.getElementById('term1Start').value = teacherConfig.termDates['Term 1'].start;
-        document.getElementById('term1End').value = teacherConfig.termDates['Term 1'].end;
-        document.getElementById('term2Start').value = teacherConfig.termDates['Term 2'].start;
-        document.getElementById('term2End').value = teacherConfig.termDates['Term 2'].end;
-        document.getElementById('term3Start').value = teacherConfig.termDates['Term 3'].start;
-        document.getElementById('term3End').value = teacherConfig.termDates['Term 3'].end;
-        
-        // Subject assignments
-        renderSubjectAssignments();
-        
-        // Custom items
-        renderCustomItems();
-        
-        // Update current term indicator
-        updateCurrentTermIndicator();
-    }
-    
-    // Render subject assignments table
-    function renderSubjectAssignments() {
-        const assignments = teacherConfig.assignedSubjects;
-        
-        if (assignments.length === 0) {
-            document.getElementById('emptySubjects').style.display = 'block';
-            subjectAssignmentsBody.innerHTML = '';
-            return;
-        }
-        
-        document.getElementById('emptySubjects').style.display = 'none';
-        
-        subjectAssignmentsBody.innerHTML = assignments.map((assignment, index) => `
-            <tr>
-                <td>${assignment.subject}</td>
-                <td>${assignment.class}</td>
-                <td>${assignment.stream}</td>
-                <td>
-                    <button class="btn btn-danger btn-small" onclick="deleteSubjectAssignment(${index})">
-                        🗑️ Delete
-                    </button>
-                </td>
-            </tr>
-        `).join('');
-    }
-    
-    // Render custom items tables
-    function renderCustomItems() {
-        // Custom subjects
-        if (teacherConfig.customSubjects.length === 0) {
-            document.getElementById('emptyCustomSubjects').style.display = 'block';
-            customSubjectsBody.innerHTML = '';
-        } else {
-            document.getElementById('emptyCustomSubjects').style.display = 'none';
-            customSubjectsBody.innerHTML = teacherConfig.customSubjects.map((subject, index) => `
-                <tr>
-                    <td>${subject}</td>
-                    <td>
-                        <button class="btn btn-danger btn-small" onclick="deleteCustomSubject(${index})">
-                            🗑️ Delete
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-        
-        // Custom exam types
-        if (teacherConfig.customExamTypes.length === 0) {
-            document.getElementById('emptyCustomExamTypes').style.display = 'block';
-            customExamTypesBody.innerHTML = '';
-        } else {
-            document.getElementById('emptyCustomExamTypes').style.display = 'none';
-            customExamTypesBody.innerHTML = teacherConfig.customExamTypes.map((examType, index) => `
-                <tr>
-                    <td>${examType}</td>
-                    <td>
-                        <button class="btn btn-danger btn-small" onclick="deleteCustomExamType(${index})">
-                            🗑️ Delete
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-        
-        // Custom streams
-        if (teacherConfig.customStreams.length === 0) {
-            document.getElementById('emptyCustomStreams').style.display = 'block';
-            customStreamsBody.innerHTML = '';
-        } else {
-            document.getElementById('emptyCustomStreams').style.display = 'none';
-            customStreamsBody.innerHTML = teacherConfig.customStreams.map((stream, index) => `
-                <tr>
-                    <td>${stream}</td>
-                    <td>
-                        <button class="btn btn-danger btn-small" onclick="deleteCustomStream(${index})">
-                            🗑️ Delete
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-    }
-    
-    // Add subject assignment
-    async function addSubjectAssignment() {
-        const subject = document.getElementById('subject').value;
-        const classItem = selectedClass;
-        const stream = selectedStream;
-        
-        if (!subject || !classItem || !stream) {
-            showAlert('Please select a subject, class, and stream.', 'error');
-            return;
-        }
-        
-        // Check for duplicate
-        const isDuplicate = teacherConfig.assignedSubjects.some(assignment => 
-            assignment.subject === subject && 
-            assignment.class === classItem &&
-            assignment.stream === stream
-        );
-        
-        if (isDuplicate) {
-            showAlert('This subject assignment already exists!', 'error');
-            return;
-        }
-        
-        // Add to configuration
-        teacherConfig.assignedSubjects.push({
-            subject,
-            class: classItem,
-            stream
+        // Save and reload
+        saveTeacherConfig(config).then(success => {
+          if (success) {
+            displayAssignments(config.assignedSubjects);
+            // Clear form
+            document.getElementById('newAssignmentSubject').value = '';
+            document.getElementById('newAssignmentClass').value = '';
+            document.getElementById('newAssignmentStream').value = '';
+            document.querySelectorAll('input[name="newAssignmentTerms"]').forEach(cb => cb.checked = false);
+            showStatus('Assignment added successfully', 'success');
+          }
         });
-        
-        // Save to cloud and local storage
-        await saveConfiguration();
-        
-        // Clear form
-        clearSubjectForm();
-        
-        showAlert('Subject assignment added successfully!', 'success');
+      });
     }
     
-    // Delete subject assignment
-    async function deleteSubjectAssignment(index) {
-        if (confirm('Are you sure you want to delete this subject assignment?')) {
-            teacherConfig.assignedSubjects.splice(index, 1);
-            
-            // Save to cloud and local storage
-            await saveConfiguration();
-            
-            showAlert('Subject assignment deleted successfully!', 'success');
-        }
-    }
-    
-    // Clear subject form
-    function clearSubjectForm() {
-        document.getElementById('subject').value = '';
-        
-        // Clear selected class
-        removeSelectedItem('class');
-        
-        // Clear selected stream
-        removeSelectedItem('stream');
-    }
-    
-    // Add custom item
-    async function addCustomItem() {
-        const type = document.getElementById('customType').value;
-        const name = document.getElementById('customName').value.trim();
-        
-        if (!name) {
-            showAlert('Please enter a name for the custom item.', 'error');
-            return;
-        }
-        
-        // Check for duplicates
-        let isDuplicate = false;
-        let targetArray;
-        
-        switch (type) {
-            case 'subject':
-                targetArray = teacherConfig.customSubjects;
-                isDuplicate = targetArray.includes(name);
-                break;
-            case 'examType':
-                targetArray = teacherConfig.customExamTypes;
-                isDuplicate = targetArray.includes(name);
-                break;
-            case 'stream':
-                targetArray = teacherConfig.customStreams;
-                isDuplicate = targetArray.includes(name);
-                break;
-        }
-        
-        if (isDuplicate) {
-            showAlert('This custom item already exists!', 'error');
-            return;
-        }
-        
-        // Add to configuration
-        targetArray.push(name);
-        
-        // Save to cloud and local storage
-        await saveConfiguration();
-        
-        // Clear form
-        clearCustomForm();
-        
-        showAlert('Custom item added successfully!', 'success');
-    }
-    
-    // Delete custom subject
-    async function deleteCustomSubject(index) {
-        if (confirm('Are you sure you want to delete this custom subject?')) {
-            teacherConfig.customSubjects.splice(index, 1);
-            
-            // Save to cloud and local storage
-            await saveConfiguration();
-            
-            showAlert('Custom subject deleted successfully!', 'success');
-        }
-    }
-    
-    // Delete custom exam type
-    async function deleteCustomExamType(index) {
-        if (confirm('Are you sure you want to delete this custom exam type?')) {
-            teacherConfig.customExamTypes.splice(index, 1);
-            
-            // Save to cloud and local storage
-            await saveConfiguration();
-            
-            showAlert('Custom exam type deleted successfully!', 'success');
-        }
-    }
-    
-    // Delete custom stream
-    async function deleteCustomStream(index) {
-        if (confirm('Are you sure you want to delete this custom stream?')) {
-            teacherConfig.customStreams.splice(index, 1);
-            
-            // Save to cloud and local storage
-            await saveConfiguration();
-            
-            showAlert('Custom stream deleted successfully!', 'success');
-        }
-    }
-    
-    // Clear custom form
-    function clearCustomForm() {
-        document.getElementById('customName').value = '';
-    }
-    
-    // Reset configuration to defaults
-    async function resetConfiguration() {
-        if (confirm('Are you sure you want to reset all configuration to defaults? This cannot be undone.')) {
-            teacherConfig = {
-                academicYear: new Date().getFullYear(),
-                termDates: {
-                    'Term 1': { start: '', end: '' },
-                    'Term 2': { start: '', end: '' },
-                    'Term 3': { start: '', end: '' }
-                },
-                assignedSubjects: [],
-                customSubjects: [],
-                customExamTypes: [],
-                customStreams: []
-            };
-            
-            // Save the reset configuration
-            await saveConfiguration();
-            
-            showAlert('Configuration reset to defaults!', 'success');
-        }
-    }
-    
-    // Update current term indicator
-    function updateCurrentTermIndicator() {
-        // Hide all indicators first
-        document.getElementById('term1Indicator').style.display = 'none';
-        document.getElementById('term2Indicator').style.display = 'none';
-        document.getElementById('term3Indicator').style.display = 'none';
-        
-        // Determine current term based on dates
-        const now = new Date();
-        let currentTerm = 'Term 1'; // Default
-        
-        for (const [term, dates] of Object.entries(teacherConfig.termDates)) {
-            if (dates.start && dates.end) {
-                const start = new Date(dates.start);
-                const end = new Date(dates.end);
-                
-                if (now >= start && now <= end) {
-                    currentTerm = term;
-                    break;
-                }
+    // Delete assignment
+    function deleteAssignment(index) {
+      if (confirm('Are you sure you want to delete this assignment?')) {
+        loadTeacherConfig().then(config => {
+          config.assignedSubjects.splice(index, 1);
+          saveTeacherConfig(config).then(success => {
+            if (success) {
+              displayAssignments(config.assignedSubjects);
+              showStatus('Assignment deleted successfully', 'success');
             }
-        }
-        
-        // Fallback: if no dates are set, determine by month
-        if (!teacherConfig.termDates['Term 1'].start) {
-            const currentMonth = now.getMonth() + 1;
-            if (currentMonth >= 1 && currentMonth <= 4) {
-                currentTerm = 'Term 1';
-            } else if (currentMonth >= 5 && currentMonth <= 8) {
-                currentTerm = 'Term 2';
-            } else {
-                currentTerm = 'Term 3';
+          });
+        });
+      }
+    }
+    
+    // Toggle previous terms display
+    function togglePreviousTerms() {
+      showPreviousTerms = !showPreviousTerms;
+      const button = document.querySelector('.toggle-btn');
+      button.textContent = showPreviousTerms ? 'Hide Previous Terms' : 'Show Previous Terms';
+      loadConfiguration(); // Reload to update display
+    }
+    
+    // Custom options management
+    function displayCustomOptions(config) {
+      displayTagList('customSubjectsList', config.customSubjects || [], 'customSubject');
+      displayTagList('customExamTypesList', config.customExamTypes || [], 'customExamType');
+      displayTagList('customStreamsList', config.customStreams || [], 'customStream');
+    }
+    
+    function displayTagList(containerId, items, type) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = items.map(item => 
+        `<span class="tag">${item} <button onclick="removeCustomItem('${type}', '${item}')">×</button></span>`
+      ).join('');
+    }
+    
+    function addCustomSubject() {
+      addCustomItem('customSubject', 'customSubjects');
+    }
+    
+    function addCustomExamType() {
+      addCustomItem('customExamType', 'customExamTypes');
+    }
+    
+    function addCustomStream() {
+      addCustomItem('customStream', 'customStreams');
+    }
+    
+    function addCustomItem(inputId, configKey) {
+      const input = document.getElementById(inputId);
+      const value = input.value.trim();
+      
+      if (!value) {
+        showStatus('Please enter a value', 'error');
+        return;
+      }
+      
+      loadTeacherConfig().then(config => {
+        config[configKey] = config[configKey] || [];
+        if (!config[configKey].includes(value)) {
+          config[configKey].push(value);
+          saveTeacherConfig(config).then(success => {
+            if (success) {
+              input.value = '';
+              displayCustomOptions(config);
+              showStatus('Item added successfully', 'success');
             }
+          });
+        } else {
+          showStatus('Item already exists', 'error');
         }
-        
-        // Show indicator for current term
-        document.getElementById(`${currentTerm.toLowerCase().replace(' ', '')}Indicator`).style.display = 'inline-block';
-        
-        // Update current term message
-        const termDates = teacherConfig.termDates[currentTerm];
-        const startDate = termDates.start ? new Date(termDates.start).toLocaleDateString() : 'Not set';
-        const endDate = termDates.end ? new Date(termDates.end).toLocaleDateString() : 'Not set';
-        
-        document.getElementById('currentTermName').textContent = currentTerm;
-        document.getElementById('currentTermDates').textContent = 
-            `${startDate} - ${endDate}`;
+      });
     }
     
-    // Show alert message
-    function showAlert(message, type) {
-        // Remove any existing alerts
-        const existingAlert = document.querySelector('.custom-alert');
-        if (existingAlert) {
-            existingAlert.remove();
-        }
-        
-        // Create alert element
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `custom-alert alert-${type}`;
-        alertDiv.textContent = message;
-        
-        // Add to page
-        document.body.appendChild(alertDiv);
-        
-        // Remove after 4 seconds
-        setTimeout(() => {
-            alertDiv.remove();
-        }, 4000);
+    function removeCustomItem(type, value) {
+      const configMap = {
+        'customSubject': 'customSubjects',
+        'customExamType': 'customExamTypes', 
+        'customStream': 'customStreams'
+      };
+      
+      const configKey = configMap[type];
+      if (!configKey) return;
+      
+      loadTeacherConfig().then(config => {
+        config[configKey] = config[configKey].filter(item => item !== value);
+        saveTeacherConfig(config).then(success => {
+          if (success) {
+            displayCustomOptions(config);
+            showStatus('Item removed successfully', 'success');
+          }
+        });
+      });
     }
     
-    // Toggle mobile menu
-    function toggleMobileMenu() {
-        const mobileSidebar = document.getElementById('mobileSidebar');
-        const toggleBtn = document.getElementById('mobileMenuToggle');
-        
-        mobileSidebar.classList.toggle('closed');
-        
-        // Update toggle button text
-        if (toggleBtn) {
-            toggleBtn.textContent = mobileSidebar.classList.contains('closed') ? '☰' : '✕';
-        }
+    function getCustomSubjects() {
+      return getCustomItems('customSubjectsList');
     }
     
-    // Toggle dark mode
-    function toggleDarkMode() {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('themeMode', newTheme);
-        showAlert(`Switched to ${newTheme} mode`, 'success');
+    function getCustomExamTypes() {
+      return getCustomItems('customExamTypesList');
     }
     
-    // Logout function
-    function logout() {
-        if (confirm('Are you sure you want to log out?')) {
-            // Clear session data
-            localStorage.removeItem('teacherFullName');
-            localStorage.removeItem('teacherFirstName');
-            
-            // Redirect to login page
-            window.location.href = 'login.html';
-        }
+    function getCustomStreams() {
+      return getCustomItems('customStreamsList');
     }
-
+    
+    function getCustomItems(containerId) {
+      const container = document.getElementById(containerId);
+      return Array.from(container.querySelectorAll('.tag')).map(tag => 
+        tag.textContent.replace('×', '').trim()
+      );
+    }
+    
+    // Utility functions
+    function showStatus(message, type) {
+      const statusEl = document.getElementById('configStatus');
+      statusEl.textContent = message;
+      statusEl.className = type;
+      statusEl.style.display = 'block';
+      
+      setTimeout(() => {
+        statusEl.style.display = 'none';
+      }, 3000);
+    }
+    
     // Make functions available globally
-    window.addSubjectAssignment = addSubjectAssignment;
-    window.deleteSubjectAssignment = deleteSubjectAssignment;
-    window.clearSubjectForm = clearSubjectForm;
-    window.addCustomItem = addCustomItem;
-    window.deleteCustomSubject = deleteCustomSubject;
-    window.deleteCustomExamType = deleteCustomExamType;
-    window.deleteCustomStream = deleteCustomStream;
-    window.clearCustomForm = clearCustomForm;
-    window.resetConfiguration = resetConfiguration;
+    window.loadConfiguration = loadConfiguration;
     window.saveConfiguration = saveConfiguration;
+    window.addAssignment = addAssignment;
+    window.deleteAssignment = deleteAssignment;
     window.togglePreviousTerms = togglePreviousTerms;
-    window.toggleDropdown = toggleDropdown;
-    window.selectItem = selectItem;
-    window.removeSelectedItem = removeSelectedItem;
-    window.toggleMobileMenu = toggleMobileMenu;
-    window.toggleDarkMode = toggleDarkMode;
-    window.logout = logout;
-</script>
+    window.addCustomSubject = addCustomSubject;
+    window.addCustomExamType = addCustomExamType;
+    window.addCustomStream = addCustomStream;
+    window.removeCustomItem = removeCustomItem;
+  </script>
 </body>
 </html>
