@@ -1676,9 +1676,9 @@ window.deleteTarget = (index) => {
 };
 
 // ==================== RECORD MANAGEMENT ====================
-// ==================== FIXED DELETE FUNCTION WITH CLOUD SYNC ====================
-window.deleteRecord = async (index) => {
-    console.log('Delete clicked for index:', index);
+// ==================== FIXED DELETE FUNCTION ====================
+window.deleteRecord = (index) => {
+    console.log('Delete clicked for index:', index); // Debug log
     
     if (confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
         const records = loadRecords();
@@ -1686,55 +1686,32 @@ window.deleteRecord = async (index) => {
         // Validate index
         if (index >= 0 && index < records.length) {
             const deletedRecord = records[index];
+            records.splice(index, 1);
             
-            try {
-                // 1. Remove from local storage
-                records.splice(index, 1);
-                const localSuccess = saveRecords(records);
+            if (saveRecords(records)) {
+                showAlert(`Record deleted: ${deletedRecord.subject} - ${deletedRecord.grade}`, 'success');
                 
-                if (localSuccess) {
-                    console.log('✅ Record deleted locally:', deletedRecord);
-                    
-                    // 2. Delete from Firebase if cloud sync is available
-                    if (typeof firebaseSync !== 'undefined') {
-                        try {
-                            // Save the updated records array to Firebase (which effectively deletes the record)
-                            await firebaseSync.saveRecords(records);
-                            console.log('✅ Record deleted from cloud');
-                            showAlert(`Record deleted: ${deletedRecord.subject} - ${deletedRecord.grade}`, 'success');
-                        } catch (cloudError) {
-                            console.error('❌ Error deleting from cloud:', cloudError);
-                            showAlert('Record deleted locally but cloud sync failed', 'warning');
+                // Re-render everything
+                renderAll();
+                
+                // Special handling for recorded-scores page
+                if (window.location.pathname.includes('recorded-scores.html')) {
+                    setTimeout(() => {
+                        renderRecords();
+                        if (window.applyTermFilter) {
+                            applyTermFilter(); // Re-apply current filter
                         }
-                    } else {
-                        showAlert(`Record deleted: ${deletedRecord.subject} - ${deletedRecord.grade}`, 'success');
-                    }
-                    
-                    // 3. Re-render everything
-                    await renderAll();
-                    
-                    // 4. Special handling for recorded-scores page
-                    if (window.location.pathname.includes('recorded-scores.html')) {
-                        setTimeout(() => {
-                            renderRecords();
-                            if (window.applyTermFilter) {
-                                applyTermFilter(); // Re-apply current filter
-                            }
-                        }, 100);
-                    }
-                } else {
-                    throw new Error('Failed to save records after deletion');
+                    }, 100);
                 }
-            } catch (error) {
-                console.error('Error in deleteRecord:', error);
-                showAlert('Error deleting record: ' + error.message, 'error');
+            } else {
+                showAlert('Error deleting record from storage', 'error');
             }
         } else {
             console.error('Invalid index for deletion:', index, 'Records length:', records.length);
             showAlert('Error: Could not find record to delete', 'error');
             
             // Force refresh as fallback
-            await renderAll();
+            renderAll();
         }
     }
 };
@@ -2727,44 +2704,44 @@ const renderRecords = () => {
         targetMap[key] = target.score;
     });
     
-tbody.innerHTML = filteredRecords.map((record, index) => {
-    // Find the original index in allRecords for deletion - FIXED
-    const originalIndex = allRecords.findIndex(r => 
-        r.id === record.id && 
-        r.subject === record.subject && 
-        r.grade === record.grade &&
-        r.term === record.term
-    );
-    
-    const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
-    const targetScore = targetMap[key] || null;
-    const deviation = targetScore !== null ? record.mean - targetScore : null;
-    const deviationStr = deviation !== null ? `${deviation >= 0 ? '+' : ''}${deviation.toFixed(1)}%` : '–';
-    const rubricBadge = formatRubricBadge(record.mean);
-    
-    return `
-        <tr>
-            <td>${record.teacher || '–'}</td>
-            <td>${record.subject || '–'}</td>
-            <td>${record.grade || '–'}</td>
-            <td>${record.stream || '–'}</td>
-            <td>${record.term || '–'}</td>
-            <td>${record.examType || '–'}</td>
-            <td>${record.year || '–'}</td>
-            <td style="font-weight: bold;">${record.mean.toFixed(1)}%</td>
-            <td>${targetScore !== null ? targetScore.toFixed(1) + '%' : '–'}</td>
-            <td style="color: ${deviation !== null ? (deviation >= 0 ? '#10b981' : '#ef4444') : '#666'}; font-weight: bold;">
-                ${deviationStr}
-            </td>
-            <td>${rubricBadge}</td>
-            <td>
-                <button onclick="deleteRecord(${originalIndex})" class="btn btn-danger small" ${originalIndex === -1 ? 'disabled' : ''}>
-                    ${originalIndex === -1 ? 'N/A' : 'Delete'}
-                </button>
-            </td>
-        </tr>
-    `;
-}).join('');
+    tbody.innerHTML = filteredRecords.map((record, index) => {
+        // Find the original index in allRecords for deletion - FIXED
+        const originalIndex = allRecords.findIndex(r => 
+            r.id === record.id && 
+            r.subject === record.subject && 
+            r.grade === record.grade &&
+            r.term === record.term
+        );
+        
+        const key = `${record.subject}|${record.grade}|${record.stream}|${record.term}|${record.examType}`;
+        const targetScore = targetMap[key] || null;
+        const deviation = targetScore !== null ? record.mean - targetScore : null;
+        const deviationStr = deviation !== null ? `${deviation >= 0 ? '+' : ''}${deviation.toFixed(1)}%` : '–';
+        const rubricBadge = formatRubricBadge(record.mean);
+        
+        return `
+            <tr>
+                <td>${record.teacher || '–'}</td>
+                <td>${record.subject || '–'}</td>
+                <td>${record.grade || '–'}</td>
+                <td>${record.stream || '–'}</td>
+                <td>${record.term || '–'}</td>
+                <td>${record.examType || '–'}</td>
+                <td>${record.year || '–'}</td>
+                <td style="font-weight: bold;">${record.mean.toFixed(1)}%</td>
+                <td>${targetScore !== null ? targetScore.toFixed(1) + '%' : '–'}</td>
+                <td style="color: ${deviation !== null ? (deviation >= 0 ? '#10b981' : '#ef4444') : '#666'}; font-weight: bold;">
+                    ${deviationStr}
+                </td>
+                <td>${rubricBadge}</td>
+                <td>
+                    <button onclick="deleteRecord(${originalIndex})" class="btn btn-danger small" ${originalIndex === -1 ? 'disabled' : ''}>
+                        ${originalIndex === -1 ? 'N/A' : 'Delete'}
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
     
     // Update summary statistics
     updateSummaryStats(filteredRecords, allRecords);
