@@ -1449,15 +1449,34 @@ const ensureTermFilterUI = () => {
     }
 };
 
-// Update your DOMContentLoaded event listener
+// ==================== INITIALIZATION ====================
+
 document.addEventListener('DOMContentLoaded', async () => {
-    // Existing code...
+    console.log('🔄 Initializing enhanced Teacher Configuration system...');
     
-    // Ensure term filter UI is created for recorded-scores page
-    ensureTermFilterUI();
+    // Load theme
+    loadTheme();
     
-    // Rest of your initialization code...
+    // Auto-fill year
+    autoFillYear();
+    
+    // Update forms with teacher configuration
+    updateDataEntryForms();
+    updateTargetsForms();
+    
+    // Update configuration notices
+    updateConfigurationNotice();
+    
+    // Setup mobile navigation
+    setupMobileSidebarAutoClose();
+    
+    // Initial render
+    await renderAll();
+    
+    // Signal that app.js is ready
+    document.dispatchEvent(new Event('appJsReady'));
 });
+
 
 // ==================== DATA MIGRATION ====================
 const migrateExistingData = async () => {
