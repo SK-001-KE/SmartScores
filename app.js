@@ -2629,6 +2629,89 @@ window.downloadPDF = () => {
         }
     }
 };
+   // ==================== UNIFIED FILTERING SYSTEM ====================
+
+// Core filtering functions for all pages
+function getClassesForTerm(term) {
+    try {
+        const config = loadTeacherConfig();
+        const assignments = config.assignedSubjects || [];
+        
+        // Get unique classes configured for the specific term
+        const classes = [...new Set(assignments
+            .filter(assignment => assignment.terms && assignment.terms.includes(term))
+            .map(assignment => assignment.class)
+        )].sort();
+        
+        return classes;
+    } catch (error) {
+        console.error('Error getting classes for term:', error);
+        return [];
+    }
+}
+
+function getStreamsForTermAndClass(term, className) {
+    try {
+        const config = loadTeacherConfig();
+        const assignments = config.assignedSubjects || [];
+        
+        // Get unique streams for the specific term and class
+        const streams = [...new Set(assignments
+            .filter(assignment => 
+                assignment.class === className && 
+                assignment.terms && 
+                assignment.terms.includes(term)
+            )
+            .map(assignment => assignment.stream)
+        )].sort();
+        
+        return streams;
+    } catch (error) {
+        console.error('Error getting streams for term and class:', error);
+        return [];
+    }
+}
+
+function getSubjectsForTermClassAndStream(term, className, stream) {
+    try {
+        const config = loadTeacherConfig();
+        const assignments = config.assignedSubjects || [];
+        
+        // Get unique subjects for the specific term, class and stream
+        const subjects = [...new Set(assignments
+            .filter(assignment => 
+                assignment.class === className && 
+                assignment.stream === stream &&
+                assignment.terms && 
+                assignment.terms.includes(term)
+            )
+            .map(assignment => assignment.subject)
+        )].sort();
+        
+        return subjects;
+    } catch (error) {
+        console.error('Error getting subjects for term, class and stream:', error);
+        return [];
+    }
+}
+
+function getExamTypesForTerm(term) {
+    try {
+        // Get default exam types
+        const defaultExamTypes = ['Opener Exam', 'Mid Term Exam', 'End Term Exam'];
+        
+        // Get custom exam types from configuration
+        const config = loadTeacherConfig();
+        const customExamTypes = config.customExamTypes || [];
+        
+        // Combine and return all exam types
+        return [...defaultExamTypes, ...customExamTypes];
+    } catch (error) {
+        console.error('Error getting exam types:', error);
+        return ['Opener Exam', 'Mid Term Exam', 'End Term Exam'];
+    }
+}
+
    // ==================== TERM FILTERING SYSTEM ====================
 // ==================== FIXED TERM FILTERING SYSTEM ====================
 let currentTermFilter = 'current';
