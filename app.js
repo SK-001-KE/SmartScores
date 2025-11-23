@@ -454,14 +454,17 @@ function clearAllRecords() {
 function clearAllConfiguration() {
     if (confirm('⚠️ ARE YOU SURE?\n\nThis will reset ALL your configuration settings permanently. This action cannot be undone.')) {
         if (confirm('❌ FINAL WARNING: This will reset ALL your configuration. Press OK to confirm reset.')) {
-            saveTeacherConfig({ ...DEFAULT_CONFIG });
-            showAlert('Configuration has been reset successfully.', 'success');
-            // Reload the page to reflect changes
-            setTimeout(() => window.location.reload(), 1000);
+            // Use the actual save function, not a hypothetical one
+            saveTeacherConfig({ ...DEFAULT_CONFIG }).then(success => {
+                if (success) {
+                    showAlert('Configuration has been reset successfully.', 'success');
+                    // Reload the page to reflect changes
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            });
         }
     }
 }
-
 // ==================== POPULATE DROPDOWN HELPER ====================
 
 function populateDropdown(elementId, options, defaultValue = '', enabled = true) {
