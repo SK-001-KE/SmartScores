@@ -308,6 +308,109 @@ const updateDataEntryForms = () => {
         }
     }
 };
+// ==================== EVENT HANDLERS FOR DATA ENTRY ====================
+
+function onTermChange() {
+    const term = document.getElementById('term').value;
+    
+    if (!term) {
+        // Reset all dependent fields
+        resetDependentFields(['grade', 'stream', 'subject', 'examType']);
+        return;
+    }
+    
+    // Enable and populate class dropdown
+    const classes = getClassesForTerm(term);
+    const hasClasses = populateDropdown('grade', classes, 'Select Class', true);
+    
+    if (!hasClasses) {
+        populateDropdown('grade', [], 'No classes configured for this term', false);
+        resetDependentFields(['stream', 'subject']);
+    }
+    
+    // Enable and populate exam type dropdown
+    const examTypes = getExamTypesForTerm(term);
+    populateDropdown('examType', examTypes, 'Select Exam Type', true);
+    
+    // Reset dependent fields
+    resetDependentFields(['stream', 'subject']);
+    updateMeanScoreField();
+}
+
+function onGradeChange() {
+    const term = document.getElementById('term').value;
+    const className = document.getElementById('grade').value;
+    
+    if (!term || !className) {
+        resetDependentFields(['stream', 'subject']);
+        return;
+    }
+    
+    // Enable and populate stream dropdown
+    const streams = getStreamsForTermAndClass(term, className);
+    const hasStreams = populateDropdown('stream', streams, 'Select Stream', true);
+    
+    if (!hasStreams) {
+        populateDropdown('stream', [], 'No streams configured for this term and class', false);
+        resetDependentFields(['subject']);
+    }
+    
+    // Reset subject field
+    resetDependentFields(['subject']);
+    updateMeanScoreField();
+}
+
+function onStreamChange() {
+    const term = document.getElementById('term').value;
+    const className = document.getElementById('grade').value;
+    const stream = document.getElementById('stream').value;
+    
+    if (!term || !className || !stream) {
+        resetDependentFields(['subject']);
+        return;
+    }
+    
+    // Enable and populate subject dropdown
+    const subjects = getSubjectsForTermClassAndStream(term, className, stream);
+    const hasSubjects = populateDropdown('subject', subjects, 'Select Subject', true);
+    
+    if (!hasSubjects) {
+        populateDropdown('subject', [], 'No subjects configured for this term, class and stream', false);
+    }
+    
+    updateMeanScoreField();
+}
+
+function resetDependentFields(fieldIds) {
+    fieldIds.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.innerHTML = `<option value="" class="dropdown-loading">Select previous field first</option>`;
+            field.disabled = true;
+            field.value = '';
+        }
+    });
+}
+
+function updateMeanScoreField() {
+    const subject = document.getElementById('subject');
+    const meanScore = document.getElementById('meanScore');
+    
+    if (subject && meanScore) {
+        meanScore.disabled = !subject.value;
+    }
+}
+
+function resetFormWorkflow() {
+    // Reset all dropdowns to initial state
+    document.getElementById('term').value = '';
+    resetDependentFields(['grade', 'stream', 'subject', 'examType']);
+    document.getElementById('meanScore').disabled = true;
+    document.getElementById('meanScore').value = '';
+    
+    // Auto-fill year again
+    autoFillYear();
+}
 // ==================== POPULATE DROPDOWN HELPER ====================
 
 function populateDropdown(elementId, options, defaultValue = '', enabled = true) {
