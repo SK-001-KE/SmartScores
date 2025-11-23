@@ -899,7 +899,7 @@
         </div>
     </div>
 
-  <script>
+<script>
     // Configuration data
     let teacherConfig = {
         academicYear: new Date().getFullYear(),
@@ -925,11 +925,12 @@
     const customStreamsBody = document.getElementById('customStreamsBody');
     
     // Initialize the page
-    document.addEventListener('DOMContentLoaded', function() {
-        loadConfiguration();
+    document.addEventListener('DOMContentLoaded', async function() {
+        await initializeConfiguration();
         renderConfiguration();
         updateCurrentTermIndicator();
         populateDropdowns();
+        setupSyncStatus();
         
         // Set current year as default
         document.getElementById('academicYear').value = new Date().getFullYear();
@@ -952,7 +953,214 @@
         });
     });
     
-    // Populate dropdown options
+    // Enhanced initialization with cloud sync
+    async function initializeConfiguration() {
+        try {
+            console.log('🔄 Initializing teacher configuration...');
+            
+            // Set teacher name
+            const teacherName = localStorage.getItem('teacherFullName') || 'Teacher';
+            document.getElementById('teacherName').textContent = teacherName;
+            
+            // Load configuration with cloud priority
+            await loadConfiguration();
+            
+            // Migrate existing local data to cloud if needed
+            await migrateLocalConfigToCloud();
+            
+            console.log('✅ Configuration initialized successfully');
+            
+        } catch (error) {
+            console.error('❌ Error initializing configuration:', error);
+            showAlert('Error loading configuration. Using local data.', 'error');
+        }
+    }
+    
+    // Migrate local config to cloud
+    async function migrateLocalConfigToCloud() {
+        if (typeof firebaseSync === 'undefined') return;
+        
+        const user = firebaseAuth ? firebaseAuth.getCurrentUser() : null;
+        if (!user || user.uid === 'local-user') return;
+        
+        // Check if we've already migrated
+        const migrationKey = `config_migrated_${user.uid}`;
+        if (localStorage.getItem(migrationKey)) return;
+        
+        console.log('🔄 Checking for local config to migrate to cloud...');
+        
+        // Check if we have local config but no cloud config
+        const localConfig = localStorage.getItem('teacherConfig');
+        if (localConfig) {
+            const parsedConfig = JSON.parse(localConfig);
+            if (Object.keys(parsedConfig).length > 0) {
+                console.log('📦 Migrating local teacher config to cloud...');
+                await firebaseSync.syncTeacherConfig(parsedConfig);
+                localStorage.setItem(migrationKey, 'true');
+                console.log('✅ Teacher config migrated to cloud');
+            }
+        }
+    }
+    
+    // Setup sync status indicator
+    function setupSyncStatus() {
+        if (typeof firebaseSync === 'undefined') return;
+        
+        const updateStatus = () => {
+            const statusDiv = document.getElementById('syncStatus');
+            if (!statusDiv) return;
+            
+            const status = firebaseSync.getSyncStatus();
+            const user = firebaseAuth ? firebaseAuth.getCurrentUser() : null;
+            
+            let statusText = '';
+            let statusColor = '#666';
+            
+            if (!user) {
+                statusText = '🔓';
+                statusColor = '#6B7280';
+            } else if (user.uid === 'local-user') {
+                statusText = '📱';
+                statusColor = '#F59E0B';
+            } else if (!status.isOnline) {
+                statusText = '📴';
+                statusColor = '#EF4444';
+            } else if (status.queueLength > 0) {
+                statusText = `🔄`;
+                statusColor = '#F59E0B';
+            } else {
+                statusText = '☁️';
+                statusColor = '#10B981';
+            }
+            
+            statusDiv.textContent = statusText;
+            statusDiv.style.background = statusColor;
+            statusDiv.title = `Sync Status: ${statusText}\nOnline: ${status.isOnline}\nQueue: ${status.queueLength}`;
+        };
+        
+        // Update initially and set up interval
+        updateStatus();
+        setInterval(updateStatus, 5000);
+        
+        // Update on network events
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+    }
+    
+    // Enhanced load configuration with cloud sync
+    async function loadConfiguration() {
+        try {
+            console.log('📥 Loading teacher configuration...');
+            
+            // Try to load from cloud first if available
+            if (typeof firebaseSync !== 'undefined') {
+                try {
+                    const cloudConfig = await firebaseSync.loadTeacherConfig();
+                    if (cloudConfig && Object.keys(cloudConfig).length > 0) {
+                        teacherConfig = { ...teacherConfig, ...cloudConfig };
+                        console.log('✅ Loaded teacher config from cloud:', cloudConfig);
+                        showAlert('Configuration loaded from cloud!', 'success');
+                        return;
+                    }
+                } catch (cloudError) {
+                    console.warn('⚠️ Cloud load failed, using local fallback:', cloudError);
+                }
+            }
+            
+            // Fallback to local storage
+            const savedConfig = localStorage.getItem('teacherConfig');
+            if (savedConfig) {
+                const parsedConfig = JSON.parse(savedConfig);
+                teacherConfig = { ...teacherConfig, ...parsedConfig };
+                console.log('📱 Loaded teacher config from local storage:', parsedConfig);
+            } else {
+                console.log('ℹ️ No saved configuration found, using defaults');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error loading teacher config:', error);
+            throw error;
+        }
+    }
+    
+    // Enhanced save configuration with cloud sync
+    async function saveConfiguration() {
+        try {
+            console.log('💾 Saving teacher configuration...');
+            
+            // Update configuration from form fields
+            updateConfigurationFromForm();
+            
+            // Validate configuration
+            if (!validateConfiguration()) {
+                showAlert('Please fill in required fields correctly.', 'error');
+                return;
+            }
+            
+            // Save to localStorage first (immediate)
+            localStorage.setItem('teacherConfig', JSON.stringify(teacherConfig));
+            console.log('✅ Saved to local storage');
+            
+            // Save to cloud if available
+            let cloudSaveSuccess = false;
+            if (typeof firebaseSync !== 'undefined') {
+                try {
+                    await firebaseSync.syncTeacherConfig(teacherConfig);
+                    cloudSaveSuccess = true;
+                    console.log('✅ Saved to cloud');
+                } catch (cloudError) {
+                    console.error('❌ Cloud save failed:', cloudError);
+                    // Continue with local save only
+                }
+            }
+            
+            // Show appropriate success message
+            if (cloudSaveSuccess) {
+                showAlert('Configuration saved successfully to cloud! ☁️', 'success');
+            } else {
+                showAlert('Configuration saved locally (cloud unavailable) 📱', 'info');
+            }
+            
+            // Update data entry forms throughout the app
+            if (typeof updateDataEntryForms !== 'undefined') {
+                updateDataEntryForms();
+            }
+            
+            // Re-render the configuration
+            renderConfiguration();
+            
+        } catch (error) {
+            console.error('❌ Error saving teacher config:', error);
+            showAlert('Error saving configuration: ' + error.message, 'error');
+        }
+    }
+    
+    // Validate configuration before saving
+    function validateConfiguration() {
+        // Check if academic year is valid
+        const academicYear = document.getElementById('academicYear').value;
+        if (!academicYear || academicYear < 2020 || academicYear > 2030) {
+            showAlert('Please enter a valid academic year (2020-2030)', 'error');
+            return false;
+        }
+        
+        // Check term dates for logical consistency
+        const term1Start = document.getElementById('term1Start').value;
+        const term1End = document.getElementById('term1End').value;
+        
+        if (term1Start && term1End) {
+            const start = new Date(term1Start);
+            const end = new Date(term1End);
+            if (start >= end) {
+                showAlert('Term 1 end date must be after start date', 'error');
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    // Populate dropdown options (your existing function)
     function populateDropdowns() {
         // Classes dropdown
         const classesDropdown = document.getElementById('classesDropdown');
