@@ -3617,11 +3617,40 @@ window.getStreamsForSubject = getStreamsForSubject;
 window.updateDataEntryForms = updateDataEntryForms;
 window.displayTermPeriods = displayTermPeriods;
 
+// Unified Filtering functions
+window.getClassesForTerm = getClassesForTerm;
+window.getStreamsForTermAndClass = getStreamsForTermAndClass;
+window.getSubjectsForTermClassAndStream = getSubjectsForTermClassAndStream;
+window.getExamTypesForTerm = getExamTypesForTerm;
+
+// Data Entry functions
+window.onTermChange = onTermChange;
+window.onGradeChange = onGradeChange;
+window.onStreamChange = onStreamChange;
+window.resetFormWorkflow = resetFormWorkflow;
+window.populateDropdown = populateDropdown;
+
+// Configuration Warnings
+window.showConfigurationWarning = showConfigurationWarning;
+window.updateConfigurationNotice = updateConfigurationNotice;
+
+// Clear Data functions (page-specific)
+window.clearAllTargets = clearAllTargets;
+window.clearAllRecords = clearAllRecords;
+window.clearAllConfiguration = clearAllConfiguration;
+
+// Utility functions
+window.autoFillYear = autoFillYear;
+window.validateTermDates = validateTermDates;
+
 // Add this to app.js to ensure the cumulative averages function is available
 window.renderCumulativeAverages = renderCumulativeAverages;
+
+console.log('✅ Enhanced Teacher Configuration system loaded in app.js');
 
 // Debug: Log available functions
 console.log('✅ app.js loaded - Global functions exported:', Object.keys(window).filter(key => 
     typeof window[key] === 'function' && 
     (key.includes('render') || key.includes('save') || key.includes('update') || key.includes('handle'))
 ).length + ' functions available');
+// ==================== GLOBAL FUNCTION EXPORTS ====================
