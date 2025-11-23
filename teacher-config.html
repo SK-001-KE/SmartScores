@@ -16,8 +16,9 @@
       margin-bottom: 2rem;
       padding: 1.5rem;
       background: var(--card);
-      border-radius: 10px;
+      border-radius: 12px;
       border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
     
     .config-section h3 {
@@ -25,18 +26,27 @@
       color: var(--primary);
       border-bottom: 2px solid var(--primary);
       padding-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     
     .assignment-row {
       display: grid;
-      grid-template-columns: 2fr 1.5fr 1.5fr 2fr 1fr;
-      gap: 10px;
-      align-items: end;
+      grid-template-columns: 2fr 1.5fr 1.5fr 2fr auto;
+      gap: 15px;
+      align-items: center;
       margin-bottom: 15px;
       padding: 15px;
       background: rgba(139, 0, 0, 0.05);
       border-radius: 8px;
       border-left: 4px solid var(--primary);
+      transition: all 0.2s ease;
+    }
+    
+    .assignment-row:hover {
+      background: rgba(139, 0, 0, 0.08);
+      transform: translateY(-1px);
     }
     
     .term-checkboxes {
@@ -49,6 +59,10 @@
       display: flex;
       align-items: center;
       gap: 5px;
+      background: var(--bg);
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
     }
     
     .term-checkbox input[type="checkbox"] {
@@ -60,12 +74,15 @@
       color: white;
       border: none;
       padding: 8px 12px;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
     }
     
     .delete-assignment:hover {
       background: #c53030;
+      transform: scale(1.05);
     }
     
     .date-inputs {
@@ -98,13 +115,16 @@
       color: white;
       border: none;
       padding: 8px 15px;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
     }
     
     .toggle-btn:hover {
       background: var(--primary-dark);
+      transform: translateY(-1px);
     }
     
     .previous-terms {
@@ -117,6 +137,7 @@
       display: flex;
       gap: 10px;
       margin-top: 1rem;
+      flex-wrap: wrap;
     }
     
     .empty-assignments {
@@ -124,6 +145,145 @@
       padding: 2rem;
       color: var(--secondary);
       font-style: italic;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+    }
+    
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      background: var(--primary);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    
+    .tag button {
+      background: none;
+      border: none;
+      color: white;
+      margin-left: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .tag button:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .form-group label {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--text);
+    }
+    
+    .form-group input, .form-group select {
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+    }
+    
+    .btn {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+    
+    .btn-secondary {
+      background: var(--secondary);
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background: #4b5563;
+    }
+    
+    .btn-danger {
+      background: #e53e3e;
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: #c53030;
+    }
+    
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+    }
+    
+    #configStatus {
+      padding: 10px 15px;
+      border-radius: 6px;
+      font-weight: 600;
+      margin-top: 15px;
+      display: none;
+    }
+    
+    #configStatus.success {
+      background: rgba(16, 185, 129, 0.1);
+      color: #065f46;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      display: block;
+    }
+    
+    #configStatus.error {
+      background: rgba(239, 68, 68, 0.1);
+      color: #7f1d1d;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      display: block;
     }
     
     @media (max-width: 768px) {
@@ -133,6 +293,14 @@
       }
       
       .date-inputs {
+        grid-template-columns: 1fr;
+      }
+      
+      .config-actions {
+        flex-direction: column;
+      }
+      
+      .form-row {
         grid-template-columns: 1fr;
       }
     }
@@ -294,7 +462,7 @@
         </div>
         
         <div class="form-group">
-          <button onclick="addAssignment()" class="btn btn-primary">Add Assignment</button>
+          <button onclick="addAssignment()" class="btn btn-primary" style="margin-top: 24px;">➕ Add Assignment</button>
         </div>
       </div>
     </section>
@@ -306,21 +474,21 @@
       <div class="form-group">
         <label>Custom Subjects</label>
         <input type="text" id="customSubject" placeholder="Enter custom subject name">
-        <button onclick="addCustomSubject()" class="btn btn-secondary">Add Subject</button>
+        <button onclick="addCustomSubject()" class="btn btn-secondary">➕ Add Subject</button>
         <div id="customSubjectsList" class="tag-list"></div>
       </div>
       
       <div class="form-group">
         <label>Custom Exam Types</label>
         <input type="text" id="customExamType" placeholder="Enter custom exam type">
-        <button onclick="addCustomExamType()" class="btn btn-secondary">Add Exam Type</button>
+        <button onclick="addCustomExamType()" class="btn btn-secondary">➕ Add Exam Type</button>
         <div id="customExamTypesList" class="tag-list"></div>
       </div>
       
       <div class="form-group">
         <label>Custom Streams</label>
         <input type="text" id="customStream" placeholder="Enter custom stream name">
-        <button onclick="addCustomStream()" class="btn btn-secondary">Add Stream</button>
+        <button onclick="addCustomStream()" class="btn btn-secondary">➕ Add Stream</button>
         <div id="customStreamsList" class="tag-list"></div>
       </div>
     </section>
@@ -348,6 +516,18 @@
     document.addEventListener('DOMContentLoaded', function() {
       console.log('🎯 Teacher Configuration page loaded');
       
+      // Wait for app.js to be fully loaded
+      if (typeof window.loadTeacherConfig === 'undefined') {
+        // If app.js isn't loaded yet, wait for it
+        document.addEventListener('appJsReady', function() {
+          initializePage();
+        });
+      } else {
+        initializePage();
+      }
+    });
+    
+    function initializePage() {
       // Load current configuration
       loadConfiguration();
       
@@ -358,15 +538,15 @@
       const teacherName = window.getTeacherName ? window.getTeacherName() : localStorage.getItem('teacherFullName') || 'Guest Teacher';
       document.getElementById('currentTeacher').textContent = teacherName;
       document.getElementById('teacherName').textContent = teacherName;
-    });
+    }
     
     // Load and display current configuration
     async function loadConfiguration() {
       try {
-        const config = await loadTeacherConfig();
+        const config = await window.loadTeacherConfig();
         
         // Set academic year
-        document.getElementById('academicYear').value = config.academicYear;
+        document.getElementById('academicYear').value = config.academicYear || new Date().getFullYear();
         
         // Set term dates
         const termDates = config.termDates || {};
@@ -415,7 +595,7 @@
           customStreams: getCustomStreams()
         };
         
-        const success = await saveTeacherConfig(config);
+        const success = await window.saveTeacherConfig(config);
         if (success) {
           showStatus('Configuration saved successfully!', 'success');
         } else {
@@ -445,7 +625,7 @@
       
       // Populate class dropdown
       const classSelect = document.getElementById('newAssignmentClass');
-      const defaultClasses = [
+      const defaultClasses = window.DEFAULT_CLASSES || [
         'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9'
       ];
       
@@ -499,7 +679,7 @@
               <div>${(assignment.terms || []).join(', ')}</div>
             </div>
             <div class="config-actions">
-              <button onclick="deleteAssignment(${index})" class="delete-assignment">Delete</button>
+              <button onclick="deleteAssignment(${index})" class="delete-assignment">🗑️ Delete</button>
             </div>
           </div>
         `;
@@ -510,7 +690,7 @@
     
     // Get assignments from UI (for saving)
     async function getAssignmentsFromUI() {
-      const config = await loadTeacherConfig();
+      const config = await window.loadTeacherConfig();
       return config.assignedSubjects || [];
     }
     
@@ -528,7 +708,7 @@
       }
       
       // Add assignment to configuration
-      loadTeacherConfig().then(config => {
+      window.loadTeacherConfig().then(config => {
         const newAssignment = {
           subject,
           class: className,
@@ -540,7 +720,7 @@
         config.assignedSubjects.push(newAssignment);
         
         // Save and reload
-        saveTeacherConfig(config).then(success => {
+        window.saveTeacherConfig(config).then(success => {
           if (success) {
             displayAssignments(config.assignedSubjects);
             // Clear form
@@ -557,9 +737,9 @@
     // Delete assignment
     function deleteAssignment(index) {
       if (confirm('Are you sure you want to delete this assignment?')) {
-        loadTeacherConfig().then(config => {
+        window.loadTeacherConfig().then(config => {
           config.assignedSubjects.splice(index, 1);
-          saveTeacherConfig(config).then(success => {
+          window.saveTeacherConfig(config).then(success => {
             if (success) {
               displayAssignments(config.assignedSubjects);
               showStatus('Assignment deleted successfully', 'success');
@@ -612,11 +792,11 @@
         return;
       }
       
-      loadTeacherConfig().then(config => {
+      window.loadTeacherConfig().then(config => {
         config[configKey] = config[configKey] || [];
         if (!config[configKey].includes(value)) {
           config[configKey].push(value);
-          saveTeacherConfig(config).then(success => {
+          window.saveTeacherConfig(config).then(success => {
             if (success) {
               input.value = '';
               displayCustomOptions(config);
@@ -639,9 +819,9 @@
       const configKey = configMap[type];
       if (!configKey) return;
       
-      loadTeacherConfig().then(config => {
+      window.loadTeacherConfig().then(config => {
         config[configKey] = config[configKey].filter(item => item !== value);
-        saveTeacherConfig(config).then(success => {
+        window.saveTeacherConfig(config).then(success => {
           if (success) {
             displayCustomOptions(config);
             showStatus('Item removed successfully', 'success');
