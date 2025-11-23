@@ -411,6 +411,21 @@ function resetFormWorkflow() {
     // Auto-fill year again
     autoFillYear();
 }
+// ==================== AUTO-FILL YEAR ====================
+
+function autoFillYear() {
+    const yearInput = document.getElementById('year');
+    const targetYearInput = document.getElementById('targetYear');
+    
+    if (yearInput && !yearInput.value.trim()) {
+        yearInput.value = new Date().getFullYear();
+    }
+    
+    if (targetYearInput && !targetYearInput.value.trim()) {
+        targetYearInput.value = new Date().getFullYear();
+    }
+}
+
 // ==================== CLEAR DATA FUNCTIONS (PAGE-SPECIFIC) ====================
 
 // Clear only targets data
