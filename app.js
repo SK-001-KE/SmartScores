@@ -411,6 +411,42 @@ function resetFormWorkflow() {
     // Auto-fill year again
     autoFillYear();
 }
+// ==================== CLEAR DATA FUNCTIONS (PAGE-SPECIFIC) ====================
+
+// Clear only targets data
+function clearAllTargets() {
+    if (confirm('⚠️ ARE YOU SURE?\n\nThis will delete ALL your targets permanently. This action cannot be undone.')) {
+        if (confirm('❌ FINAL WARNING: This will delete ALL your targets. Press OK to confirm deletion.')) {
+            saveTargets([]);
+            showAlert('All targets have been cleared successfully.', 'success');
+            renderTargets();
+        }
+    }
+}
+
+// Clear only records data  
+function clearAllRecords() {
+    if (confirm('⚠️ ARE YOU SURE?\n\nThis will delete ALL your records permanently. This action cannot be undone.')) {
+        if (confirm('❌ FINAL WARNING: This will delete ALL your records. Press OK to confirm deletion.')) {
+            saveRecords([]);
+            showAlert('All records have been cleared successfully.', 'success');
+            renderRecords();
+        }
+    }
+}
+
+// Clear only configuration data
+function clearAllConfiguration() {
+    if (confirm('⚠️ ARE YOU SURE?\n\nThis will reset ALL your configuration settings permanently. This action cannot be undone.')) {
+        if (confirm('❌ FINAL WARNING: This will reset ALL your configuration. Press OK to confirm reset.')) {
+            saveTeacherConfig({ ...DEFAULT_CONFIG });
+            showAlert('Configuration has been reset successfully.', 'success');
+            // Reload the page to reflect changes
+            setTimeout(() => window.location.reload(), 1000);
+        }
+    }
+}
+
 // ==================== POPULATE DROPDOWN HELPER ====================
 
 function populateDropdown(elementId, options, defaultValue = '', enabled = true) {
