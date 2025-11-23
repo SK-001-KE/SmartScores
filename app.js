@@ -308,6 +308,47 @@ const updateDataEntryForms = () => {
         }
     }
 };
+// ==================== POPULATE DROPDOWN HELPER ====================
+
+function populateDropdown(elementId, options, defaultValue = '', enabled = true) {
+    const element = document.getElementById(elementId);
+    if (!element) return false;
+    
+    // Save current value if it exists
+    const currentValue = element.value;
+    
+    // Clear existing options except the first one
+    while (element.options.length > 1) {
+        element.remove(1);
+    }
+    
+    // Update the first option text
+    if (element.options.length > 0) {
+        element.options[0].textContent = defaultValue || 'Select...';
+        element.options[0].className = '';
+    }
+    
+    // Add new options
+    options.forEach(option => {
+        const optionElement = document.createElement('option');
+        optionElement.value = option;
+        optionElement.textContent = option;
+        element.appendChild(optionElement);
+    });
+    
+    // Enable/disable the dropdown
+    element.disabled = !enabled || options.length === 0;
+    
+    // Restore previous value if it still exists in new options
+    if (currentValue && Array.from(element.options).some(opt => opt.value === currentValue)) {
+        element.value = currentValue;
+    } else {
+        element.value = '';
+    }
+    
+    return options.length > 0;
+}
+
 // ==================== CONFIGURATION MANAGEMENT ====================
 
 // Load teacher configuration with cloud sync
