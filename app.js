@@ -3505,13 +3505,17 @@ window.renderAll = async () => {
         window.updateRecordCounts();
     }
 };
+   // ==================== INITIALIZATION ====================
 
-// ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🔄 Initializing enhanced Teacher Configuration system...');
+    
     // NEW: Run the session check on every page load immediately
     if (window.auth && window.auth.checkSessionTimeout) {
         window.auth.checkSessionTimeout();
     }
+    
+    // Load theme
     loadTheme();
     
     // Auto-fill year function
@@ -3524,9 +3528,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     autoFillYear();
     
+    // Update forms with teacher configuration
+    updateDataEntryForms();
+    updateTargetsForms();
+    
+    // Update configuration notices
+    updateConfigurationNotice();
+    
     // Setup mobile navigation
     setupMobileSidebarAutoClose();
     
+    // Form event listeners
     const dataForm = el('dataEntryForm');
     if (dataForm) {
         dataForm.addEventListener('submit', handleSaveRecord);
@@ -3537,6 +3549,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         targetForm.addEventListener('submit', handleSaveTarget);
     }
     
+    // Search functionality
     const searchInput = el('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', filterRecords);
@@ -3547,6 +3560,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         targetSearch.addEventListener('input', filterTargets);
     }
     
+    // Initial render
     await renderAll();
     
     // Update teacher name display
@@ -3554,7 +3568,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.querySelectorAll('#teacherName, #currentTeacher, .teacher-name').forEach(element => {
         element.textContent = teacherFullName;
     });
-};
+    
+    // Signal that app.js is ready
+    document.dispatchEvent(new Event('appJsReady'));
+});
+
 
 // ==================== GLOBAL FUNCTION EXPORTS ====================
 // Add this section at the VERY END of app.js, after all your functions
