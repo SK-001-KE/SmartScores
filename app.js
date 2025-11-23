@@ -17,6 +17,27 @@ const STORAGE_KEYS = {
     CUSTOM_EXAM_TYPES: 'customExamTypes',
     CUSTOM_STREAMS: 'customStreams'
 };
+// ==================== CONFIGURATION WARNINGS ====================
+
+function showConfigurationWarning() {
+    const config = loadTeacherConfig();
+    const hasAssignments = config.assignedSubjects && config.assignedSubjects.length > 0;
+    
+    if (!hasAssignments) {
+        showAlert('⚠️ Please configure your subjects and classes in the Configuration page first', 'warning');
+        return true;
+    }
+    return false;
+}
+
+function updateConfigurationNotice() {
+    const configNotice = document.getElementById('configNotice');
+    if (configNotice) {
+        const config = loadTeacherConfig();
+        const hasAssignments = config.assignedSubjects && config.assignedSubjects.length > 0;
+        configNotice.style.display = hasAssignments ? 'none' : 'block';
+    }
+}
 
 // ==================== ENHANCED TEACHER CONFIGURATION SYSTEM ====================
 
