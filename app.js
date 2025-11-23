@@ -18,23 +18,24 @@ const STORAGE_KEYS = {
     CUSTOM_STREAMS: 'customStreams'
 };
 
-// ==================== TEACHER CONFIGURATION SYSTEM ====================
+// ==================== ENHANCED TEACHER CONFIGURATION SYSTEM ====================
 
-// Default configuration data
+// Default configuration data with calendar year
 const DEFAULT_CONFIG = {
-    academicYear: new Date().getFullYear() + '/' + (new Date().getFullYear() + 1),
+    academicYear: new Date().getFullYear(), // Calendar year only
     termDates: {
         'Term 1': { start: '', end: '' },
         'Term 2': { start: '', end: '' },
         'Term 3': { start: '', end: '' }
     },
-    assignedSubjects: [],
+    assignedSubjects: [], // Now includes specific terms per assignment
     customSubjects: [],
     customExamTypes: [],
     customStreams: []
 };
 
-// Updated classes and subjects based on your requirements
+
+// Updated classes and subjects
 const DEFAULT_CLASSES = [
     'Foundation Class', 'PP1', 'PP2', 
     'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 
@@ -52,7 +53,6 @@ const DEFAULT_SUBJECTS = [
 ];
 
 const DEFAULT_EXAM_TYPES = ['Opener Exam', 'Mid Term Exam', 'End Term Exam'];
-
 // Load teacher configuration
 // Add these functions to app.js if they don't exist
 
