@@ -2242,6 +2242,77 @@ const updateTargetsSummary = (targets) => {
     
     if (activeTargets) activeTargets.textContent = targets.length;
 };
+   // ==================== SET TARGETS FORM UPDATES ====================
+
+function updateTargetsForms() {
+    const config = loadTeacherConfig();
+    
+    // Update subject dropdown for targets
+    const targetSubject = document.getElementById('targetSubject');
+    if (targetSubject) {
+        const currentValue = targetSubject.value;
+        targetSubject.innerHTML = '<option value="">Select Subject</option>';
+        
+        // Get all unique subjects from assignments
+        const subjects = [...new Set(config.assignedSubjects.map(a => a.subject))].sort();
+        
+        subjects.forEach(subject => {
+            const option = document.createElement('option');
+            option.value = subject;
+            option.textContent = subject;
+            targetSubject.appendChild(option);
+        });
+        
+        if (currentValue && Array.from(targetSubject.options).some(opt => opt.value === currentValue)) {
+            targetSubject.value = currentValue;
+        }
+    }
+
+    // Update class dropdown for targets
+    const targetGrade = document.getElementById('targetGrade');
+    if (targetGrade) {
+        const currentValue = targetGrade.value;
+        targetGrade.innerHTML = '<option value="">Select Grade</option>';
+        
+        // Get all unique classes from assignments
+        const classes = [...new Set(config.assignedSubjects.map(a => a.class))].sort();
+        
+        classes.forEach(className => {
+            const option = document.createElement('option');
+            option.value = className;
+            option.textContent = className;
+            targetGrade.appendChild(option);
+        });
+        
+        if (currentValue && Array.from(targetGrade.options).some(opt => opt.value === currentValue)) {
+            targetGrade.value = currentValue;
+        }
+    }
+
+    // Update stream dropdown for targets
+    const targetStream = document.getElementById('targetStream');
+    if (targetStream) {
+        const currentValue = targetStream.value;
+        targetStream.innerHTML = '<option value="">Select Stream</option>';
+        
+        // Get all unique streams from assignments
+        const streams = [...new Set(config.assignedSubjects.map(a => a.stream))].sort();
+        
+        streams.forEach(stream => {
+            const option = document.createElement('option');
+            option.value = stream;
+            option.textContent = stream;
+            targetStream.appendChild(option);
+        });
+        
+        if (currentValue && Array.from(targetStream.options).some(opt => opt.value === currentValue)) {
+            targetStream.value = currentValue;
+        }
+    }
+
+    // Update configuration notice
+    updateConfigurationNotice();
+}
 
 // ==================== AI INSIGHTS ====================
 const renderAIInsights = () => {
