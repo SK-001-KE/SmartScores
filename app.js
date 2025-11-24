@@ -42,6 +42,7 @@ function updateConfigurationNotice() {
 // ==================== ENHANCED TEACHER CONFIGURATION SYSTEM ====================
 
 // Default configuration data with calendar year
+// Add this to app.js in the Teacher Configuration section
 const DEFAULT_CONFIG = {
     academicYear: new Date().getFullYear(), // Calendar year only
     termDates: {
@@ -55,6 +56,8 @@ const DEFAULT_CONFIG = {
     customStreams: []
 };
 
+// Make DEFAULT_CONFIG available globally
+window.DEFAULT_CONFIG = DEFAULT_CONFIG;
 
 // Updated classes and subjects
 const DEFAULT_CLASSES = [
