@@ -3670,6 +3670,13 @@ window.getClassesForSubject = getClassesForSubject;
 window.getStreamsForSubject = getStreamsForSubject;
 window.updateDataEntryForms = updateDataEntryForms;
 window.displayTermPeriods = displayTermPeriods;
+window.getClassesForTerm = getClassesForTerm;
+window.getStreamsForTermAndClass = getStreamsForTermAndClass;
+window.getSubjectsForTermClassAndStream = getSubjectsForTermClassAndStream;
+window.getExamTypesForTerm = getExamTypesForTerm;
+window.getCustomSubjects = getCustomSubjects;
+window.getCustomExamTypes = getCustomExamTypes;
+window.getCustomStreams = getCustomStreams;
 
 // Unified Filtering functions
 window.getClassesForTerm = getClassesForTerm;
