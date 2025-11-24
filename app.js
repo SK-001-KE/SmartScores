@@ -74,54 +74,7 @@ const DEFAULT_SUBJECTS = [
 ];
 
 const DEFAULT_EXAM_TYPES = ['Opener Exam', 'Mid Term Exam', 'End Term Exam'];
-// Load teacher configuration
-// Add these functions to app.js if they don't exist
 
-// Load teacher configuration with cloud sync
-const loadTeacherConfig = async () => {
-    try {
-        // Try to load from cloud first if available
-        if (typeof firebaseSync !== 'undefined') {
-            const cloudConfig = await firebaseSync.loadData('teacherConfig');
-            if (cloudConfig) {
-                console.log('✅ Loaded teacher config from cloud');
-                return { ...DEFAULT_CONFIG, ...cloudConfig };
-            }
-        }
-        
-        // Fallback to local storage
-        const savedConfig = localStorage.getItem('teacherConfig');
-        if (savedConfig) {
-            console.log('📱 Loaded teacher config from local storage');
-            return { ...DEFAULT_CONFIG, ...JSON.parse(savedConfig) };
-        }
-    } catch (error) {
-        console.error('Error loading teacher config:', error);
-    }
-    return { ...DEFAULT_CONFIG };
-};
-
-// Save teacher configuration with cloud sync
-const saveTeacherConfig = async (config) => {
-    try {
-        // Save to localStorage
-        localStorage.setItem('teacherConfig', JSON.stringify(config));
-        
-        // Save to cloud if available
-        if (typeof firebaseSync !== 'undefined') {
-            await firebaseSync.saveData('teacherConfig', config);
-            console.log('✅ Teacher config saved to cloud');
-        }
-        
-        // Update data entry forms throughout the app
-        updateDataEntryForms();
-        
-        return true;
-    } catch (error) {
-        console.error('Error saving teacher config:', error);
-        return false;
-    }
-};
 
 // ==================== ENHANCED TERM DETECTION & VALIDATION ====================
 
