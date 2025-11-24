@@ -509,356 +509,361 @@
 
   <footer>SmartScores v3.0 © Kariuki 2025</footer>
 
-  <script>
+ <script>
     let showPreviousTerms = false;
     
     // Initialize configuration page
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('🎯 Teacher Configuration page loaded');
-      
-      // Wait for app.js to be fully loaded
-      if (typeof window.loadTeacherConfig === 'undefined') {
-        // If app.js isn't loaded yet, wait for it
-        document.addEventListener('appJsReady', function() {
-          initializePage();
-        });
-      } else {
-        initializePage();
-      }
+        console.log('🎯 Teacher Configuration page loaded');
+        
+        // Wait for app.js to be fully loaded
+        if (typeof window.loadTeacherConfig === 'undefined') {
+            // If app.js isn't loaded yet, wait for it
+            document.addEventListener('appJsReady', function() {
+                initializePage();
+            });
+        } else {
+            initializePage();
+        }
     });
     
     function initializePage() {
-      // Load current configuration
-      loadConfiguration();
-      
-      // Populate dropdowns
-      populateDropdowns();
-      
-      // Update teacher name
-      const teacherName = window.getTeacherName ? window.getTeacherName() : localStorage.getItem('teacherFullName') || 'Guest Teacher';
-      document.getElementById('currentTeacher').textContent = teacherName;
-      document.getElementById('teacherName').textContent = teacherName;
+        // Load current configuration
+        loadConfiguration();
+        
+        // Populate dropdowns
+        populateDropdowns();
+        
+        // Update teacher name
+        const teacherName = window.getTeacherName ? window.getTeacherName() : localStorage.getItem('teacherFullName') || 'Guest Teacher';
+        document.getElementById('currentTeacher').textContent = teacherName;
+        document.getElementById('teacherName').textContent = teacherName;
     }
     
     // Load and display current configuration
     async function loadConfiguration() {
-      try {
-        const config = await window.loadTeacherConfig();
-        
-        // Set academic year
-        document.getElementById('academicYear').value = config.academicYear || new Date().getFullYear();
-        
-        // Set term dates
-        const termDates = config.termDates || {};
-        document.getElementById('term1Start').value = termDates['Term 1']?.start || '';
-        document.getElementById('term1End').value = termDates['Term 1']?.end || '';
-        document.getElementById('term2Start').value = termDates['Term 2']?.start || '';
-        document.getElementById('term2End').value = termDates['Term 2']?.end || '';
-        document.getElementById('term3Start').value = termDates['Term 3']?.start || '';
-        document.getElementById('term3End').value = termDates['Term 3']?.end || '';
-        
-        // Display assignments
-        displayAssignments(config.assignedSubjects || []);
-        
-        // Display custom options
-        displayCustomOptions(config);
-        
-        showStatus('Configuration loaded successfully', 'success');
-      } catch (error) {
-        console.error('Error loading configuration:', error);
-        showStatus('Error loading configuration: ' + error.message, 'error');
-      }
+        try {
+            const config = await window.loadTeacherConfig();
+            
+            // Set academic year
+            document.getElementById('academicYear').value = config.academicYear || new Date().getFullYear();
+            
+            // Set term dates
+            const termDates = config.termDates || {};
+            document.getElementById('term1Start').value = termDates['Term 1']?.start || '';
+            document.getElementById('term1End').value = termDates['Term 1']?.end || '';
+            document.getElementById('term2Start').value = termDates['Term 2']?.start || '';
+            document.getElementById('term2End').value = termDates['Term 2']?.end || '';
+            document.getElementById('term3Start').value = termDates['Term 3']?.start || '';
+            document.getElementById('term3End').value = termDates['Term 3']?.end || '';
+            
+            // Display assignments
+            displayAssignments(config.assignedSubjects || []);
+            
+            // Display custom options
+            displayCustomOptions(config);
+            
+            showStatus('Configuration loaded successfully', 'success');
+        } catch (error) {
+            console.error('Error loading configuration:', error);
+            showStatus('Error loading configuration: ' + error.message, 'error');
+        }
     }
     
     // Save configuration
     async function saveConfiguration() {
-      try {
-        const config = {
-          academicYear: parseInt(document.getElementById('academicYear').value),
-          termDates: {
-            'Term 1': {
-              start: document.getElementById('term1Start').value,
-              end: document.getElementById('term1End').value
-            },
-            'Term 2': {
-              start: document.getElementById('term2Start').value,
-              end: document.getElementById('term2End').value
-            },
-            'Term 3': {
-              start: document.getElementById('term3Start').value,
-              end: document.getElementById('term3End').value
+        try {
+            const config = {
+                academicYear: parseInt(document.getElementById('academicYear').value),
+                termDates: {
+                    'Term 1': {
+                        start: document.getElementById('term1Start').value,
+                        end: document.getElementById('term1End').value
+                    },
+                    'Term 2': {
+                        start: document.getElementById('term2Start').value,
+                        end: document.getElementById('term2End').value
+                    },
+                    'Term 3': {
+                        start: document.getElementById('term3Start').value,
+                        end: document.getElementById('term3End').value
+                    }
+                },
+                assignedSubjects: await getAssignmentsFromUI(),
+                customSubjects: getCustomSubjects(),
+                customExamTypes: getCustomExamTypes(),
+                customStreams: getCustomStreams()
+            };
+            
+            const success = await window.saveTeacherConfig(config);
+            if (success) {
+                showStatus('Configuration saved successfully!', 'success');
+            } else {
+                showStatus('Error saving configuration', 'error');
             }
-          },
-          assignedSubjects: await getAssignmentsFromUI(),
-          customSubjects: getCustomSubjects(),
-          customExamTypes: getCustomExamTypes(),
-          customStreams: getCustomStreams()
-        };
-        
-        const success = await window.saveTeacherConfig(config);
-        if (success) {
-          showStatus('Configuration saved successfully!', 'success');
-        } else {
-          showStatus('Error saving configuration', 'error');
+        } catch (error) {
+            console.error('Error saving configuration:', error);
+            showStatus('Error saving configuration: ' + error.message, 'error');
         }
-      } catch (error) {
-        console.error('Error saving configuration:', error);
-        showStatus('Error saving configuration: ' + error.message, 'error');
-      }
     }
     
     // Populate dropdowns with available options
     function populateDropdowns() {
-      // Populate subject dropdown
-      const subjectSelect = document.getElementById('newAssignmentSubject');
-      const allSubjects = window.getAllSubjects ? window.getAllSubjects() : [
-        'Mathematics', 'English', 'Kiswahili', 'Science', 'Social Studies', 
-        'CRE', 'Pre-technical Studies', 'Creative Arts', 'Agriculture'
-      ];
-      
-      allSubjects.forEach(subject => {
-        const option = document.createElement('option');
-        option.value = subject;
-        option.textContent = subject;
-        subjectSelect.appendChild(option);
-      });
-      
-      // Populate class dropdown
-      const classSelect = document.getElementById('newAssignmentClass');
-      const defaultClasses = window.DEFAULT_CLASSES || [
-        'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9'
-      ];
-      
-      defaultClasses.forEach(className => {
-        const option = document.createElement('option');
-        option.value = className;
-        option.textContent = className;
-        classSelect.appendChild(option);
-      });
-      
-      // Populate stream dropdown
-      const streamSelect = document.getElementById('newAssignmentStream');
-      const allStreams = window.getAllStreams ? window.getAllStreams() : [
-        'Faith', 'Glory', 'Joy', 'Love', 'Peace', 'Unity'
-      ];
-      
-      allStreams.forEach(stream => {
-        const option = document.createElement('option');
-        option.value = stream;
-        option.textContent = stream;
-        streamSelect.appendChild(option);
-      });
+        // Populate subject dropdown
+        const subjectSelect = document.getElementById('newAssignmentSubject');
+        const allSubjects = window.getAllSubjects ? window.getAllSubjects() : [
+            'Agriculture', 'CRE', 'English', 'Creative Arts', 'Integrated Science', 
+            'Kiswahili', 'Mathematics', 'Pre-technical Studies', 'Social Studies',
+            'Creative Activities', 'Environmental Activities', 'Mathematical Activities',
+            'Religious Activities', 'Language Activities', 'Literature Activities', 
+            'Listening and Speaking', 'ICT', 'Chinese', 'French'
+        ];
+        
+        allSubjects.forEach(subject => {
+            const option = document.createElement('option');
+            option.value = subject;
+            option.textContent = subject;
+            subjectSelect.appendChild(option);
+        });
+        
+        // Populate class dropdown
+        const classSelect = document.getElementById('newAssignmentClass');
+        const defaultClasses = window.DEFAULT_CLASSES || [
+            'Foundation Class', 'PP1', 'PP2', 
+            'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 
+            'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9'
+        ];
+        
+        defaultClasses.forEach(className => {
+            const option = document.createElement('option');
+            option.value = className;
+            option.textContent = className;
+            classSelect.appendChild(option);
+        });
+        
+        // Populate stream dropdown
+        const streamSelect = document.getElementById('newAssignmentStream');
+        const allStreams = window.getAllStreams ? window.getAllStreams() : [
+            'Faith', 'Glory', 'Joy', 'Love', 'Peace', 'Unity'
+        ];
+        
+        allStreams.forEach(stream => {
+            const option = document.createElement('option');
+            option.value = stream;
+            option.textContent = stream;
+            streamSelect.appendChild(option);
+        });
     }
     
     // Display assignments in the UI
     function displayAssignments(assignments) {
-      const container = document.getElementById('assignmentsContainer');
-      const currentTerm = window.getCurrentTerm ? window.getCurrentTerm() : 'Term 1';
-      
-      if (assignments.length === 0) {
-        container.innerHTML = '<div class="empty-assignments">No assignments configured yet</div>';
-        return;
-      }
-      
-      let html = '';
-      
-      assignments.forEach((assignment, index) => {
-        // Filter based on term display setting
-        if (!showPreviousTerms && assignment.terms && !assignment.terms.includes(currentTerm)) {
-          return; // Skip assignments not for current term
+        const container = document.getElementById('assignmentsContainer');
+        const currentTerm = window.getCurrentTerm ? window.getCurrentTerm() : 'Term 1';
+        
+        if (assignments.length === 0) {
+            container.innerHTML = '<div class="empty-assignments">No assignments configured yet</div>';
+            return;
         }
         
-        html += `
-          <div class="assignment-row">
-            <div>
-              <strong>${assignment.subject}</strong>
-              <div>${assignment.class} • ${assignment.stream}</div>
-            </div>
-            <div>
-              <strong>Terms:</strong>
-              <div>${(assignment.terms || []).join(', ')}</div>
-            </div>
-            <div class="config-actions">
-              <button onclick="deleteAssignment(${index})" class="delete-assignment">🗑️ Delete</button>
-            </div>
-          </div>
-        `;
-      });
-      
-      container.innerHTML = html || '<div class="empty-assignments">No assignments match current filter</div>';
+        let html = '';
+        
+        assignments.forEach((assignment, index) => {
+            // Filter based on term display setting
+            if (!showPreviousTerms && assignment.terms && !assignment.terms.includes(currentTerm)) {
+                return; // Skip assignments not for current term
+            }
+            
+            html += `
+                <div class="assignment-row">
+                    <div>
+                        <strong>${assignment.subject}</strong>
+                        <div>${assignment.class} • ${assignment.stream}</div>
+                    </div>
+                    <div>
+                        <strong>Terms:</strong>
+                        <div>${(assignment.terms || []).join(', ')}</div>
+                    </div>
+                    <div class="config-actions">
+                        <button onclick="deleteAssignment(${index})" class="delete-assignment">🗑️ Delete</button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html || '<div class="empty-assignments">No assignments match current filter</div>';
     }
     
     // Get assignments from UI (for saving)
     async function getAssignmentsFromUI() {
-      const config = await window.loadTeacherConfig();
-      return config.assignedSubjects || [];
+        const config = await window.loadTeacherConfig();
+        return config.assignedSubjects || [];
     }
     
     // Add new assignment
     function addAssignment() {
-      const subject = document.getElementById('newAssignmentSubject').value;
-      const className = document.getElementById('newAssignmentClass').value;
-      const stream = document.getElementById('newAssignmentStream').value;
-      const termCheckboxes = document.querySelectorAll('input[name="newAssignmentTerms"]:checked');
-      const terms = Array.from(termCheckboxes).map(cb => cb.value);
-      
-      if (!subject || !className || !stream || terms.length === 0) {
-        showStatus('Please fill all assignment fields and select at least one term', 'error');
-        return;
-      }
-      
-      // Add assignment to configuration
-      window.loadTeacherConfig().then(config => {
-        const newAssignment = {
-          subject,
-          class: className,
-          stream,
-          terms
-        };
+        const subject = document.getElementById('newAssignmentSubject').value;
+        const className = document.getElementById('newAssignmentClass').value;
+        const stream = document.getElementById('newAssignmentStream').value;
+        const termCheckboxes = document.querySelectorAll('input[name="newAssignmentTerms"]:checked');
+        const terms = Array.from(termCheckboxes).map(cb => cb.value);
         
-        config.assignedSubjects = config.assignedSubjects || [];
-        config.assignedSubjects.push(newAssignment);
+        if (!subject || !className || !stream || terms.length === 0) {
+            showStatus('Please fill all assignment fields and select at least one term', 'error');
+            return;
+        }
         
-        // Save and reload
-        window.saveTeacherConfig(config).then(success => {
-          if (success) {
-            displayAssignments(config.assignedSubjects);
-            // Clear form
-            document.getElementById('newAssignmentSubject').value = '';
-            document.getElementById('newAssignmentClass').value = '';
-            document.getElementById('newAssignmentStream').value = '';
-            document.querySelectorAll('input[name="newAssignmentTerms"]').forEach(cb => cb.checked = false);
-            showStatus('Assignment added successfully', 'success');
-          }
+        // Add assignment to configuration
+        window.loadTeacherConfig().then(config => {
+            const newAssignment = {
+                subject,
+                class: className,
+                stream,
+                terms
+            };
+            
+            config.assignedSubjects = config.assignedSubjects || [];
+            config.assignedSubjects.push(newAssignment);
+            
+            // Save and reload
+            window.saveTeacherConfig(config).then(success => {
+                if (success) {
+                    displayAssignments(config.assignedSubjects);
+                    // Clear form
+                    document.getElementById('newAssignmentSubject').value = '';
+                    document.getElementById('newAssignmentClass').value = '';
+                    document.getElementById('newAssignmentStream').value = '';
+                    document.querySelectorAll('input[name="newAssignmentTerms"]').forEach(cb => cb.checked = false);
+                    showStatus('Assignment added successfully', 'success');
+                }
+            });
         });
-      });
     }
     
     // Delete assignment
     function deleteAssignment(index) {
-      if (confirm('Are you sure you want to delete this assignment?')) {
-        window.loadTeacherConfig().then(config => {
-          config.assignedSubjects.splice(index, 1);
-          window.saveTeacherConfig(config).then(success => {
-            if (success) {
-              displayAssignments(config.assignedSubjects);
-              showStatus('Assignment deleted successfully', 'success');
-            }
-          });
-        });
-      }
+        if (confirm('Are you sure you want to delete this assignment?')) {
+            window.loadTeacherConfig().then(config => {
+                config.assignedSubjects.splice(index, 1);
+                window.saveTeacherConfig(config).then(success => {
+                    if (success) {
+                        displayAssignments(config.assignedSubjects);
+                        showStatus('Assignment deleted successfully', 'success');
+                    }
+                });
+            });
+        }
     }
     
     // Toggle previous terms display
     function togglePreviousTerms() {
-      showPreviousTerms = !showPreviousTerms;
-      const button = document.querySelector('.toggle-btn');
-      button.textContent = showPreviousTerms ? 'Hide Previous Terms' : 'Show Previous Terms';
-      loadConfiguration(); // Reload to update display
+        showPreviousTerms = !showPreviousTerms;
+        const button = document.querySelector('.toggle-btn');
+        button.textContent = showPreviousTerms ? 'Hide Previous Terms' : 'Show Previous Terms';
+        loadConfiguration(); // Reload to update display
     }
     
     // Custom options management
     function displayCustomOptions(config) {
-      displayTagList('customSubjectsList', config.customSubjects || [], 'customSubject');
-      displayTagList('customExamTypesList', config.customExamTypes || [], 'customExamType');
-      displayTagList('customStreamsList', config.customStreams || [], 'customStream');
+        displayTagList('customSubjectsList', config.customSubjects || [], 'customSubject');
+        displayTagList('customExamTypesList', config.customExamTypes || [], 'customExamType');
+        displayTagList('customStreamsList', config.customStreams || [], 'customStream');
     }
     
     function displayTagList(containerId, items, type) {
-      const container = document.getElementById(containerId);
-      container.innerHTML = items.map(item => 
-        `<span class="tag">${item} <button onclick="removeCustomItem('${type}', '${item}')">×</button></span>`
-      ).join('');
+        const container = document.getElementById(containerId);
+        container.innerHTML = items.map(item => 
+            `<span class="tag">${item} <button onclick="removeCustomItem('${type}', '${item}')">×</button></span>`
+        ).join('');
     }
     
     function addCustomSubject() {
-      addCustomItem('customSubject', 'customSubjects');
+        addCustomItem('customSubject', 'customSubjects');
     }
     
     function addCustomExamType() {
-      addCustomItem('customExamType', 'customExamTypes');
+        addCustomItem('customExamType', 'customExamTypes');
     }
     
     function addCustomStream() {
-      addCustomItem('customStream', 'customStreams');
+        addCustomItem('customStream', 'customStreams');
     }
     
     function addCustomItem(inputId, configKey) {
-      const input = document.getElementById(inputId);
-      const value = input.value.trim();
-      
-      if (!value) {
-        showStatus('Please enter a value', 'error');
-        return;
-      }
-      
-      window.loadTeacherConfig().then(config => {
-        config[configKey] = config[configKey] || [];
-        if (!config[configKey].includes(value)) {
-          config[configKey].push(value);
-          window.saveTeacherConfig(config).then(success => {
-            if (success) {
-              input.value = '';
-              displayCustomOptions(config);
-              showStatus('Item added successfully', 'success');
-            }
-          });
-        } else {
-          showStatus('Item already exists', 'error');
+        const input = document.getElementById(inputId);
+        const value = input.value.trim();
+        
+        if (!value) {
+            showStatus('Please enter a value', 'error');
+            return;
         }
-      });
+        
+        window.loadTeacherConfig().then(config => {
+            config[configKey] = config[configKey] || [];
+            if (!config[configKey].includes(value)) {
+                config[configKey].push(value);
+                window.saveTeacherConfig(config).then(success => {
+                    if (success) {
+                        input.value = '';
+                        displayCustomOptions(config);
+                        showStatus('Item added successfully', 'success');
+                    }
+                });
+            } else {
+                showStatus('Item already exists', 'error');
+            }
+        });
     }
     
     function removeCustomItem(type, value) {
-      const configMap = {
-        'customSubject': 'customSubjects',
-        'customExamType': 'customExamTypes', 
-        'customStream': 'customStreams'
-      };
-      
-      const configKey = configMap[type];
-      if (!configKey) return;
-      
-      window.loadTeacherConfig().then(config => {
-        config[configKey] = config[configKey].filter(item => item !== value);
-        window.saveTeacherConfig(config).then(success => {
-          if (success) {
-            displayCustomOptions(config);
-            showStatus('Item removed successfully', 'success');
-          }
+        const configMap = {
+            'customSubject': 'customSubjects',
+            'customExamType': 'customExamTypes', 
+            'customStream': 'customStreams'
+        };
+        
+        const configKey = configMap[type];
+        if (!configKey) return;
+        
+        window.loadTeacherConfig().then(config => {
+            config[configKey] = config[configKey].filter(item => item !== value);
+            window.saveTeacherConfig(config).then(success => {
+                if (success) {
+                    displayCustomOptions(config);
+                    showStatus('Item removed successfully', 'success');
+                }
+            });
         });
-      });
     }
     
     function getCustomSubjects() {
-      return getCustomItems('customSubjectsList');
+        return getCustomItems('customSubjectsList');
     }
     
     function getCustomExamTypes() {
-      return getCustomItems('customExamTypesList');
+        return getCustomItems('customExamTypesList');
     }
     
     function getCustomStreams() {
-      return getCustomItems('customStreamsList');
+        return getCustomItems('customStreamsList');
     }
     
     function getCustomItems(containerId) {
-      const container = document.getElementById(containerId);
-      return Array.from(container.querySelectorAll('.tag')).map(tag => 
-        tag.textContent.replace('×', '').trim()
-      );
+        const container = document.getElementById(containerId);
+        return Array.from(container.querySelectorAll('.tag')).map(tag => 
+            tag.textContent.replace('×', '').trim()
+        );
     }
     
     // Utility functions
     function showStatus(message, type) {
-      const statusEl = document.getElementById('configStatus');
-      statusEl.textContent = message;
-      statusEl.className = type;
-      statusEl.style.display = 'block';
-      
-      setTimeout(() => {
-        statusEl.style.display = 'none';
-      }, 3000);
+        const statusEl = document.getElementById('configStatus');
+        statusEl.textContent = message;
+        statusEl.className = type;
+        statusEl.style.display = 'block';
+        
+        setTimeout(() => {
+            statusEl.style.display = 'none';
+        }, 3000);
     }
     
     // Make functions available globally
@@ -871,6 +876,6 @@
     window.addCustomExamType = addCustomExamType;
     window.addCustomStream = addCustomStream;
     window.removeCustomItem = removeCustomItem;
-  </script>
+</script>
 </body>
 </html>
