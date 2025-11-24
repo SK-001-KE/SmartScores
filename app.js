@@ -2980,10 +2980,9 @@ window.downloadPDF = () => {
 };
    // ==================== UNIFIED FILTERING SYSTEM ====================
 
-// Core filtering functions for all pages
-function getClassesForTerm(term) {
+async function getClassesForTerm(term) {
     try {
-        const config = loadTeacherConfig();
+        const config = await loadTeacherConfig();
         const assignments = config.assignedSubjects || [];
         
         // Get unique classes configured for the specific term
@@ -2999,9 +2998,9 @@ function getClassesForTerm(term) {
     }
 }
 
-function getStreamsForTermAndClass(term, className) {
+async function getStreamsForTermAndClass(term, className) {
     try {
-        const config = loadTeacherConfig();
+        const config = await loadTeacherConfig();
         const assignments = config.assignedSubjects || [];
         
         // Get unique streams for the specific term and class
@@ -3021,9 +3020,9 @@ function getStreamsForTermAndClass(term, className) {
     }
 }
 
-function getSubjectsForTermClassAndStream(term, className, stream) {
+async function getSubjectsForTermClassAndStream(term, className, stream) {
     try {
-        const config = loadTeacherConfig();
+        const config = await loadTeacherConfig();
         const assignments = config.assignedSubjects || [];
         
         // Get unique subjects for the specific term, class and stream
@@ -3044,13 +3043,13 @@ function getSubjectsForTermClassAndStream(term, className, stream) {
     }
 }
 
-function getExamTypesForTerm(term) {
+async function getExamTypesForTerm(term) {
     try {
         // Get default exam types
         const defaultExamTypes = ['Opener Exam', 'Mid Term Exam', 'End Term Exam'];
         
         // Get custom exam types from configuration
-        const config = loadTeacherConfig();
+        const config = await loadTeacherConfig();
         const customExamTypes = config.customExamTypes || [];
         
         // Combine and return all exam types
