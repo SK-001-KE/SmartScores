@@ -261,6 +261,87 @@ const updateDataEntryForms = () => {
         }
     }
 };
+// ==================== TEACHER CONFIGURATION HELPER FUNCTIONS ====================
+
+// Get classes for a specific term from teacher assignments
+const getClassesForTerm = (term) => {
+    const config = loadTeacherConfig();
+    const assignments = config.assignedSubjects || [];
+    
+    // Get unique classes configured for the specific term
+    const classes = [...new Set(assignments
+        .filter(assignment => assignment.terms && assignment.terms.includes(term))
+        .map(assignment => assignment.class)
+    )].sort();
+    
+    return classes;
+};
+
+// Get streams for specific term and class
+const getStreamsForTermAndClass = (term, className) => {
+    const config = loadTeacherConfig();
+    const assignments = config.assignedSubjects || [];
+    
+    // Get unique streams for the specific term and class
+    const streams = [...new Set(assignments
+        .filter(assignment => 
+            assignment.class === className && 
+            assignment.terms && 
+            assignment.terms.includes(term)
+        )
+        .map(assignment => assignment.stream)
+    )].sort();
+    
+    return streams;
+};
+
+// Get subjects for specific term, class and stream
+const getSubjectsForTermClassAndStream = (term, className, stream) => {
+    const config = loadTeacherConfig();
+    const assignments = config.assignedSubjects || [];
+    
+    // Get unique subjects for the specific term, class and stream
+    const subjects = [...new Set(assignments
+        .filter(assignment => 
+            assignment.class === className && 
+            assignment.stream === stream &&
+            assignment.terms && 
+            assignment.terms.includes(term)
+        )
+        .map(assignment => assignment.subject)
+    )].sort();
+    
+    return subjects;
+};
+
+// Get exam types for term (includes custom exam types)
+const getExamTypesForTerm = (term) => {
+    // Get default exam types
+    const defaultExamTypes = ['Opener Exam', 'Mid Term Exam', 'End Term Exam'];
+    
+    // Get custom exam types from configuration
+    const config = loadTeacherConfig();
+    const customExamTypes = config.customExamTypes || [];
+    
+    // Combine and return all exam types
+    return [...defaultExamTypes, ...customExamTypes];
+};
+
+// Enhanced function to get custom items
+const getCustomSubjects = () => {
+    const config = loadTeacherConfig();
+    return config.customSubjects || [];
+};
+
+const getCustomExamTypes = () => {
+    const config = loadTeacherConfig();
+    return config.customExamTypes || [];
+};
+
+const getCustomStreams = () => {
+    const config = loadTeacherConfig();
+    return config.customStreams || [];
+};
 // ==================== EVENT HANDLERS FOR DATA ENTRY ====================
 
 function onTermChange() {
