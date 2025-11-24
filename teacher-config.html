@@ -527,18 +527,95 @@
         }
     });
     
-    function initializePage() {
-        // Load current configuration
-        loadConfiguration();
-        
-        // Populate dropdowns
-        populateDropdowns();
-        
-        // Update teacher name
-        const teacherName = window.getTeacherName ? window.getTeacherName() : localStorage.getItem('teacherFullName') || 'Guest Teacher';
-        document.getElementById('currentTeacher').textContent = teacherName;
-        document.getElementById('teacherName').textContent = teacherName;
+   // Replace the populateDropdowns function in teacher-config.html
+function populateDropdowns() {
+    console.log('🔄 Populating dropdowns...');
+    
+    // Populate subject dropdown
+    const subjectSelect = document.getElementById('newAssignmentSubject');
+    subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+    
+    let allSubjects = [];
+    
+    // Try multiple ways to get subjects
+    if (typeof window.getAllSubjects === 'function') {
+        allSubjects = window.getAllSubjects();
+        console.log('✅ Got subjects from getAllSubjects():', allSubjects);
+    } else if (typeof window.DEFAULT_SUBJECTS !== 'undefined') {
+        allSubjects = window.DEFAULT_SUBJECTS;
+        console.log('✅ Got subjects from DEFAULT_SUBJECTS:', allSubjects);
+    } else {
+        // Fallback subjects
+        allSubjects = [
+            'Agriculture', 'CRE', 'English', 'Creative Arts', 'Integrated Science', 
+            'Kiswahili', 'Mathematics', 'Pre-technical Studies', 'Social Studies',
+            'Creative Activities', 'Environmental Activities', 'Mathematical Activities',
+            'Religious Activities', 'Language Activities', 'Literature Activities', 
+            'Listening and Speaking', 'ICT', 'Chinese', 'French'
+        ];
+        console.log('⚠️ Using fallback subjects');
     }
+    
+    allSubjects.forEach(subject => {
+        const option = document.createElement('option');
+        option.value = subject;
+        option.textContent = subject;
+        subjectSelect.appendChild(option);
+    });
+    
+    // Populate class dropdown
+    const classSelect = document.getElementById('newAssignmentClass');
+    classSelect.innerHTML = '<option value="">Select Class</option>';
+    
+    let defaultClasses = [];
+    
+    if (typeof window.DEFAULT_CLASSES !== 'undefined') {
+        defaultClasses = window.DEFAULT_CLASSES;
+        console.log('✅ Got classes from DEFAULT_CLASSES:', defaultClasses);
+    } else {
+        // Fallback classes
+        defaultClasses = [
+            'Foundation Class', 'PP1', 'PP2', 
+            'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 
+            'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9'
+        ];
+        console.log('⚠️ Using fallback classes');
+    }
+    
+    defaultClasses.forEach(className => {
+        const option = document.createElement('option');
+        option.value = className;
+        option.textContent = className;
+        classSelect.appendChild(option);
+    });
+    
+    // Populate stream dropdown
+    const streamSelect = document.getElementById('newAssignmentStream');
+    streamSelect.innerHTML = '<option value="">Select Stream</option>';
+    
+    let allStreams = [];
+    
+    if (typeof window.getAllStreams === 'function') {
+        allStreams = window.getAllStreams();
+        console.log('✅ Got streams from getAllStreams():', allStreams);
+    } else if (typeof window.DEFAULT_STREAMS !== 'undefined') {
+        allStreams = window.DEFAULT_STREAMS;
+        console.log('✅ Got streams from DEFAULT_STREAMS:', allStreams);
+    } else {
+        // Fallback streams
+        allStreams = ['Faith', 'Glory', 'Joy', 'Love', 'Peace', 'Unity'];
+        console.log('⚠️ Using fallback streams');
+    }
+    
+    allStreams.forEach(stream => {
+        const option = document.createElement('option');
+        option.value = stream;
+        option.textContent = stream;
+        streamSelect.appendChild(option);
+    });
+    
+    console.log('✅ Dropdowns populated successfully');
+}
     
     // Load and display current configuration
     async function loadConfiguration() {
@@ -895,6 +972,19 @@ function populateDropdowns() {
             tag.textContent.replace('×', '').trim()
         );
     }
+   // Add this debug function to teacher-config.html
+function debugAvailableFunctions() {
+    console.log('=== DEBUG: Available Functions ===');
+    console.log('getAllSubjects:', typeof window.getAllSubjects);
+    console.log('getAllStreams:', typeof window.getAllStreams);
+    console.log('DEFAULT_SUBJECTS:', typeof window.DEFAULT_SUBJECTS);
+    console.log('DEFAULT_CLASSES:', typeof window.DEFAULT_CLASSES);
+    console.log('DEFAULT_STREAMS:', typeof window.DEFAULT_STREAMS);
+    console.log('loadTeacherConfig:', typeof window.loadTeacherConfig);
+    console.log('saveTeacherConfig:', typeof window.saveTeacherConfig);
+    console.log('=================================');
+}
+   
     
     // Utility functions
     function showStatus(message, type) {
